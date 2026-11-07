@@ -15,7 +15,10 @@ import 'wave_schedule.dart';
 class DefenseEngine {
   DefenseEngine({required this.level})
     : track = PathTrack([for (final point in level.path) point.design]),
-      slotPositions = [for (final slot in level.slots) slot.design] {
+      slotPositions = [for (final slot in level.slots) slot.design],
+      fogZones = [
+        for (final zone in level.fog) (zone.design, zone.radius * zone.radius),
+      ] {
     gold = level.startGold;
     carrotMaxHp = level.carrotHp;
     carrotHp = level.carrotHp;
@@ -27,6 +30,10 @@ class DefenseEngine {
   final LevelDef level;
   final PathTrack track;
   final List<Offset> slotPositions;
+
+  /// 毒雾区中心与半径平方，逐帧判定避免开方。
+  final List<(Offset, double)> fogZones;
+
   late final List<Tower?> towers;
 
   final List<Enemy> enemies = [];
@@ -275,8 +282,12 @@ class DefenseEngine {
       radius: base.radius,
       armor: base.armor,
       lateral: lateral,
+      flying: base.flying,
+      routeLength: base.flying
+          ? (track.points.last - track.points.first).distance
+          : track.length,
     );
-    final position = enemy.cursor.sample(track, 0, lateral);
+    final position = _routePosition(enemy);
     enemy
       ..position = position
       ..prevPosition = position;
@@ -284,8 +295,13 @@ class DefenseEngine {
     _enemyIndex[id] = enemy;
   }
 
+  /// 地面敌人沿土路前进，飞行敌人走入口到萝卜的直线。
+  Offset _routePosition(Enemy enemy) => enemy.flying
+      ? Offset.lerp(track.points.first, track.points.last, enemy.progress)!
+      : enemy.cursor.sample(track, enemy.distance, enemy.lateral);
+
   void _moveEnemies(double dt) {
-    final reach = track.length;
+    final fog = fogZones;
     var dead = false;
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
@@ -294,13 +310,18 @@ class DefenseEngine {
         enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
       }
       enemy.distance += enemy.currentSpeed * dt;
-      enemy.position = enemy.cursor.sample(
-        track,
-        enemy.distance,
-        enemy.lateral,
-      );
+      enemy.position = _routePosition(enemy);
       if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
-      if (enemy.distance >= reach) {
+      if (!enemy.flying && fog.isNotEmpty && _insideFog(enemy.position)) {
+        _damageEnemy(
+          enemy,
+          enemy.maxHp * kFogDpsRatio * dt,
+          quiet: true,
+          ignoreArmor: true,
+        );
+        if (!enemy.alive) continue;
+      }
+      if (enemy.distance >= enemy.routeLength) {
         enemy.alive = false;
         leaked++;
         carrotHp = math.max(0, carrotHp - enemy.damage);
@@ -325,10 +346,19 @@ class DefenseEngine {
     }
     if (dead) {
       for (final enemy in enemies) {
-        if (enemy.distance >= reach) enemy.alive = false;
+        if (enemy.distance >= enemy.routeLength) enemy.alive = false;
       }
     }
     _removeDeadEnemies();
+  }
+
+  bool _insideFog(Offset position) {
+    for (final (center, radiusSquared) in fogZones) {
+      final dx = position.dx - center.dx;
+      final dy = position.dy - center.dy;
+      if (dx * dx + dy * dy <= radiusSquared) return true;
+    }
+    return false;
   }
 
   void _removeDeadEnemies() {
@@ -367,7 +397,7 @@ class DefenseEngine {
 
   Enemy? _findTarget(Tower tower) {
     Enemy? best;
-    var bestDistance = -1.0;
+    var bestProgress = -1.0;
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
       final position = enemy.position;
@@ -377,8 +407,8 @@ class DefenseEngine {
       if (dx * dx + dy * dy > range * range) {
         continue;
       }
-      if (enemy.distance > bestDistance) {
-        bestDistance = enemy.distance;
+      if (enemy.progress > bestProgress) {
+        bestProgress = enemy.progress;
         best = enemy;
       }
     }
@@ -386,31 +416,24 @@ class DefenseEngine {
   }
 
   void _fire(Tower tower, Enemy target) {
-    final stats = tower.stats;
     tower.recoil = 1;
-    switch (tower.kind) {
-      case TowerKind.arrow:
-        _launch(tower, target, speed: 940, stats: stats);
-        events.add(GameEvent.arrowShot);
-        break;
-      case TowerKind.cannon:
-        _launch(tower, target, speed: 430, stats: stats);
-        events.add(GameEvent.cannonShot);
-        break;
-      case TowerKind.frost:
-        _launch(tower, target, speed: 720, stats: stats);
-        events.add(GameEvent.frostShot);
-        break;
-      case TowerKind.poison:
-        _launch(tower, target, speed: 640, stats: stats);
-        events.add(GameEvent.poisonShot);
-        break;
-      case TowerKind.lightning:
-        _chainLightning(tower, target);
-        events.add(GameEvent.lightning);
-        break;
+    if (tower.kind == TowerKind.lightning) {
+      _chainLightning(tower, target);
+      events.add(GameEvent.lightning);
+      return;
     }
+    final (speed, shot) = _shotProfiles[tower.kind]!;
+    _launch(tower, target, speed: speed, stats: tower.stats);
+    events.add(shot);
   }
+
+  /// 各类弹道塔的飞行速度与开火音效。
+  static const Map<TowerKind, (double, GameEvent)> _shotProfiles = {
+    TowerKind.arrow: (940, GameEvent.arrowShot),
+    TowerKind.cannon: (430, GameEvent.cannonShot),
+    TowerKind.frost: (720, GameEvent.frostShot),
+    TowerKind.poison: (640, GameEvent.poisonShot),
+  };
 
   void _launch(
     Tower tower,
@@ -529,6 +552,7 @@ class DefenseEngine {
   }
 
   void _applyPoison(Enemy enemy, Projectile projectile) {
+    if (enemy.flying) return;
     if (projectile.poisonDps <= 0 || projectile.poisonDuration <= 0) return;
     enemy.poisonDps = math.max(enemy.poisonDps, projectile.poisonDps);
     enemy.poisonTimer = math.max(enemy.poisonTimer, projectile.poisonDuration);
@@ -545,6 +569,7 @@ class DefenseEngine {
   }
 
   void _applySlow(Enemy enemy, Projectile projectile) {
+    if (enemy.flying) return;
     if (projectile.slowFactor >= 1 || projectile.slowDuration <= 0) return;
     if (projectile.slowFactor < enemy.slowFactor || enemy.slowTimer <= 0) {
       enemy.slowFactor = projectile.slowFactor;

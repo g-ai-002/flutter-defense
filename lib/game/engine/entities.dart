@@ -61,6 +61,8 @@ class Enemy {
     required this.radius,
     required this.armor,
     required this.lateral,
+    required this.routeLength,
+    this.flying = false,
   }) : hp = maxHp;
 
   final int id;
@@ -74,6 +76,12 @@ class Enemy {
 
   /// 同一路径上的横向错位，避免所有敌人重叠成一条线。
   final double lateral;
+
+  /// 飞行敌人沿入口到萝卜的直线前进，不走土路。
+  final bool flying;
+
+  /// 本局行进路线的总长度，用于统一进度比较。
+  final double routeLength;
 
   double hp;
   double distance = 0;
@@ -96,6 +104,10 @@ class Enemy {
   double get hpRatio => (hp / maxHp).clamp(0.0, 1.0);
   bool get slowed => slowTimer > 0;
   bool get poisoned => poisonTimer > 0;
+
+  /// 归一化行进进度，地面与飞行敌人可以放在同一尺度上比较。
+  double get progress =>
+      routeLength <= 0 ? 1 : (distance / routeLength).clamp(0.0, 1.0);
 
   double get currentSpeed => speed * (slowTimer > 0 ? slowFactor : 1);
 }

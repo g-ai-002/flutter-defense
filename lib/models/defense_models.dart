@@ -22,7 +22,8 @@ enum EnemyKind {
   runner('疾风兔', '速度极快，血量较低'),
   beetle('铁甲虫', '护甲厚重，移动缓慢'),
   tank('岩甲兽', '高血量重装敌人'),
-  boss('魔王', '最终波次的巨型首领');
+  boss('魔王', '最终波次的巨型首领'),
+  flyer('蝠妖', '直线飞越土路，免疫减速与中毒');
 
   const EnemyKind(this.label, this.blurb);
 

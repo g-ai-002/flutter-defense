@@ -129,6 +129,7 @@ class EnemyStats {
     required this.damage,
     required this.radius,
     required this.armor,
+    this.flying = false,
   });
 
   final double hp;
@@ -139,6 +140,9 @@ class EnemyStats {
 
   /// 承伤系数：铁甲虫只吃 62% 伤害。
   final double armor;
+
+  /// 飞行敌人沿直线前进，且免疫减速与中毒。
+  final bool flying;
 }
 
 const Map<EnemyKind, EnemyStats> kEnemyStats = {
@@ -182,7 +186,19 @@ const Map<EnemyKind, EnemyStats> kEnemyStats = {
     radius: 33,
     armor: 0.7,
   ),
+  EnemyKind.flyer: EnemyStats(
+    hp: 95,
+    speed: 52,
+    bounty: 10,
+    damage: 2,
+    radius: 14,
+    armor: 1,
+    flying: true,
+  ),
 };
+
+/// 毒雾每秒造成的伤害占最大生命值的比例（无视护甲）。
+const double kFogDpsRatio = 0.022;
 
 /// 赏金随关卡强度提升，保证后期经济跟得上塔价。
 int bountyFor(EnemyKind kind, double hpScale) =>

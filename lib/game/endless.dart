@@ -50,6 +50,13 @@ WaveDef endlessWave(int index) {
         gap: 1.4,
         delay: 3,
       ),
+    if (wave >= 8)
+      SpawnGroup(
+        EnemyKind.flyer,
+        math.min(10, 2 + wave ~/ 4),
+        gap: 0.8,
+        delay: 2.5,
+      ),
     if (wave % 15 == 0)
       SpawnGroup(EnemyKind.boss, math.min(3, 1 + wave ~/ 60), gap: 6, delay: 5),
   ];

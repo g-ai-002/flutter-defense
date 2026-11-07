@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import '../theme/level_theme.dart';
 import 'defense_models.dart';
 
@@ -24,6 +26,16 @@ class WaveDef {
   bool get hasBoss => groups.any((group) => group.kind == EnemyKind.boss);
 }
 
+/// 毒雾区：圆形范围，地面敌人经过时持续掉血（无视护甲），飞行敌人不受影响。
+class FogZone {
+  const FogZone(this.center, {this.radius = 112});
+
+  final GridPos center;
+  final double radius;
+
+  Offset get design => center.design;
+}
+
 /// 关卡定义：路径、可建造点、经济与波次。
 class LevelDef {
   const LevelDef({
@@ -38,6 +50,7 @@ class LevelDef {
     required this.hpScale,
     required this.waves,
     required this.seed,
+    this.fog = const [],
     this.endless = false,
   });
 
@@ -53,8 +66,13 @@ class LevelDef {
   final List<WaveDef> waves;
   final int seed;
 
+  /// 毒雾区，地面敌人穿行时会持续掉血。
+  final List<FogZone> fog;
+
   /// 无尽模式：波次表按上限生成，结算以坚守波数计分。
   final bool endless;
 
   int get waveCount => waves.length;
+
+  bool get hasFog => fog.isNotEmpty;
 }
