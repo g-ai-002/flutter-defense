@@ -71,6 +71,7 @@ class DefenseEngine {
 
   int? selectedSlot;
   TowerKind? armedKind;
+  int _aliveCount = 0;
 
   WaveSchedule? _schedule;
   int _nextEnemyId = 1;
@@ -99,11 +100,7 @@ class DefenseEngine {
 
   int get remainingEnemies {
     if (status != GameStatus.battle) return 0;
-    var alive = 0;
-    for (final enemy in enemies) {
-      if (enemy.alive) alive++;
-    }
-    return alive + (_schedule?.pending ?? 0);
+    return _aliveCount + (_schedule?.pending ?? 0);
   }
 
   double get waveProgress {
@@ -287,6 +284,7 @@ class DefenseEngine {
       ..position = position
       ..prevPosition = position;
     enemies.add(enemy);
+    _aliveCount++;
     _enemyIndex[id] = enemy;
   }
 
@@ -307,7 +305,10 @@ class DefenseEngine {
     }
     if (defeated) {
       for (final enemy in enemies) {
-        if (enemy.distance >= enemy.routeLength) enemy.alive = false;
+        if (enemy.alive && enemy.distance >= enemy.routeLength) {
+          enemy.alive = false;
+          _aliveCount--;
+        }
       }
     }
     _removeDeadEnemies();
@@ -340,6 +341,7 @@ class DefenseEngine {
   bool _leak(Enemy enemy) {
     final goal = track.end;
     enemy.alive = false;
+    _aliveCount--;
     leaked++;
     carrotHp = math.max(0, carrotHp - enemy.damage);
     _carrotPulse = 1;
@@ -364,6 +366,7 @@ class DefenseEngine {
   }
 
   void _removeDeadEnemies() {
+    if (enemies.length == _aliveCount) return;
     var write = 0;
     for (var read = 0; read < enemies.length; read++) {
       final enemy = enemies[read];
@@ -592,6 +595,7 @@ class DefenseEngine {
     if (!quiet) enemy.flash = 0.14;
     if (enemy.hp > 0) return;
     enemy.alive = false;
+    _aliveCount--;
     kills++;
     gold += enemy.bounty;
     goldEarned += enemy.bounty;
@@ -610,7 +614,7 @@ class DefenseEngine {
   Enemy? _enemyById(int id) => _enemyIndex[id];
 
   void _checkWaveComplete() {
-    if (enemies.isNotEmpty) return;
+    if (_aliveCount > 0) return;
     final schedule = _schedule;
     if (schedule != null && !schedule.done) return;
     final wave = level.waves[waveIndex - 1];
