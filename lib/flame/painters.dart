@@ -1,10 +1,14 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../models/defense_models.dart';
 
 /// 塔防美术：塔、萝卜、敌人全部用 Canvas 程序化绘制，仓库不携带图片资源。
+///
+/// 敌人身体、塔身与炮塔的形状固定，按「类型 + 半径」录制为 Picture 后复用，
+/// 每帧只做一次平移/旋转，避免重复创建 Path、Shader 与 Paint。
 
 Paint fill(Color color) => Paint()
   ..color = color
@@ -26,6 +30,150 @@ void _shadow(Canvas canvas, Offset center, double radius, double opacity) {
     ),
     fill(Colors.black.withValues(alpha: opacity)),
   );
+}
+
+final Map<int, ui.Picture> _enemyBodies = {};
+final Map<int, ui.Picture> _towerBases = {};
+final Map<int, ui.Picture> _towerTurrets = {};
+final Map<int, ui.Picture> _padBases = {};
+
+int _radiusKey(double radius) => (radius * 10).round();
+
+ui.Picture _record(void Function(Canvas canvas) draw) {
+  final recorder = ui.PictureRecorder();
+  draw(Canvas(recorder));
+  return recorder.endRecording();
+}
+
+void _storeSprite(Map<int, ui.Picture> cache, int key, ui.Picture picture) {
+  if (cache.length >= 48) {
+    for (final item in cache.values) {
+      item.dispose();
+    }
+    cache.clear();
+  }
+  cache[key] = picture;
+}
+
+ui.Picture _enemyBodySprite(EnemyKind kind, double radius) {
+  final key = kind.index * 100000 + _radiusKey(radius);
+  final cached = _enemyBodies[key];
+  if (cached != null) return cached;
+  final picture = _record((canvas) {
+    _shadow(canvas, Offset.zero, radius, 0.18);
+    switch (kind) {
+      case EnemyKind.slime:
+        _paintSlime(canvas, radius);
+        break;
+      case EnemyKind.runner:
+        _paintRunner(canvas, radius);
+        break;
+      case EnemyKind.beetle:
+        _paintBeetle(canvas, radius);
+        break;
+      case EnemyKind.tank:
+        _paintTank(canvas, radius);
+        break;
+      case EnemyKind.boss:
+        _paintBoss(canvas, radius);
+        break;
+    }
+  });
+  _storeSprite(_enemyBodies, key, picture);
+  return picture;
+}
+
+ui.Picture _towerBaseSprite(double radius) {
+  final key = _radiusKey(radius);
+  final cached = _towerBases[key];
+  if (cached != null) return cached;
+  final picture = _record((canvas) {
+    _shadow(canvas, Offset.zero, radius, 0.2);
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 1.02,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFB98A5E), Color(0xFF7B5233)],
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 1.02,
+      stroke(const Color(0xFF5C3A22), radius * 0.06),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.78,
+      fill(const Color(0xFFD9B183).withValues(alpha: 0.55)),
+    );
+  });
+  _storeSprite(_towerBases, key, picture);
+  return picture;
+}
+
+ui.Picture _towerTurretSprite(TowerKind kind, double radius) {
+  final key = kind.index * 100000 + _radiusKey(radius);
+  final cached = _towerTurrets[key];
+  if (cached != null) return cached;
+  final picture = _record((canvas) {
+    switch (kind) {
+      case TowerKind.arrow:
+        _paintArrowTower(canvas, radius);
+        break;
+      case TowerKind.cannon:
+        _paintCannonTower(canvas, radius);
+        break;
+      case TowerKind.frost:
+        _paintFrostTower(canvas, radius);
+        break;
+      case TowerKind.lightning:
+        _paintLightningTower(canvas, radius);
+        break;
+    }
+  });
+  _storeSprite(_towerTurrets, key, picture);
+  return picture;
+}
+
+ui.Picture _padBaseSprite(double radius) {
+  final key = _radiusKey(radius);
+  final cached = _padBases[key];
+  if (cached != null) return cached;
+  final picture = _record((canvas) {
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(0, radius * 0.55),
+        width: radius * 2.2,
+        height: radius * 0.7,
+      ),
+      fill(Colors.black.withValues(alpha: 0.14)),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF0EAD8), Color(0xFFC8BE9E)],
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius,
+      stroke(const Color(0xFF8E866A), radius * 0.08),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.74,
+      fill(const Color(0xFF7F775E).withValues(alpha: 0.18)),
+    );
+  });
+  _storeSprite(_padBases, key, picture);
+  return picture;
 }
 
 /// 终点萝卜：圆润的橙色身体、绿叶与表情。
@@ -168,25 +316,7 @@ void paintEnemy(
 }) {
   canvas.save();
   canvas.translate(center.dx, center.dy + bob);
-  _shadow(canvas, Offset.zero, radius, 0.18);
-
-  switch (kind) {
-    case EnemyKind.slime:
-      _paintSlime(canvas, radius);
-      break;
-    case EnemyKind.runner:
-      _paintRunner(canvas, radius);
-      break;
-    case EnemyKind.beetle:
-      _paintBeetle(canvas, radius);
-      break;
-    case EnemyKind.tank:
-      _paintTank(canvas, radius);
-      break;
-    case EnemyKind.boss:
-      _paintBoss(canvas, radius);
-      break;
-  }
+  canvas.drawPicture(_enemyBodySprite(kind, radius));
 
   if (slowed) {
     canvas.drawCircle(
@@ -598,45 +728,12 @@ void paintTower(
     );
   }
 
-  _shadow(canvas, Offset.zero, radius, 0.2);
-  canvas.drawCircle(
-    Offset.zero,
-    radius * 1.02,
-    Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFB98A5E), Color(0xFF7B5233)],
-      ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
-  );
-  canvas.drawCircle(
-    Offset.zero,
-    radius * 1.02,
-    stroke(const Color(0xFF5C3A22), radius * 0.06),
-  );
-  canvas.drawCircle(
-    Offset.zero,
-    radius * 0.78,
-    fill(const Color(0xFFD9B183).withValues(alpha: 0.55)),
-  );
+  canvas.drawPicture(_towerBaseSprite(radius));
 
   canvas.save();
   canvas.rotate(angle);
-  canvas.translate(-recoil * radius * 0.16, 0);
-  switch (kind) {
-    case TowerKind.arrow:
-      _paintArrowTower(canvas, radius);
-      break;
-    case TowerKind.cannon:
-      _paintCannonTower(canvas, radius);
-      break;
-    case TowerKind.frost:
-      _paintFrostTower(canvas, radius);
-      break;
-    case TowerKind.lightning:
-      _paintLightningTower(canvas, radius);
-      break;
-  }
+  if (recoil > 0) canvas.translate(-recoil * radius * 0.16, 0);
+  canvas.drawPicture(_towerTurretSprite(kind, radius));
   canvas.restore();
 
   // 等级宝石
@@ -823,45 +920,20 @@ void paintPad(
   bool selected = false,
   double pulse = 0,
 }) {
-  canvas.drawOval(
-    Rect.fromCenter(
-      center: center + Offset(0, radius * 0.55),
-      width: radius * 2.2,
-      height: radius * 0.7,
-    ),
-    fill(Colors.black.withValues(alpha: 0.14)),
-  );
-  canvas.drawCircle(
-    center,
-    radius,
-    Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFFF0EAD8), Color(0xFFC8BE9E)],
-      ).createShader(Rect.fromCircle(center: center, radius: radius)),
-  );
-  canvas.drawCircle(
-    center,
-    radius,
-    stroke(const Color(0xFF8E866A), radius * 0.08),
-  );
-  canvas.drawCircle(
-    center,
-    radius * 0.74,
-    fill(const Color(0xFF7F775E).withValues(alpha: 0.18)),
-  );
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+  canvas.drawPicture(_padBaseSprite(radius));
 
   if (armed || selected) {
     final glow = armed ? const Color(0xFF9BE36C) : const Color(0xFFFFE08A);
     final spread = radius * (1.1 + 0.06 * math.sin(pulse * 4));
     canvas.drawCircle(
-      center,
+      Offset.zero,
       spread,
       stroke(glow.withValues(alpha: 0.85), radius * 0.1),
     );
     canvas.drawCircle(
-      center,
+      Offset.zero,
       spread + radius * 0.08,
       stroke(glow.withValues(alpha: 0.25), radius * 0.16),
     );
@@ -870,16 +942,9 @@ void paintPad(
     const Color(0xFF6E654C).withValues(alpha: 0.8),
     radius * 0.12,
   );
-  canvas.drawLine(
-    center + Offset(-radius * 0.26, 0),
-    center + Offset(radius * 0.26, 0),
-    plus,
-  );
-  canvas.drawLine(
-    center + Offset(0, -radius * 0.26),
-    center + Offset(0, radius * 0.26),
-    plus,
-  );
+  canvas.drawLine(Offset(-radius * 0.26, 0), Offset(radius * 0.26, 0), plus);
+  canvas.drawLine(Offset(0, -radius * 0.26), Offset(0, radius * 0.26), plus);
+  canvas.restore();
 }
 
 /// UI 中的塔图标：与战场塔同一套绘制，缩放到指定尺寸。

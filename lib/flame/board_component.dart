@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -37,27 +38,42 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   late final List<_Decor> _decorations;
   late final List<_Blob> _blobs;
   final Map<String, TextPainter> _textCache = {};
+  final Map<int, ui.Picture> _rangeLayers = {};
+  final List<Enemy> _enemyOrder = [];
+  late final void Function(double) _stepEngine = engine.update;
+  ui.Picture? _staticLayer;
+  ui.Picture? _backdropLayer;
+  Size _backdropSize = Size.zero;
+  int _staticLayerBuilds = 0;
+  int _backdropBuilds = 0;
   double _visualTime = 0;
   bool _resultLogged = false;
 
   LevelPalette get _palette => paletteOf(engine.level.theme);
   PathTrack get _track => engine.track;
 
+  /// 静态图层被录制的次数，供性能回归测试确认缓存生效。
+  @visibleForTesting
+  int get staticLayerBuilds => _staticLayerBuilds;
+
+  /// 屏幕背景图层被录制的次数，尺寸不变时应保持为 1。
+  @visibleForTesting
+  int get backdropBuilds => _backdropBuilds;
+
   @override
   void update(double dt) {
     super.update(dt);
     _visualTime += dt;
     if (pausedNotifier.value) return;
-    _clock.advance(dt * speed.value, engine.update);
+    _clock.advance(dt * speed.value, _stepEngine);
     _consumeEvents();
   }
 
   void _consumeEvents() {
-    if (engine.events.isEmpty) return;
-    final events = List<GameEvent>.of(engine.events);
-    engine.events.clear();
-    for (final event in events) {
-      switch (event) {
+    final events = engine.events;
+    if (events.isEmpty) return;
+    for (var i = 0; i < events.length; i++) {
+      switch (events[i]) {
         case GameEvent.build:
           SoundService.play(SoundFx.build);
           final slot = engine.selectedSlot;
@@ -113,6 +129,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
           break;
       }
     }
+    events.clear();
   }
 
   void _logResult(bool victory) {
@@ -197,7 +214,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   void render(Canvas canvas) {
     if (size.x <= 0 || size.y <= 0) return;
     final layout = _layout();
-    _paintBackdrop(canvas);
+    _paintBackdrop(canvas, layout);
     canvas.save();
     canvas.translate(layout.origin.dx, layout.origin.dy);
     canvas.scale(layout.scale);
@@ -206,10 +223,9 @@ class BoardComponent extends PositionComponent with TapCallbacks {
       const Radius.circular(28),
     );
     canvas.clipRRect(clip);
-    _paintGround(canvas);
-    _paintDecorations(canvas);
-    _paintPath(canvas);
-    _paintStart(canvas);
+    _ensureStaticLayer();
+    canvas.drawPicture(_staticLayer!);
+    _paintStartGlow(canvas);
     _paintCarrot(canvas);
     _paintPads(canvas);
     _paintRange(canvas);
@@ -236,8 +252,34 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     );
   }
 
-  void _paintBackdrop(Canvas canvas) {
-    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
+  /// 地貌、装饰、土路与起点底座都是静态内容，只录制一次。
+  void _ensureStaticLayer() {
+    if (_staticLayer != null) return;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    _paintGround(canvas);
+    _paintDecorations(canvas);
+    _paintPath(canvas);
+    _paintStartBase(canvas);
+    _staticLayer = recorder.endRecording();
+    _staticLayerBuilds++;
+  }
+
+  void _paintBackdrop(Canvas canvas, _Layout layout) {
+    final view = Size(size.x, size.y);
+    if (_backdropLayer == null || _backdropSize != view) {
+      _backdropLayer?.dispose();
+      final recorder = ui.PictureRecorder();
+      _recordBackdrop(Canvas(recorder), view, layout);
+      _backdropLayer = recorder.endRecording();
+      _backdropSize = view;
+      _backdropBuilds++;
+    }
+    canvas.drawPicture(_backdropLayer!);
+  }
+
+  void _recordBackdrop(Canvas canvas, Size view, _Layout layout) {
+    final rect = Offset.zero & view;
     final palette = _palette;
     canvas.drawRect(
       rect,
@@ -266,7 +308,6 @@ class BoardComponent extends PositionComponent with TapCallbacks {
           ],
         ).createShader(glow),
     );
-    final layout = _layout();
     final shadowRect = Rect.fromLTWH(
       layout.origin.dx,
       layout.origin.dy,
@@ -279,6 +320,20 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         ..color = Colors.black.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20),
     );
+  }
+
+  @override
+  void onRemove() {
+    _staticLayer?.dispose();
+    _backdropLayer?.dispose();
+    _staticLayer = null;
+    _backdropLayer = null;
+    for (final layer in _rangeLayers.values) {
+      layer.dispose();
+    }
+    _rangeLayers.clear();
+    _textCache.clear();
+    super.onRemove();
   }
 
   void _paintGround(Canvas canvas) {
@@ -692,7 +747,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     }
   }
 
-  void _paintStart(Canvas canvas) {
+  void _paintStartBase(Canvas canvas) {
     final start = _track.points.first;
     canvas.drawCircle(
       start,
@@ -718,6 +773,10 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         fill(const Color(0xFF6E5B45)),
       );
     }
+  }
+
+  void _paintStartGlow(Canvas canvas) {
+    final start = _track.points.first;
     final glow = 0.3 + 0.2 * math.sin(_visualTime * 2);
     canvas.drawCircle(
       start,
@@ -741,16 +800,16 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   }
 
   void _paintPads(Canvas canvas) {
+    final armedKind = engine.armedKind;
+    final armed = armedKind != null;
+    final armedCost = armed ? towerStats(armedKind, 1).cost : 0;
     for (var i = 0; i < engine.slotPositions.length; i++) {
       if (engine.towerAt(i) != null) continue;
-      final armed = engine.armedKind != null;
-      final affordable =
-          armed && engine.gold >= towerStats(engine.armedKind!, 1).cost;
       paintPad(
         canvas,
         engine.slotPositions[i],
         27,
-        armed: affordable,
+        armed: armed && engine.gold >= armedCost,
         selected: engine.selectedSlot == i,
         pulse: _visualTime,
       );
@@ -761,22 +820,11 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     final tower = engine.selectedTower;
     if (tower == null) return;
     final center = tower.position;
-    final radius = tower.stats.range;
-    canvas.drawCircle(
-      center,
-      radius,
-      fill(const Color(0xFFFFF3C4).withValues(alpha: 0.09)),
-    );
-    final paint = stroke(const Color(0xFFFFE08A).withValues(alpha: 0.8), 2);
-    for (var angle = 0.0; angle < math.pi * 2; angle += math.pi / 18) {
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        angle,
-        math.pi / 26,
-        false,
-        paint,
-      );
-    }
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.drawPicture(_rangeSprite(tower.stats.range));
+    canvas.restore();
+
     final canUpgrade = tower.canUpgrade && engine.gold >= tower.upgradeCost;
     if (canUpgrade) {
       final marker = tower.position + const Offset(0, -42);
@@ -792,6 +840,28 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         ..close();
       canvas.drawPath(arrow, fill(Colors.white));
     }
+  }
+
+  /// 射程虚线圈形状固定，按半径缓存，避免每帧重复 36 次 drawArc。
+  ui.Picture _rangeSprite(double radius) {
+    final key = (radius * 2).round();
+    final cached = _rangeLayers[key];
+    if (cached != null) return cached;
+    final recorder = ui.PictureRecorder();
+    final rangeCanvas = Canvas(recorder);
+    rangeCanvas.drawCircle(
+      Offset.zero,
+      radius,
+      fill(const Color(0xFFFFF3C4).withValues(alpha: 0.09)),
+    );
+    final paint = stroke(const Color(0xFFFFE08A).withValues(alpha: 0.8), 2);
+    final rect = Rect.fromCircle(center: Offset.zero, radius: radius);
+    for (var angle = 0.0; angle < math.pi * 2; angle += math.pi / 18) {
+      rangeCanvas.drawArc(rect, angle, math.pi / 26, false, paint);
+    }
+    final picture = recorder.endRecording();
+    _rangeLayers[key] = picture;
+    return picture;
   }
 
   void _paintTowers(Canvas canvas) {
@@ -811,9 +881,12 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
   void _paintEnemies(Canvas canvas) {
     final alpha = _clock.alpha;
-    final sorted = engine.enemies.where((enemy) => enemy.alive).toList()
-      ..sort((a, b) => a.distance.compareTo(b.distance));
-    for (final enemy in sorted) {
+    final order = _enemyOrder..clear();
+    for (final enemy in engine.enemies) {
+      if (enemy.alive) order.add(enemy);
+    }
+    order.sort(_byDistance);
+    for (final enemy in order) {
       final position = engine.enemyPosition(enemy, alpha: alpha);
       final bob = math.sin(_visualTime * 7 + enemy.id) * 1.5;
       paintEnemy(
@@ -1043,7 +1116,9 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     Color color, {
     bool bold = false,
   }) {
-    final key = '$text|$fontSize|${color.toARGB32()}|$bold';
+    // 透明度按 1/16 量化，飘字渐隐时不再每帧新建 TextPainter。
+    final alpha = color.a <= 0 ? 0 : (color.a * 16).ceil().clamp(1, 16);
+    final key = '$text|$fontSize|$alpha|$bold';
     final cached = _textCache[key];
     if (cached != null) return cached;
     if (_textCache.length > 160) _textCache.clear();
@@ -1052,7 +1127,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         text: text,
         style: TextStyle(
           fontSize: fontSize,
-          color: color,
+          color: color.withValues(alpha: alpha / 16),
           fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
           shadows: const [
             Shadow(
@@ -1069,6 +1144,8 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     return painter;
   }
 }
+
+int _byDistance(Enemy a, Enemy b) => a.distance.compareTo(b.distance);
 
 class _Layout {
   const _Layout({required this.origin, required this.scale});
