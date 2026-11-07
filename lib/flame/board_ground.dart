@@ -537,25 +537,13 @@ class BoardGround {
   }
 }
 
-class _Blob {
-  const _Blob({
-    required this.position,
-    required this.radius,
-    required this.alpha,
-    required this.light,
-  });
-
-  final Offset position;
-  final double radius;
-  final double alpha;
-  final bool light;
-}
+typedef _Blob = ({Offset position, double radius, double alpha, bool light});
 
 List<_Blob> _buildBlobs(int seed) {
   final random = math.Random(seed + 5);
   return List.generate(9, (_) {
     final light = random.nextBool();
-    return _Blob(
+    return (
       position: Offset(
         80 + random.nextDouble() * (kDesignWidth - 160),
         50 + random.nextDouble() * (kDesignHeight - 100),
@@ -567,19 +555,7 @@ List<_Blob> _buildBlobs(int seed) {
   });
 }
 
-class _Decor {
-  const _Decor({
-    required this.position,
-    required this.kind,
-    required this.scale,
-    required this.flip,
-  });
-
-  final Offset position;
-  final int kind;
-  final double scale;
-  final bool flip;
-}
+typedef _Decor = ({Offset position, int kind, double scale, bool flip});
 
 List<_Decor> _buildDecorations(DefenseEngine engine) {
   final random = math.Random(engine.level.seed);
@@ -609,14 +585,12 @@ List<_Decor> _buildDecorations(DefenseEngine engine) {
       }
     }
     if (rejected) continue;
-    result.add(
-      _Decor(
-        position: position,
-        kind: random.nextInt(3),
-        scale: 0.8 + random.nextDouble() * 0.55,
-        flip: random.nextBool(),
-      ),
-    );
+    result.add((
+      position: position,
+      kind: random.nextInt(3),
+      scale: 0.8 + random.nextDouble() * 0.55,
+      flip: random.nextBool(),
+    ));
   }
   return result;
 }
