@@ -21,13 +21,13 @@
 
 ## 下载
 
-v0.2.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.2.0)
+v0.2.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.2.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-defense-0.2.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-defense-0.2.0-windows-x86_64.zip` |
-| Web | `flutter-defense-0.2.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-defense-0.2.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-defense-0.2.1-windows-x86_64.zip` |
+| Web | `flutter-defense-0.2.1-web.zip`（解压后起静态服务器） |
 
 ## 玩法
 
@@ -74,6 +74,7 @@ lib/
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.2.1 | 重构战场、HUD 与结算面板分层，抽出波次时间表与特效工厂，玩法数值不变 |
 | v0.2.0 | 新增无尽挑战与本地排行榜、毒液塔，扩展可重复游玩内容 |
 | v0.1.2 | 性能与流畅度优化：静态图层与单位精灵缓存、路径二分采样、HUD 按需刷新、暂停停帧、音频后台合成 |
 | v0.1.1 | 修复窄屏竖屏布局溢出，塔栏改为横向滚动，收敛卡片与配置重复 |
