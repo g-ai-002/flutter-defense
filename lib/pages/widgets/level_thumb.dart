@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../flame/fog_art.dart' as fog;
 import '../../models/level.dart';
 import '../../theme/level_theme.dart';
 import '../../utils/constants.dart';
@@ -87,13 +88,7 @@ class _ThumbPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.18),
     );
-    for (final zone in level.fog) {
-      canvas.drawCircle(
-        origin + zone.design * scale,
-        zone.radius * scale,
-        Paint()..color = const Color(0xFF6FBF4A).withValues(alpha: 0.4),
-      );
-    }
+    fog.paintFogThumb(canvas, level, origin, scale);
     for (final slot in level.slots) {
       final point = map(slot.col, slot.row);
       canvas.drawCircle(

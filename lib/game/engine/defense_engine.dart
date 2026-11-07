@@ -206,10 +206,7 @@ class DefenseEngine {
       gold += bonus;
       goldEarned += bonus;
       floaters.add(
-        Floater.notice(
-          '提前出击 +$bonus',
-          track.pointAt(0) + const Offset(30, -20),
-        ),
+        Floater.notice('提前出击 +$bonus', track.start + const Offset(30, -20)),
       );
     }
     _beginWave();
@@ -283,9 +280,7 @@ class DefenseEngine {
       armor: base.armor,
       lateral: lateral,
       flying: base.flying,
-      routeLength: base.flying
-          ? (track.points.last - track.points.first).distance
-          : track.length,
+      routeLength: base.flying ? track.airLength : track.length,
     );
     final position = _routePosition(enemy);
     enemy
@@ -297,59 +292,66 @@ class DefenseEngine {
 
   /// 地面敌人沿土路前进，飞行敌人走入口到萝卜的直线。
   Offset _routePosition(Enemy enemy) => enemy.flying
-      ? Offset.lerp(track.points.first, track.points.last, enemy.progress)!
+      ? Offset.lerp(track.start, track.end, enemy.progress)!
       : enemy.cursor.sample(track, enemy.distance, enemy.lateral);
 
   void _moveEnemies(double dt) {
-    final fog = fogZones;
-    var dead = false;
+    var defeated = false;
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
-      enemy.prevPosition = enemy.position;
-      if (enemy.slowTimer > 0) {
-        enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
+      _advanceEnemy(enemy, dt);
+      if (enemy.alive && enemy.distance >= enemy.routeLength) {
+        defeated = _leak(enemy);
       }
-      enemy.distance += enemy.currentSpeed * dt;
-      enemy.position = _routePosition(enemy);
-      if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
-      if (!enemy.flying && fog.isNotEmpty && _insideFog(enemy.position)) {
-        _damageEnemy(
-          enemy,
-          enemy.maxHp * kFogDpsRatio * dt,
-          quiet: true,
-          ignoreArmor: true,
-        );
-        if (!enemy.alive) continue;
-      }
-      if (enemy.distance >= enemy.routeLength) {
-        enemy.alive = false;
-        leaked++;
-        carrotHp = math.max(0, carrotHp - enemy.damage);
-        _carrotPulse = 1;
-        effects.add(Effect.leak(track.points.last));
-        floaters.add(
-          Floater.damage(
-            enemy.damage,
-            track.points.last + const Offset(0, -48),
-          ),
-        );
-        events.add(GameEvent.leak);
-        _bump();
-        if (carrotHp <= 0) {
-          status = GameStatus.defeat;
-          events.add(GameEvent.defeat);
-          _announceResult();
-          dead = true;
-          break;
-        }
-      }
+      if (defeated) break;
     }
-    if (dead) {
+    if (defeated) {
       for (final enemy in enemies) {
         if (enemy.distance >= enemy.routeLength) enemy.alive = false;
       }
     }
     _removeDeadEnemies();
+  }
+
+  /// 推进单个敌人：先结算移动与状态倒计时，再判定毒雾伤害。
+  void _advanceEnemy(Enemy enemy, double dt) {
+    enemy.prevPosition = enemy.position;
+    if (enemy.slowTimer > 0) {
+      enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
+    }
+    enemy.distance += enemy.currentSpeed * dt;
+    enemy.position = _routePosition(enemy);
+    if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
+    _applyFog(enemy, dt);
+  }
+
+  /// 毒雾只腐蚀地面敌人，伤害按最大生命值比例结算且无视护甲。
+  void _applyFog(Enemy enemy, double dt) {
+    if (enemy.flying || fogZones.isEmpty || !_insideFog(enemy.position)) return;
+    _damageEnemy(
+      enemy,
+      enemy.maxHp * kFogDpsRatio * dt,
+      quiet: true,
+      ignoreArmor: true,
+    );
+  }
+
+  /// 敌人走到终点扣减萝卜血量；血量归零时返回 true。
+  bool _leak(Enemy enemy) {
+    final goal = track.end;
+    enemy.alive = false;
+    leaked++;
+    carrotHp = math.max(0, carrotHp - enemy.damage);
+    _carrotPulse = 1;
+    effects.add(Effect.leak(goal));
+    floaters.add(Floater.damage(enemy.damage, goal + const Offset(0, -48)));
+    events.add(GameEvent.leak);
+    _bump();
+    if (carrotHp > 0) return false;
+    status = GameStatus.defeat;
+    events.add(GameEvent.defeat);
+    _announceResult();
+    return true;
   }
 
   bool _insideFog(Offset position) {

@@ -32,6 +32,13 @@ class PathTrack {
   final List<Offset> _tangents;
   late final double length;
 
+  /// 土路起点与终点，飞行敌人直接使用入口到萝卜的连线。
+  Offset get start => points.first;
+  Offset get end => points.last;
+
+  /// 入口到萝卜的直线长度，供飞行敌人比较归一化进度。
+  double get airLength => (end - start).distance;
+
   Offset pointAt(double distance) => sampleAt(distance).position;
 
   Offset tangentAt(double distance) => sampleAt(distance).tangent;
@@ -69,9 +76,6 @@ class PathTrack {
     }
     return best;
   }
-
-  /// 判断点是否落在路径两侧 [margin] 范围内。
-  bool isNear(Offset point, double margin) => distanceTo(point) <= margin;
 }
 
 /// 沿路径单调前进的采样游标：记住上一帧所在分段，下次从该段继续。

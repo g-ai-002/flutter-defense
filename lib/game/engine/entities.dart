@@ -167,79 +167,59 @@ class Effect {
     this.duration = 0.4,
   });
 
+  /// 所有特效工厂共用的构造路径。
+  factory Effect._of(
+    EffectKind kind,
+    Offset position,
+    double radius,
+    double duration, [
+    List<Offset> points = const [],
+  ]) => Effect(
+    kind: kind,
+    position: position,
+    points: points,
+    radius: radius,
+    duration: duration,
+  );
+
   factory Effect.buildDust(
     Offset position, {
     double radius = 34,
     double duration = 0.45,
-  }) => Effect(
-    kind: EffectKind.buildDust,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.buildDust, position, radius, duration);
 
   factory Effect.spark(
     Offset position, {
     double radius = 14,
     double duration = 0.22,
-  }) => Effect(
-    kind: EffectKind.spark,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.spark, position, radius, duration);
 
   factory Effect.explosion(
     Offset position, {
     required double radius,
     double duration = 0.45,
-  }) => Effect(
-    kind: EffectKind.explosion,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.explosion, position, radius, duration);
 
   factory Effect.frostRing(
     Offset position, {
     required double radius,
     double duration = 0.45,
-  }) => Effect(
-    kind: EffectKind.frostRing,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.frostRing, position, radius, duration);
 
   factory Effect.poisonCloud(
     Offset position, {
     required double radius,
     double duration = 0.45,
-  }) => Effect(
-    kind: EffectKind.poison,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.poison, position, radius, duration);
 
   factory Effect.leak(
     Offset position, {
     double radius = 46,
     double duration = 0.5,
-  }) => Effect(
-    kind: EffectKind.leak,
-    position: position,
-    radius: radius,
-    duration: duration,
-  );
+  }) => Effect._of(EffectKind.leak, position, radius, duration);
 
   factory Effect.lightning(List<Offset> points, {double duration = 0.22}) =>
-      Effect(
-        kind: EffectKind.lightning,
-        position: points.first,
-        points: points,
-        duration: duration,
-      );
+      Effect._of(EffectKind.lightning, points.first, 20, duration, points);
 
   final EffectKind kind;
   final Offset position;

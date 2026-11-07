@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../game/balance.dart';
 import '../game/engine/defense_engine.dart';
 import '../game/engine/entities.dart';
+import 'fog_art.dart' as fog;
 import 'painters.dart';
 import 'projectile_art.dart';
 
@@ -19,7 +20,7 @@ class BoardActorLayer {
   final List<Enemy> _enemyOrder = [];
 
   void paintCarrotTarget(Canvas canvas) {
-    final end = engine.track.points.last;
+    final end = engine.track.end;
     paintCarrot(canvas, end, 44, pulse: engine.carrotPulse);
     if (engine.carrotHp <= 0) {
       canvas.drawCircle(
@@ -31,21 +32,8 @@ class BoardActorLayer {
   }
 
   /// 毒雾区上缓慢漂移的雾气，让静态毒圈有呼吸感。
-  void paintFogMist(Canvas canvas, double visualTime) {
-    for (final zone in engine.level.fog) {
-      final center = zone.design;
-      final radius = zone.radius;
-      for (var i = 0; i < 3; i++) {
-        final angle = visualTime * (0.28 + i * 0.09) + i * 2.1;
-        final drift = radius * (0.34 + i * 0.16);
-        canvas.drawCircle(
-          center + Offset(math.cos(angle), math.sin(angle)) * drift,
-          radius * (0.3 + 0.05 * math.sin(visualTime + i)),
-          fill(const Color(0xFFB7E88A).withValues(alpha: 0.09)),
-        );
-      }
-    }
-  }
+  void paintFogMist(Canvas canvas, double visualTime) =>
+      fog.paintFogMist(canvas, engine.level, visualTime);
 
   void paintPads(Canvas canvas, double visualTime) {
     final armedKind = engine.armedKind;

@@ -52,15 +52,12 @@ void main() {
 
       expect(enemy.flying, isTrue);
       expect(enemy.routeLength, lessThan(engine.track.length));
-      expect(
-        (engine.track.points.last - engine.track.points.first).distance,
-        closeTo(enemy.routeLength, 0.001),
-      );
+      expect(enemy.routeLength, engine.track.airLength);
 
       advance(engine, 9);
       final expected = Offset.lerp(
-        engine.track.points.first,
-        engine.track.points.last,
+        engine.track.start,
+        engine.track.end,
         enemy.progress,
       )!;
       expect((enemy.position - expected).distance, lessThan(0.01));

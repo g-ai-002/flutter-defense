@@ -9,6 +9,7 @@ import '../theme/level_theme.dart';
 import '../utils/constants.dart';
 import 'art_utils.dart';
 import 'board_layout.dart';
+import 'fog_art.dart' as fog;
 
 /// 战场静态层：地貌、装饰、土路、起点底座与屏幕背景，录制后复用。
 class BoardGround {
@@ -57,7 +58,7 @@ class BoardGround {
 
   /// 起点光圈录制为渐变精灵，每帧只按呼吸节奏缩放，不再实时模糊。
   void paintStartGlow(Canvas canvas, double visualTime) {
-    final start = _track.points.first;
+    final start = _track.start;
     final scale = 0.92 + 0.16 * math.sin(visualTime * 2);
     canvas.save();
     canvas.translate(start.dx, start.dy);
@@ -99,7 +100,7 @@ class BoardGround {
     _paintGround(canvas);
     _paintDecorations(canvas);
     _paintPath(canvas);
-    _paintFog(canvas);
+    fog.paintFogGround(canvas, engine.level);
     _paintStartBase(canvas);
     _staticLayer = recorder.endRecording();
     _staticLayerBuilds++;
@@ -507,43 +508,8 @@ class BoardGround {
     }
   }
 
-  /// 毒雾区：静态底色与气泡录制进静态层，飘动雾气由动态层补足。
-  void _paintFog(Canvas canvas) {
-    for (final zone in engine.level.fog) {
-      final center = zone.design;
-      final radius = zone.radius;
-      final random = math.Random(
-        engine.level.seed + zone.center.col.round() * 31,
-      );
-      canvas.drawCircle(
-        center,
-        radius,
-        fill(const Color(0xFF3F7A34).withValues(alpha: 0.2)),
-      );
-      canvas.drawCircle(
-        center,
-        radius * 0.72,
-        fill(const Color(0xFF6FBF4A).withValues(alpha: 0.18)),
-      );
-      canvas.drawCircle(
-        center,
-        radius,
-        stroke(const Color(0xFFB7E88A).withValues(alpha: 0.3), 2.5),
-      );
-      for (var i = 0; i < 10; i++) {
-        final angle = random.nextDouble() * math.pi * 2;
-        final distance = random.nextDouble() * radius * 0.8;
-        canvas.drawCircle(
-          center + Offset(math.cos(angle), math.sin(angle)) * distance,
-          2 + random.nextDouble() * 5,
-          fill(const Color(0xFFD9FFAF).withValues(alpha: 0.22)),
-        );
-      }
-    }
-  }
-
   void _paintStartBase(Canvas canvas) {
-    final start = _track.points.first;
+    final start = _track.start;
     canvas.drawCircle(
       start,
       40,
@@ -618,15 +584,16 @@ class _Decor {
 List<_Decor> _buildDecorations(DefenseEngine engine) {
   final random = math.Random(engine.level.seed);
   final result = <_Decor>[];
-  final carrot = engine.track.points.last;
+  final track = engine.track;
+  final carrot = track.end;
   for (var attempt = 0; attempt < 420 && result.length < 34; attempt++) {
     final position = Offset(
       40 + random.nextDouble() * (kDesignWidth - 80),
       36 + random.nextDouble() * (kDesignHeight - 72),
     );
-    if (engine.track.distanceTo(position) < 52) continue;
+    if (track.distanceTo(position) < 52) continue;
     if ((position - carrot).distance < 96) continue;
-    if ((position - engine.track.points.first).distance < 72) continue;
+    if ((position - track.start).distance < 72) continue;
     var rejected = false;
     for (final slot in engine.slotPositions) {
       if ((slot - position).distance < 56) {

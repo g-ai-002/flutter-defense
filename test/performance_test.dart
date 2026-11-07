@@ -49,6 +49,18 @@ void main() {
       expect(track.pointAt(track.length + 50), track.points.last);
     });
 
+    test('起点、终点与飞行航线长度由路径统一提供', () {
+      final track = PathTrack([
+        for (final point in kLevels.first.path) point.design,
+      ]);
+      expect(track.start, track.points.first);
+      expect(track.end, track.points.last);
+      expect(
+        track.airLength,
+        closeTo((track.points.last - track.points.first).distance, 0.001),
+      );
+    });
+
     test('单调游标与二分采样一致，距离回退后重新定位', () {
       final track = PathTrack([
         for (final point in kLevels.first.path) point.design,
