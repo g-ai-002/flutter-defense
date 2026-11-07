@@ -9,14 +9,7 @@ import '../../models/level.dart';
 import '../balance.dart';
 import 'entities.dart';
 import 'path_track.dart';
-
-class _Spawn {
-  const _Spawn(this.time, this.kind, this.hpScale);
-
-  final double time;
-  final EnemyKind kind;
-  final double hpScale;
-}
+import 'wave_schedule.dart';
 
 /// 塔防核心逻辑：纯数据驱动，不依赖渲染，可在测试中直接快进模拟。
 class DefenseEngine {
@@ -72,9 +65,7 @@ class DefenseEngine {
   int? selectedSlot;
   TowerKind? armedKind;
 
-  final List<_Spawn> _schedule = [];
-  int _spawnCursor = 0;
-  int _waveTotal = 0;
+  WaveSchedule? _schedule;
   int _nextEnemyId = 1;
   double _hudTimer = 0;
   double _carrotPulse = 0;
@@ -84,6 +75,7 @@ class DefenseEngine {
   /// 首波准备时间；之后每波固定 10 秒。
   static const double _firstPrepSeconds = 18;
   static const double _nextPrepSeconds = 10;
+  static const double _hudRefreshSeconds = 0.1;
 
   Tower? towerAt(int slot) =>
       slot < 0 || slot >= towers.length ? null : towers[slot];
@@ -107,16 +99,17 @@ class DefenseEngine {
 
   int get remainingEnemies {
     if (status != GameStatus.battle) return 0;
-    var pending = 0;
-    for (var i = _spawnCursor; i < _schedule.length; i++) {
-      pending++;
+    var alive = 0;
+    for (final enemy in enemies) {
+      if (enemy.alive) alive++;
     }
-    return enemies.where((enemy) => enemy.alive).length + pending;
+    return alive + (_schedule?.pending ?? 0);
   }
 
   double get waveProgress {
-    if (_waveTotal <= 0) return 0;
-    return (1 - remainingEnemies / _waveTotal).clamp(0.0, 1.0);
+    final total = _schedule?.total ?? 0;
+    if (total <= 0) return 0;
+    return (1 - remainingEnemies / total).clamp(0.0, 1.0);
   }
 
   int get earlyBonus => status == GameStatus.preparing ? prepTimer.ceil() : 0;
@@ -170,14 +163,7 @@ class DefenseEngine {
     towers[slot] = tower;
     _activeTowers.add(tower);
     selectedSlot = slot;
-    effects.add(
-      Effect(
-        kind: EffectKind.buildDust,
-        position: tower.position,
-        radius: 34,
-        duration: 0.45,
-      ),
-    );
+    effects.add(Effect.buildDust(tower.position));
     events.add(GameEvent.build);
     _bump();
     return true;
@@ -191,14 +177,7 @@ class DefenseEngine {
     gold -= cost;
     tower.totalSpent += cost;
     tower.applyUpgrade();
-    effects.add(
-      Effect(
-        kind: EffectKind.buildDust,
-        position: tower.position,
-        radius: 40,
-        duration: 0.5,
-      ),
-    );
+    effects.add(Effect.buildDust(tower.position, radius: 40, duration: 0.5));
     events.add(GameEvent.upgrade);
     _bump();
     return true;
@@ -211,14 +190,7 @@ class DefenseEngine {
     towers[slot] = null;
     _activeTowers.remove(tower);
     selectedSlot = null;
-    effects.add(
-      Effect(
-        kind: EffectKind.buildDust,
-        position: tower.position,
-        radius: 30,
-        duration: 0.4,
-      ),
-    );
+    effects.add(Effect.buildDust(tower.position, radius: 30, duration: 0.4));
     events.add(GameEvent.sell);
     _bump();
     return true;
@@ -234,10 +206,9 @@ class DefenseEngine {
       gold += bonus;
       goldEarned += bonus;
       floaters.add(
-        Floater(
-          text: '提前出击 +$bonus',
-          position: track.pointAt(0) + const Offset(30, -20),
-          color: const Color(0xFFFFE08A),
+        Floater.notice(
+          '提前出击 +$bonus',
+          track.pointAt(0) + const Offset(30, -20),
         ),
       );
     }
@@ -247,27 +218,12 @@ class DefenseEngine {
 
   void _beginWave() {
     final wave = level.waves[waveIndex];
-    _schedule
-      ..clear()
-      ..addAll(_buildSchedule(wave, level.hpScale * wave.hpScale));
-    _spawnCursor = 0;
-    _waveTotal = _schedule.length;
+    _schedule = WaveSchedule(wave, hpScale: level.hpScale * wave.hpScale);
     waveElapsed = 0;
     waveIndex++;
     status = GameStatus.battle;
     events.add(GameEvent.waveStart);
     _bump();
-  }
-
-  List<_Spawn> _buildSchedule(WaveDef wave, double hpScale) {
-    final list = <_Spawn>[];
-    for (final group in wave.groups) {
-      for (var i = 0; i < group.count; i++) {
-        list.add(_Spawn(group.delay + i * group.gap, group.kind, hpScale));
-      }
-    }
-    list.sort((a, b) => a.time.compareTo(b.time));
-    return list;
   }
 
   void update(double dt) {
@@ -303,14 +259,16 @@ class DefenseEngine {
   }
 
   void _spawnDue() {
-    while (_spawnCursor < _schedule.length &&
-        _schedule[_spawnCursor].time <= waveElapsed) {
-      final item = _schedule[_spawnCursor++];
+    final schedule = _schedule;
+    if (schedule == null) return;
+    while (true) {
+      final item = schedule.nextAt(waveElapsed);
+      if (item == null) break;
       _spawnEnemy(item);
     }
   }
 
-  void _spawnEnemy(_Spawn item) {
+  void _spawnEnemy(SpawnEvent item) {
     final base = kEnemyStats[item.kind]!;
     final id = _nextEnemyId++;
     final lateral = item.kind == EnemyKind.boss ? 0.0 : ((id % 5) - 2) * 4.5;
@@ -350,20 +308,11 @@ class DefenseEngine {
         leaked++;
         carrotHp = math.max(0, carrotHp - enemy.damage);
         _carrotPulse = 1;
-        effects.add(
-          Effect(
-            kind: EffectKind.leak,
-            position: track.points.last,
-            radius: 46,
-            duration: 0.5,
-          ),
-        );
+        effects.add(Effect.leak(track.points.last));
         floaters.add(
-          Floater(
-            text: '-${enemy.damage}',
-            position: track.points.last + const Offset(0, -48),
-            color: const Color(0xFFFF7A6B),
-            big: true,
+          Floater.damage(
+            enemy.damage,
+            track.points.last + const Offset(0, -48),
           ),
         );
         events.add(GameEvent.leak);
@@ -518,14 +467,7 @@ class DefenseEngine {
       if (next == null) break;
       current = next;
     }
-    effects.add(
-      Effect(
-        kind: EffectKind.lightning,
-        position: points.first,
-        points: points,
-        duration: 0.22,
-      ),
-    );
+    effects.add(Effect.lightning(points));
   }
 
   void _updateProjectiles(double dt) {
@@ -569,42 +511,29 @@ class DefenseEngine {
         }
       }
       effects.add(
-        Effect(
-          kind: switch (projectile.kind) {
-            TowerKind.frost => EffectKind.frostRing,
-            TowerKind.poison => EffectKind.poison,
-            _ => EffectKind.explosion,
-          },
-          position: impact,
-          radius: projectile.splash,
-          duration: 0.45,
-        ),
+        switch (projectile.kind) {
+          TowerKind.frost => Effect.frostRing(
+            impact,
+            radius: projectile.splash,
+          ),
+          TowerKind.poison => Effect.poisonCloud(
+            impact,
+            radius: projectile.splash,
+          ),
+          _ => Effect.explosion(impact, radius: projectile.splash),
+        },
       );
       return;
     }
 
     if (target == null || !target.alive) {
-      effects.add(
-        Effect(
-          kind: EffectKind.spark,
-          position: impact,
-          radius: 16,
-          duration: 0.25,
-        ),
-      );
+      effects.add(Effect.spark(impact, radius: 16, duration: 0.25));
       return;
     }
     _damageEnemy(target, projectile.damage);
     _applySlow(target, projectile);
     _applyPoison(target, projectile);
-    effects.add(
-      Effect(
-        kind: EffectKind.spark,
-        position: impact,
-        radius: 14,
-        duration: 0.22,
-      ),
-    );
+    effects.add(Effect.spark(impact));
   }
 
   void _applyPoison(Enemy enemy, Projectile projectile) {
@@ -649,30 +578,14 @@ class DefenseEngine {
     goldEarned += enemy.bounty;
     final position = enemy.position;
     floaters.add(
-      Floater(
-        text: '+${enemy.bounty}',
-        position: position + const Offset(0, -24),
-        color: const Color(0xFFFFE08A),
-      ),
+      Floater.gold(enemy.bounty, position + const Offset(0, -24)),
     );
     effects.add(
-      Effect(
-        kind: EffectKind.spark,
-        position: position,
-        radius: enemy.radius * 1.6,
-        duration: 0.35,
-      ),
+      Effect.spark(position, radius: enemy.radius * 1.6, duration: 0.35),
     );
     events.add(GameEvent.gold);
     if (enemy.isBoss) {
-      effects.add(
-        Effect(
-          kind: EffectKind.explosion,
-          position: position,
-          radius: 120,
-          duration: 0.8,
-        ),
-      );
+      effects.add(Effect.explosion(position, radius: 120, duration: 0.8));
     }
     _bump();
   }
@@ -681,12 +594,13 @@ class DefenseEngine {
 
   void _checkWaveComplete() {
     if (enemies.isNotEmpty) return;
-    if (_spawnCursor < _schedule.length) return;
+    final schedule = _schedule;
+    if (schedule != null && !schedule.done) return;
     final wave = level.waves[waveIndex - 1];
     gold += wave.reward;
     goldEarned += wave.reward;
     events.add(GameEvent.waveClear);
-    _schedule.clear();
+    _schedule = null;
     if (waveIndex >= level.waveCount) {
       status = GameStatus.victory;
       stars = starRating(carrotHp: carrotHp, carrotMaxHp: carrotMaxHp);
@@ -719,7 +633,7 @@ class DefenseEngine {
 
   void _tickHud(double dt) {
     _hudTimer += dt;
-    if (_hudTimer >= 0.1) {
+    if (_hudTimer >= _hudRefreshSeconds) {
       _hudTimer = 0;
       _bump();
     }

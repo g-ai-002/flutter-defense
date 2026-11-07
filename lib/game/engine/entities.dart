@@ -146,15 +146,89 @@ class Effect {
   Effect({
     required this.kind,
     required this.position,
-    this.end,
     this.points = const [],
     this.radius = 20,
     this.duration = 0.4,
   });
 
+  factory Effect.buildDust(
+    Offset position, {
+    double radius = 34,
+    double duration = 0.45,
+  }) => Effect(
+    kind: EffectKind.buildDust,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.spark(
+    Offset position, {
+    double radius = 14,
+    double duration = 0.22,
+  }) => Effect(
+    kind: EffectKind.spark,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.explosion(
+    Offset position, {
+    required double radius,
+    double duration = 0.45,
+  }) => Effect(
+    kind: EffectKind.explosion,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.frostRing(
+    Offset position, {
+    required double radius,
+    double duration = 0.45,
+  }) => Effect(
+    kind: EffectKind.frostRing,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.poisonCloud(
+    Offset position, {
+    required double radius,
+    double duration = 0.45,
+  }) => Effect(
+    kind: EffectKind.poison,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.leak(
+    Offset position, {
+    double radius = 46,
+    double duration = 0.5,
+  }) => Effect(
+    kind: EffectKind.leak,
+    position: position,
+    radius: radius,
+    duration: duration,
+  );
+
+  factory Effect.lightning(
+    List<Offset> points, {
+    double duration = 0.22,
+  }) => Effect(
+    kind: EffectKind.lightning,
+    position: points.first,
+    points: points,
+    duration: duration,
+  );
+
   final EffectKind kind;
   final Offset position;
-  final Offset? end;
   final List<Offset> points;
   final double radius;
   final double duration;
@@ -172,6 +246,25 @@ class Floater {
     this.big = false,
     this.duration = 1.1,
   });
+
+  factory Floater.gold(int amount, Offset position) => Floater(
+    text: '+$amount',
+    position: position,
+    color: const Color(0xFFFFE08A),
+  );
+
+  factory Floater.damage(int amount, Offset position) => Floater(
+    text: '-$amount',
+    position: position,
+    color: const Color(0xFFFF7A6B),
+    big: true,
+  );
+
+  factory Floater.notice(String text, Offset position) => Floater(
+    text: text,
+    position: position,
+    color: const Color(0xFFFFE08A),
+  );
 
   final String text;
   final Offset position;
