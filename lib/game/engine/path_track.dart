@@ -74,6 +74,40 @@ class PathTrack {
   bool isNear(Offset point, double margin) => distanceTo(point) <= margin;
 }
 
+/// 沿路径单调前进的采样游标：记住上一帧所在分段，下次从该段继续。
+///
+/// 敌人只会向前移动，分段索引单调递增，因此每次采样只需跨过极少量分段，
+/// 不必像 [PathTrack.sampleAt] 那样二分查找，也不会产生采样结果临时对象。
+class PathCursor {
+  int _segment = 1;
+
+  /// 采样含横向错位的落点；[distance] 回退时自动从头重新定位。
+  Offset sample(PathTrack track, double distance, double lateral) {
+    final cumulative = track._cumulative;
+    final clamped = distance.clamp(0.0, track.length);
+    var index = _segment;
+    if (index < 1 ||
+        index >= cumulative.length ||
+        clamped < cumulative[index - 1]) {
+      index = 1;
+    }
+    while (index < cumulative.length - 1 && clamped > cumulative[index]) {
+      index++;
+    }
+    _segment = index;
+    final start = cumulative[index - 1];
+    final span = cumulative[index] - start;
+    final t = span <= 0 ? 0.0 : (clamped - start) / span;
+    final from = track.points[index - 1];
+    final to = track.points[index];
+    final tangent = track._tangents[index - 1];
+    return Offset(
+      from.dx + (to.dx - from.dx) * t - tangent.dy * lateral,
+      from.dy + (to.dy - from.dy) * t + tangent.dx * lateral,
+    );
+  }
+}
+
 Offset _unitTangent(Offset a, Offset b) {
   final delta = b - a;
   final len = delta.distance;

@@ -90,13 +90,6 @@ class DefenseEngine {
     return Offset.lerp(enemy.prevPosition, enemy.position, alpha)!;
   }
 
-  /// 路径上的落点：中心线加横向错位，仅在敌人移动或生成时计算一次。
-  Offset _trackPosition(double distance, double lateral) {
-    final sample = track.sampleAt(distance);
-    return sample.position +
-        Offset(-sample.tangent.dy, sample.tangent.dx) * lateral;
-  }
-
   int get remainingEnemies {
     if (status != GameStatus.battle) return 0;
     var alive = 0;
@@ -283,7 +276,7 @@ class DefenseEngine {
       armor: base.armor,
       lateral: lateral,
     );
-    final position = _trackPosition(0, lateral);
+    final position = enemy.cursor.sample(track, 0, lateral);
     enemy
       ..position = position
       ..prevPosition = position;
@@ -301,7 +294,11 @@ class DefenseEngine {
         enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
       }
       enemy.distance += enemy.currentSpeed * dt;
-      enemy.position = _trackPosition(enemy.distance, enemy.lateral);
+      enemy.position = enemy.cursor.sample(
+        track,
+        enemy.distance,
+        enemy.lateral,
+      );
       if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
       if (enemy.distance >= reach) {
         enemy.alive = false;

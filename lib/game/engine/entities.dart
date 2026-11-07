@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import '../../models/defense_models.dart';
 import '../balance.dart';
+import 'path_track.dart';
 
 enum GameStatus { preparing, battle, victory, defeat }
 
@@ -80,6 +81,9 @@ class Enemy {
   /// 每逻辑帧缓存的位置，渲染插值与索敌直接复用，避免重复扫描路径。
   Offset position = Offset.zero;
   Offset prevPosition = Offset.zero;
+
+  /// 单调前进的路径游标，避免每帧二分查找分段。
+  final PathCursor cursor = PathCursor();
 
   double slowTimer = 0;
   double slowFactor = 1;
