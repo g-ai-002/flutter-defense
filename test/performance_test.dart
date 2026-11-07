@@ -142,6 +142,12 @@ void main() {
         speed: speed,
       )..size = Vector2(900, 540);
 
+      // 覆盖建造台、塔、敌人与弹道的绘制路径。
+      engine.build(0, TowerKind.arrow);
+      engine.build(1, TowerKind.frost);
+      engine.startNextWave();
+      advance(engine, 3);
+
       _renderOnce(board);
       expect(board.staticLayerBuilds, 1);
       expect(board.backdropBuilds, 1);
