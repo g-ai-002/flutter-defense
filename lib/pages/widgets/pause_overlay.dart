@@ -36,6 +36,7 @@ class PauseOverlay extends StatelessWidget {
       shadowOpacity: 0.3,
       shadowBlur: 26,
       shadowOffset: const Offset(0, 12),
+      animate: false,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

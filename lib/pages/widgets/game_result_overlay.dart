@@ -164,7 +164,11 @@ class GameResultOverlay extends StatelessWidget {
                 minimumSize: const Size.fromHeight(44),
               ),
               child: Text(
-                endless ? '再来一局' : victory ? '再玩一次' : '再试一次',
+                endless
+                    ? '再来一局'
+                    : victory
+                    ? '再玩一次'
+                    : '再试一次',
               ),
             ),
           const SizedBox(height: 8),

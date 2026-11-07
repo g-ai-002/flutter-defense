@@ -9,11 +9,7 @@ import 'tower_icon.dart';
 
 /// HUD 底栏：建造/升级/出售面板与开波按钮。
 class HudBottomDock extends StatelessWidget {
-  const HudBottomDock({
-    super.key,
-    required this.engine,
-    required this.compact,
-  });
+  const HudBottomDock({super.key, required this.engine, required this.compact});
 
   final DefenseEngine engine;
   final bool compact;

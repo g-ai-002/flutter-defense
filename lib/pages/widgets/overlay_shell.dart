@@ -14,6 +14,7 @@ class GameOverlayFrame extends StatelessWidget {
     this.shadowOpacity = 0.35,
     this.shadowBlur = 30,
     this.shadowOffset = const Offset(0, 14),
+    this.animate = true,
   });
 
   final Widget child;
@@ -24,9 +25,33 @@ class GameOverlayFrame extends StatelessWidget {
   final double shadowOpacity;
   final double shadowBlur;
   final Offset shadowOffset;
+  final bool animate;
 
   @override
   Widget build(BuildContext context) {
+    Widget card = Container(
+      width: width,
+      constraints: const BoxConstraints(maxWidth: 420),
+      padding: padding,
+      decoration: appPanelDecoration(
+        context,
+        radius: radius,
+        shadowOpacity: shadowOpacity,
+        shadowBlur: shadowBlur,
+        shadowOffset: shadowOffset,
+      ),
+      child: child,
+    );
+    if (animate) {
+      card = TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.86, end: 1),
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutBack,
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
+        child: card,
+      );
+    }
     return Container(
       color: Colors.black.withValues(alpha: scrimAlpha),
       alignment: Alignment.center,
@@ -34,19 +59,7 @@ class GameOverlayFrame extends StatelessWidget {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(14),
-            child: Container(
-              width: width,
-              constraints: const BoxConstraints(maxWidth: 420),
-              padding: padding,
-              decoration: appPanelDecoration(
-                context,
-                radius: radius,
-                shadowOpacity: shadowOpacity,
-                shadowBlur: shadowBlur,
-                shadowOffset: shadowOffset,
-              ),
-              child: child,
-            ),
+            child: card,
           ),
         ),
       ),

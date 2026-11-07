@@ -510,19 +510,14 @@ class DefenseEngine {
           _applyPoison(enemy, projectile);
         }
       }
-      effects.add(
-        switch (projectile.kind) {
-          TowerKind.frost => Effect.frostRing(
-            impact,
-            radius: projectile.splash,
-          ),
-          TowerKind.poison => Effect.poisonCloud(
-            impact,
-            radius: projectile.splash,
-          ),
-          _ => Effect.explosion(impact, radius: projectile.splash),
-        },
-      );
+      effects.add(switch (projectile.kind) {
+        TowerKind.frost => Effect.frostRing(impact, radius: projectile.splash),
+        TowerKind.poison => Effect.poisonCloud(
+          impact,
+          radius: projectile.splash,
+        ),
+        _ => Effect.explosion(impact, radius: projectile.splash),
+      });
       return;
     }
 
@@ -577,9 +572,7 @@ class DefenseEngine {
     gold += enemy.bounty;
     goldEarned += enemy.bounty;
     final position = enemy.position;
-    floaters.add(
-      Floater.gold(enemy.bounty, position + const Offset(0, -24)),
-    );
+    floaters.add(Floater.gold(enemy.bounty, position + const Offset(0, -24)));
     effects.add(
       Effect.spark(position, radius: enemy.radius * 1.6, duration: 0.35),
     );

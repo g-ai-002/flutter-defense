@@ -41,7 +41,11 @@ class BoardLayout {
       design.dy <= kDesignHeight;
 
   /// 返回离 [point] 最近且在 [radius] 内的建造位序号。
-  int? slotAt(List<Offset> slots, Offset point, {double radius = kSlotTapRadius}) {
+  int? slotAt(
+    List<Offset> slots,
+    Offset point, {
+    double radius = kSlotTapRadius,
+  }) {
     var best = -1;
     var bestDistance = radius;
     for (var i = 0; i < slots.length; i++) {

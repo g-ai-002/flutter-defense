@@ -127,7 +127,9 @@ class HudTopBar extends StatelessWidget {
     return switch (engine.status) {
       GameStatus.preparing => '准备阶段',
       GameStatus.battle =>
-        engine.endless ? '无尽 · 第 ${engine.waveIndex} 波' : '第 ${engine.waveIndex} 波',
+        engine.endless
+            ? '无尽 · 第 ${engine.waveIndex} 波'
+            : '第 ${engine.waveIndex} 波',
       GameStatus.victory => '关卡完成',
       GameStatus.defeat => engine.endless ? '无尽挑战结束' : '防线失守',
     };

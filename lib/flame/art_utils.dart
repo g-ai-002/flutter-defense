@@ -15,12 +15,7 @@ Paint stroke(Color color, double width) => Paint()
   ..strokeCap = StrokeCap.round
   ..strokeJoin = StrokeJoin.round;
 
-void paintShadow(
-  Canvas canvas,
-  Offset center,
-  double radius,
-  double opacity,
-) {
+void paintShadow(Canvas canvas, Offset center, double radius, double opacity) {
   canvas.drawOval(
     Rect.fromCenter(
       center: center + Offset(0, radius * 0.92),

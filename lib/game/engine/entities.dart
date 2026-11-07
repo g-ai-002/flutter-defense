@@ -217,15 +217,13 @@ class Effect {
     duration: duration,
   );
 
-  factory Effect.lightning(
-    List<Offset> points, {
-    double duration = 0.22,
-  }) => Effect(
-    kind: EffectKind.lightning,
-    position: points.first,
-    points: points,
-    duration: duration,
-  );
+  factory Effect.lightning(List<Offset> points, {double duration = 0.22}) =>
+      Effect(
+        kind: EffectKind.lightning,
+        position: points.first,
+        points: points,
+        duration: duration,
+      );
 
   final EffectKind kind;
   final Offset position;
@@ -260,11 +258,8 @@ class Floater {
     big: true,
   );
 
-  factory Floater.notice(String text, Offset position) => Floater(
-    text: text,
-    position: position,
-    color: const Color(0xFFFFE08A),
-  );
+  factory Floater.notice(String text, Offset position) =>
+      Floater(text: text, position: position, color: const Color(0xFFFFE08A));
 
   final String text;
   final Offset position;

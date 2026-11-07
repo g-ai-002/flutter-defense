@@ -25,7 +25,10 @@ void main() {
       expect(layout.contains(const Offset(0, -1)), isFalse);
       expect(layout.contains(const Offset(kDesignWidth + 1, 0)), isFalse);
       expect(layout.contains(const Offset(0, kDesignHeight + 1)), isFalse);
-      expect(layout.contains(const Offset(kDesignWidth, kDesignHeight)), isTrue);
+      expect(
+        layout.contains(const Offset(kDesignWidth, kDesignHeight)),
+        isTrue,
+      );
     });
 
     test('建造位按最近距离命中，超出半径返回 null', () {
