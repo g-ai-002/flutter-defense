@@ -107,4 +107,11 @@ class LevelDef {
 
   /// 全部可行路线，第一条恒为主路。
   List<List<GridPos>> get routes => [path, ?branch];
+
+  /// 传送门两端的设计坐标，地面绘制与装饰避让共用。
+  Iterable<Offset> get portalEnds =>
+      portals.expand((portal) => [portal.entryDesign, portal.exitDesign]);
+
+  /// 传送门两端的网格坐标，关卡缩略图使用。
+  Iterable<GridPos> get portalCells => portals.expand((portal) => [portal.entry, portal.exit]);
 }

@@ -420,12 +420,7 @@ class BoardGround {
     final palette = _palette;
     final light = engine.level.hasBranch ? 0.2 : 0.35;
     for (final track in engine.tracks) {
-      final path = Path();
-      final points = track.points;
-      path.moveTo(points.first.dx, points.first.dy);
-      for (var i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
-      }
+      final path = track.path;
       canvas.drawPath(path, stroke(palette.pathEdge, 60));
       canvas.drawPath(path, stroke(palette.pathFill, 50));
       canvas.drawPath(path, stroke(palette.pathLight.withValues(alpha: light), 26));
@@ -455,26 +450,24 @@ class BoardGround {
 
   /// 传送门入口与出口：紫色漩涡静态记录，动态层只补粒子与跳跃反馈。
   void _paintPortals(Canvas canvas) {
-    for (final portal in engine.level.portals) {
-      for (final center in [portal.entryDesign, portal.exitDesign]) {
-        final rect = Rect.fromCircle(center: center, radius: 44);
+    for (final center in engine.level.portalEnds) {
+      final rect = Rect.fromCircle(center: center, radius: 44);
+      canvas.drawCircle(
+        center,
+        44,
+        Paint()
+          ..shader = const RadialGradient(colors: [Color(0x997C4DFF), Color(0x002A0A4A)])
+              .createShader(rect),
+      );
+      canvas.drawCircle(center, 31, stroke(const Color(0xFF7C4DFF), 3));
+      canvas.drawCircle(center, 21, stroke(Colors.white.withValues(alpha: 0.5), 1.6));
+      for (var i = 0; i < 4; i++) {
+        final angle = i * math.pi / 2 + 0.7;
         canvas.drawCircle(
-          center,
-          44,
-          Paint()
-            ..shader = const RadialGradient(colors: [Color(0x997C4DFF), Color(0x002A0A4A)])
-                .createShader(rect),
+          center + Offset(math.cos(angle), math.sin(angle)) * 26,
+          4,
+          fill(const Color(0xFFD9C4FF)),
         );
-        canvas.drawCircle(center, 31, stroke(const Color(0xFF7C4DFF), 3));
-        canvas.drawCircle(center, 21, stroke(Colors.white.withValues(alpha: 0.5), 1.6));
-        for (var i = 0; i < 4; i++) {
-          final angle = i * math.pi / 2 + 0.7;
-          canvas.drawCircle(
-            center + Offset(math.cos(angle), math.sin(angle)) * 26,
-            4,
-            fill(const Color(0xFFD9C4FF)),
-          );
-        }
       }
     }
   }
@@ -532,22 +525,13 @@ List<_Decor> _buildDecorations(DefenseEngine engine) {
   final result = <_Decor>[];
   final track = engine.track;
   final carrot = track.end;
-  final portals = [
-    for (final portal in engine.level.portals) ...[portal.entryDesign, portal.exitDesign],
-  ];
+  final portals = engine.level.portalEnds;
   for (var attempt = 0; attempt < 420 && result.length < 34; attempt++) {
     final position = Offset(
       40 + random.nextDouble() * (kDesignWidth - 80),
       36 + random.nextDouble() * (kDesignHeight - 72),
     );
-    var nearRoad = false;
-    for (final route in engine.tracks) {
-      if (route.distanceTo(position) < 52) {
-        nearRoad = true;
-        break;
-      }
-    }
-    if (nearRoad) continue;
+    if (engine.plan.nearRoute(position, 52)) continue;
     if ((position - carrot).distance < 96) continue;
     if ((position - track.start).distance < 72) continue;
     if (portals.any((portal) => (portal - position).distance < 72)) continue;

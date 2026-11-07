@@ -9,34 +9,32 @@ import '../../models/level.dart';
 import '../balance.dart';
 import 'entities.dart';
 import 'path_track.dart';
+import 'route_plan.dart';
 import 'wave_schedule.dart';
 
 /// 塔防核心逻辑：纯数据驱动，不依赖渲染，可在测试中直接快进模拟。
 class DefenseEngine {
   DefenseEngine({required this.level})
-    : tracks = [
-        for (final route in level.routes) PathTrack([for (final point in route) point.design]),
-      ],
+    : plan = RoutePlan(level),
       slotPositions = [for (final slot in level.slots) slot.design],
       fogZones = [for (final zone in level.fog) (zone.design, zone.radius * zone.radius)] {
-    track = tracks.first;
     gold = level.startGold;
     carrotMaxHp = level.carrotHp;
     carrotHp = level.carrotHp;
     towers = List<Tower?>.filled(level.slots.length, null);
     prepTimer = _firstPrepSeconds;
-    _resolvePortals();
     _lastHudKey = _hudKey();
   }
 
   final LevelDef level;
 
-  /// 全部可行路线，主路固定在第 0 条。
-  final List<PathTrack> tracks;
-  late final PathTrack track;
+  /// 路线、分流与传送门的运行时规划，开局解析一次。
+  final RoutePlan plan;
 
-  /// 每对传送门在每条路线上的入口/出口弧长；出口不在本路线上时跳过。
-  final List<({int route, double entry, double exit, Offset at, Offset away})> _portalJumps = [];
+  /// 全部可行路线，主路固定在第 0 条。
+  List<PathTrack> get tracks => plan.tracks;
+  PathTrack get track => plan.main;
+
   final List<Offset> slotPositions;
 
   /// 毒雾区中心与半径平方，逐帧判定避免开方。
@@ -121,6 +119,9 @@ class DefenseEngine {
   bool get endless => level.endless;
 
   bool get daily => level.daily;
+
+  /// 无尽与每日挑战都以坚守波数结算，不评星也不写入关卡进度。
+  bool get scored => endless || daily;
 
   /// 完整清理的波次数，失败时用于无尽模式结算。
   int get clearedWaves => status == GameStatus.battle ? math.max(0, waveIndex - 1) : waveIndex;
@@ -266,9 +267,9 @@ class DefenseEngine {
     final base = kEnemyStats[item.kind]!;
     final id = _nextEnemyId++;
     final lateral = item.kind == EnemyKind.boss ? 0.0 : ((id % 5) - 2) * 4.5;
-    final laneCount = base.flying ? 1 : tracks.length;
-    final lane = item.lane >= 0 ? item.lane % laneCount : (laneCount > 1 ? id % laneCount : 0);
-    final route = tracks[lane];
+    final flying = base.flying;
+    final route = plan.laneFor(requested: item.lane, id: id, flying: flying);
+    final track = plan.tracks[route];
     final enemy = Enemy(
       id: id,
       kind: item.kind,
@@ -279,10 +280,10 @@ class DefenseEngine {
       radius: base.radius,
       armor: base.armor,
       lateral: lateral,
-      track: route,
-      route: lane,
-      flying: base.flying,
-      routeLength: base.flying ? route.airLength : route.length,
+      track: track,
+      route: route,
+      flying: flying,
+      routeLength: plan.routeLength(route, flying: flying),
     );
     final position = _routePosition(enemy);
     enemy
@@ -291,25 +292,6 @@ class DefenseEngine {
     enemies.add(enemy);
     _aliveCount++;
     _enemyIndex[id] = enemy;
-  }
-
-  /// 预计算传送门在每条路线上的弧长，出口不在路线上或没有前进时忽略。
-  void _resolvePortals() {
-    for (final portal in level.portals) {
-      for (var route = 0; route < tracks.length; route++) {
-        final entry = tracks[route].nearest(portal.entryDesign);
-        final exit = tracks[route].nearest(portal.exitDesign);
-        if (entry.gap > portal.radius || exit.gap > portal.radius) continue;
-        if (exit.along <= entry.along + 2) continue;
-        _portalJumps.add((
-          route: route,
-          entry: entry.along,
-          exit: exit.along,
-          at: portal.entryDesign,
-          away: portal.exitDesign,
-        ));
-      }
-    }
   }
 
   /// 地面敌人沿土路前进，飞行敌人走入口到萝卜的直线。
@@ -356,9 +338,8 @@ class DefenseEngine {
 
   /// 越过入口弧长时瞬移到前方出口，同一敌人每道门只结算一次。
   bool _usePortal(Enemy enemy, double before) {
-    if (enemy.flying || _portalJumps.isEmpty) return false;
-    for (final jump in _portalJumps) {
-      if (jump.route != enemy.route) continue;
+    if (enemy.flying) return false;
+    for (final jump in plan.jumpsOn(enemy.route)) {
       if (before >= jump.entry || enemy.distance < jump.entry) continue;
       if (jump.exit <= enemy.distance) continue;
       enemy.distance = jump.exit;

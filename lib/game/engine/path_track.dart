@@ -31,6 +31,10 @@ class PathTrack {
   final List<double> _cumulative;
   final List<Offset> _tangents;
   late final double length;
+  Path? _path;
+
+  /// 折线拼成的 Path：战场土路每帧重放静态层，缓存后不必重复拼装。
+  Path get path => _path ??= polylinePath(points);
 
   /// 土路起点与终点，飞行敌人直接使用入口到萝卜的连线。
   Offset get start => points.first;
@@ -131,6 +135,15 @@ Offset _unitTangent(Offset a, Offset b) {
   final delta = b - a;
   final len = delta.distance;
   return len <= 0 ? const Offset(1, 0) : delta / len;
+}
+
+/// 把折线顶点拼成 Path，战场土路与关卡缩略图共用。
+Path polylinePath(List<Offset> points) {
+  final path = Path()..moveTo(points.first.dx, points.first.dy);
+  for (var i = 1; i < points.length; i++) {
+    path.lineTo(points[i].dx, points[i].dy);
+  }
+  return path;
 }
 
 double _distanceToSegment(Offset p, Offset a, Offset b) {

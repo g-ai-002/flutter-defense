@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../flame/fog_art.dart' as fog;
+import '../../game/engine/path_track.dart';
 import '../../models/level.dart';
 import '../../theme/level_theme.dart';
 import '../../utils/constants.dart';
@@ -55,15 +56,7 @@ class _ThumbPainter extends CustomPainter {
 
     final road = locked ? const Color(0xFFA19A8C) : palette.pathFill;
     for (final route in level.routes) {
-      final path = Path();
-      for (var i = 0; i < route.length; i++) {
-        final point = map(route[i].col, route[i].row);
-        if (i == 0) {
-          path.moveTo(point.dx, point.dy);
-        } else {
-          path.lineTo(point.dx, point.dy);
-        }
-      }
+      final path = polylinePath([for (final point in route) map(point.col, point.row)]);
       canvas.drawPath(
         path,
         Paint()
@@ -84,17 +77,15 @@ class _ThumbPainter extends CustomPainter {
       );
     }
     fog.paintFogThumb(canvas, level, origin, scale);
-    for (final portal in level.portals) {
-      for (final point in [portal.entry, portal.exit]) {
-        canvas.drawCircle(
-          map(point.col, point.row),
-          math.max(2, 16 * scale),
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = math.max(1, 6 * scale)
-            ..color = Colors.white.withValues(alpha: locked ? 0.25 : 0.7),
-        );
-      }
+    for (final point in level.portalCells) {
+      canvas.drawCircle(
+        map(point.col, point.row),
+        math.max(2, 16 * scale),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1, 6 * scale)
+          ..color = Colors.white.withValues(alpha: locked ? 0.25 : 0.7),
+      );
     }
     for (final slot in level.slots) {
       final point = map(slot.col, slot.row);
