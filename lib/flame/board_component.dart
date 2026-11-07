@@ -36,6 +36,28 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   late final void Function(double) _stepEngine = engine.update;
   double _visualTime = 0;
 
+  BoardLayout? _layout;
+  Size _layoutSize = Size.zero;
+  RRect _frame = _boardClip.shift(Offset.zero);
+  RRect _frameInner = _boardClip.shift(Offset.zero).deflate(4);
+
+  static final RRect _boardClip = RRect.fromRectAndRadius(
+    const Rect.fromLTWH(0, 0, kDesignWidth, kDesignHeight),
+    const Radius.circular(28),
+  );
+
+  /// 布局只与视口尺寸有关，渲染与点击共用同一份结果。
+  BoardLayout _layoutFor() {
+    final view = Size(size.x, size.y);
+    if (_layout == null || _layoutSize != view) {
+      _layout = BoardLayout.resolve(view);
+      _layoutSize = view;
+      _frame = _boardClip.shift(_layout!.origin);
+      _frameInner = _frame.deflate(4);
+    }
+    return _layout!;
+  }
+
   /// 静态图层被录制的次数，供性能回归测试确认缓存生效。
   @visibleForTesting
   int get staticLayerBuilds => _ground.staticLayerBuilds;
@@ -55,7 +77,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
   @override
   void onTapDown(TapDownEvent event) {
-    final layout = BoardLayout.resolve(Size(size.x, size.y));
+    final layout = _layoutFor();
     final design = layout.toDesign(
       Offset(event.localPosition.x, event.localPosition.y),
     );
@@ -83,17 +105,13 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   @override
   void render(Canvas canvas) {
     if (size.x <= 0 || size.y <= 0) return;
-    final layout = BoardLayout.resolve(Size(size.x, size.y));
+    final layout = _layoutFor();
     _ground.paintBackdrop(canvas, Size(size.x, size.y), layout);
 
     canvas.save();
     canvas.translate(layout.origin.dx, layout.origin.dy);
     canvas.scale(layout.scale);
-    final clip = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(0, 0, kDesignWidth, kDesignHeight),
-      const Radius.circular(28),
-    );
-    canvas.clipRRect(clip);
+    canvas.clipRRect(_boardClip);
 
     _ground.paintStatic(canvas);
     _ground.paintStartGlow(canvas, _visualTime);
@@ -109,14 +127,14 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
     final palette = paletteOf(engine.level.theme);
     canvas.drawRRect(
-      clip.shift(layout.origin),
+      _frame,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
         ..color = palette.frame.withValues(alpha: 0.55),
     );
     canvas.drawRRect(
-      clip.shift(layout.origin).deflate(4),
+      _frameInner,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2

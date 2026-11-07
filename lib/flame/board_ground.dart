@@ -23,6 +23,7 @@ class BoardGround {
 
   ui.Picture? _staticLayer;
   ui.Picture? _backdropLayer;
+  ui.Picture? _startGlow;
   Size _backdropSize = Size.zero;
   int _staticLayerBuilds = 0;
   int _backdropBuilds = 0;
@@ -54,23 +55,42 @@ class BoardGround {
     canvas.drawPicture(_staticLayer!);
   }
 
+  /// 起点光圈录制为渐变精灵，每帧只按呼吸节奏缩放，不再实时模糊。
   void paintStartGlow(Canvas canvas, double visualTime) {
     final start = _track.points.first;
-    final glow = 0.3 + 0.2 * math.sin(visualTime * 2);
-    canvas.drawCircle(
-      start,
-      16,
-      Paint()
-        ..color = const Color(0xFFB84DFF).withValues(alpha: glow * 0.35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
-    );
+    final scale = 0.92 + 0.16 * math.sin(visualTime * 2);
+    canvas.save();
+    canvas.translate(start.dx, start.dy);
+    canvas.scale(scale);
+    canvas.drawPicture(_startGlowSprite());
+    canvas.restore();
   }
 
   void dispose() {
     _staticLayer?.dispose();
     _backdropLayer?.dispose();
+    _startGlow?.dispose();
     _staticLayer = null;
     _backdropLayer = null;
+    _startGlow = null;
+  }
+
+  ui.Picture _startGlowSprite() {
+    final cached = _startGlow;
+    if (cached != null) return cached;
+    final picture = recordPicture((canvas) {
+      final rect = Rect.fromCircle(center: Offset.zero, radius: 24);
+      canvas.drawCircle(
+        Offset.zero,
+        24,
+        Paint()
+          ..shader = const RadialGradient(
+            colors: [Color(0x59B84DFF), Color(0x00B84DFF)],
+          ).createShader(rect),
+      );
+    });
+    _startGlow = picture;
+    return picture;
   }
 
   void _buildStaticLayer() {
@@ -120,12 +140,17 @@ class BoardGround {
       kDesignWidth * layout.scale,
       kDesignHeight * layout.scale,
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(shadowRect, const Radius.circular(28)),
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20),
+    final shadow = RRect.fromRectAndRadius(
+      shadowRect,
+      const Radius.circular(28),
     );
+    // 用三层同心圆角矩形代替实时高斯模糊，静态背景重放时更省 GPU。
+    for (var i = 3; i >= 1; i--) {
+      canvas.drawRRect(
+        shadow.inflate(i * 7.0),
+        Paint()..color = Colors.black.withValues(alpha: 0.09),
+      );
+    }
   }
 
   void _paintGround(Canvas canvas) {
