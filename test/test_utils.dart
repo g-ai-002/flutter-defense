@@ -25,6 +25,7 @@ LevelDef straightLevel({
   double hpScale = 1,
   required List<WaveDef> waves,
   List<GridPos>? slots,
+  List<FogZone> fog = const [],
   int id = 99,
 }) {
   return LevelDef(
@@ -32,11 +33,9 @@ LevelDef straightLevel({
     name: '测试关卡',
     subtitle: '测试',
     theme: LevelTheme.meadow,
-    path: const [
-      GridPos(-1.2, 4),
-      GridPos(15, 4),
-    ],
-    slots: slots ??
+    path: const [GridPos(-1.2, 4), GridPos(15, 4)],
+    slots:
+        slots ??
         const [
           GridPos(4, 3),
           GridPos(6, 3),
@@ -48,6 +47,7 @@ LevelDef straightLevel({
     carrotHp: carrotHp,
     hpScale: hpScale,
     waves: waves,
+    fog: fog,
     seed: 42,
   );
 }

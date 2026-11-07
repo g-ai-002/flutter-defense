@@ -47,12 +47,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final storage = await StorageService.instance;
     await storage.addEndlessRecord(
-      const EndlessRecord(
-        waves: 9,
-        kills: 120,
-        gold: 900,
-        date: '2026-11-08',
-      ),
+      const EndlessRecord(waves: 9, kills: 120, gold: 900, date: '2026-11-08'),
     );
     await tester.pumpWidget(CarrotDefenseApp(storage: storage));
     await tester.pump();
@@ -90,7 +85,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   });
 
-  testWidgets('关卡选择页展示十个关卡与解锁状态', (tester) async {
+  testWidgets('关卡选择页展示全部关卡与解锁状态', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1100, 760));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final storage = await StorageService.instance;
@@ -102,7 +97,8 @@ void main() {
     expect(find.text('选择关卡'), findsWidgets);
     expect(find.text('青草平原'), findsOneWidget);
     expect(find.text('魔王城塞'), findsOneWidget);
-    expect(find.text('通关上一关解锁'), findsNWidgets(9));
+    expect(find.text('毒沼秘境'), findsOneWidget);
+    expect(find.text('通关上一关解锁'), findsNWidgets(10));
     expect(tester.takeException(), isNull);
   });
 
