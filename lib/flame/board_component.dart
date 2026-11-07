@@ -115,6 +115,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
     _ground.paintStatic(canvas);
     _ground.paintStartGlow(canvas, _visualTime);
+    _actors.paintFogMist(canvas, _visualTime);
     _actors.paintCarrotTarget(canvas);
     _actors.paintPads(canvas, _visualTime);
     _actors.paintRange(canvas);

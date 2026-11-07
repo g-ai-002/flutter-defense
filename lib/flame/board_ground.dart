@@ -99,6 +99,7 @@ class BoardGround {
     _paintGround(canvas);
     _paintDecorations(canvas);
     _paintPath(canvas);
+    _paintFog(canvas);
     _paintStartBase(canvas);
     _staticLayer = recorder.endRecording();
     _staticLayerBuilds++;
@@ -207,96 +208,43 @@ class BoardGround {
 
   void _paintDecorations(Canvas canvas) {
     final palette = _palette;
+    final painters = switch (engine.level.theme) {
+      LevelTheme.meadow => [_tree, _flower, _bush],
+      LevelTheme.forest => [_tree, _mushroom, _bush],
+      LevelTheme.desert => [_cactus, _rock, _bush],
+      LevelTheme.snow => [_pine, _rock, _ice],
+      LevelTheme.lava => [_deadTree, _rock, _lavaCrack],
+      LevelTheme.night => [_tree, _lantern, _reed],
+    };
     for (final decor in _decorations) {
       canvas.save();
       canvas.translate(decor.position.dx, decor.position.dy);
       canvas.scale(decor.scale * (decor.flip ? -1 : 1), decor.scale);
-      _paintDecoration(canvas, engine.level.theme, decor.kind, palette);
+      canvas.drawOval(
+        Rect.fromCenter(center: const Offset(0, 6), width: 34, height: 10),
+        fill(Colors.black.withValues(alpha: 0.12)),
+      );
+      painters[decor.kind](canvas, palette);
       canvas.restore();
     }
   }
 
-  void _paintDecoration(
-    Canvas canvas,
-    LevelTheme theme,
-    int kind,
-    LevelPalette palette,
-  ) {
-    canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 6), width: 34, height: 10),
-      fill(Colors.black.withValues(alpha: 0.12)),
-    );
-    final primary = palette.decorPrimary;
-    final secondary = palette.decorSecondary;
-    switch (theme) {
-      case LevelTheme.meadow:
-        if (kind == 0) {
-          _tree(canvas, primary, secondary);
-        } else if (kind == 1) {
-          _flower(canvas, secondary);
-        } else {
-          _bush(canvas, primary);
-        }
-        break;
-      case LevelTheme.forest:
-        if (kind == 0) {
-          _tree(canvas, primary, secondary);
-        } else if (kind == 1) {
-          _mushroom(canvas, secondary);
-        } else {
-          _bush(canvas, primary);
-        }
-        break;
-      case LevelTheme.desert:
-        if (kind == 0) {
-          _cactus(canvas, primary);
-        } else if (kind == 1) {
-          _rock(canvas, palette);
-        } else {
-          _bush(canvas, primary);
-        }
-        break;
-      case LevelTheme.snow:
-        if (kind == 0) {
-          _pine(canvas, primary, secondary);
-        } else if (kind == 1) {
-          _rock(canvas, palette);
-        } else {
-          _ice(canvas, secondary);
-        }
-        break;
-      case LevelTheme.lava:
-        if (kind == 0) {
-          _deadTree(canvas, primary);
-        } else if (kind == 1) {
-          _rock(canvas, palette);
-        } else {
-          _lavaCrack(canvas, secondary);
-        }
-        break;
-      case LevelTheme.night:
-        if (kind == 0) {
-          _tree(canvas, primary, secondary);
-        } else if (kind == 1) {
-          _lantern(canvas, secondary);
-        } else {
-          _reed(canvas, primary);
-        }
-        break;
-    }
-  }
-
-  void _tree(Canvas canvas, Color trunk, Color leaf) {
+  void _tree(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-4, -18, 8, 26),
         const Radius.circular(3),
       ),
-      fill(trunk),
+      fill(palette.decorPrimary),
     );
-    canvas.drawCircle(const Offset(0, -30), 18, fill(leaf));
-    canvas.drawCircle(const Offset(-12, -22), 13, fill(leaf));
-    canvas.drawCircle(const Offset(12, -22), 14, fill(leaf));
+    final leaf = fill(palette.decorSecondary);
+    for (final (dx, dy, radius) in const [
+      (0.0, -30.0, 18.0),
+      (-12.0, -22.0, 13.0),
+      (12.0, -22.0, 14.0),
+    ]) {
+      canvas.drawCircle(Offset(dx, dy), radius, leaf);
+    }
     canvas.drawCircle(
       const Offset(-4, -34),
       9,
@@ -304,34 +252,40 @@ class BoardGround {
     );
   }
 
-  void _flower(Canvas canvas, Color color) {
+  void _flower(Canvas canvas, LevelPalette palette) {
     canvas.drawLine(
       const Offset(0, 2),
       const Offset(0, -14),
       stroke(const Color(0xFF4C8F3B), 2),
     );
+    final petal = fill(palette.decorSecondary);
     for (var i = 0; i < 5; i++) {
       final angle = i * math.pi / 2.5;
       canvas.drawCircle(
         Offset(math.cos(angle) * 6, -14 + math.sin(angle) * 6),
         4.5,
-        fill(color),
+        petal,
       );
     }
     canvas.drawCircle(const Offset(0, -14), 3, fill(const Color(0xFFF2A03D)));
   }
 
-  void _bush(Canvas canvas, Color color) {
-    canvas.drawCircle(const Offset(-8, -6), 11, fill(color));
-    canvas.drawCircle(const Offset(8, -6), 12, fill(color));
-    canvas.drawCircle(const Offset(0, -13), 10, fill(color));
+  void _bush(Canvas canvas, LevelPalette palette) {
+    final color = fill(palette.decorPrimary);
+    for (final (dx, dy, radius) in const [
+      (-8.0, -6.0, 11.0),
+      (8.0, -6.0, 12.0),
+      (0.0, -13.0, 10.0),
+    ]) {
+      canvas.drawCircle(Offset(dx, dy), radius, color);
+    }
     canvas.drawOval(
       const Rect.fromLTWH(-16, -4, 32, 7),
       fill(Colors.black.withValues(alpha: 0.08)),
     );
   }
 
-  void _mushroom(Canvas canvas, Color cap) {
+  void _mushroom(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-5, -14, 10, 18),
@@ -344,67 +298,50 @@ class BoardGround {
       math.pi,
       math.pi,
       true,
-      fill(cap),
+      fill(palette.decorSecondary),
     );
-    canvas.drawCircle(
-      const Offset(-7, -20),
-      3,
-      fill(Colors.white.withValues(alpha: 0.65)),
-    );
-    canvas.drawCircle(
-      const Offset(8, -17),
-      2.4,
-      fill(Colors.white.withValues(alpha: 0.65)),
-    );
+    final dot = fill(Colors.white.withValues(alpha: 0.65));
+    for (final (dx, dy, radius) in const [
+      (-7.0, -20.0, 3.0),
+      (8.0, -17.0, 2.4),
+    ]) {
+      canvas.drawCircle(Offset(dx, dy), radius, dot);
+    }
   }
 
-  void _cactus(Canvas canvas, Color color) {
+  void _cactus(Canvas canvas, LevelPalette palette) {
+    final paint = fill(palette.decorPrimary);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-6, -30, 12, 34),
         const Radius.circular(6),
       ),
-      fill(color),
+      paint,
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-18, -20, 12, 7),
-        const Radius.circular(4),
-      ),
-      fill(color),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-18, -26, 7, 12),
-        const Radius.circular(4),
-      ),
-      fill(color),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(8, -15, 12, 7),
-        const Radius.circular(4),
-      ),
-      fill(color),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(14, -22, 7, 13),
-        const Radius.circular(4),
-      ),
-      fill(color),
-    );
+    for (final rect in const [
+      Rect.fromLTWH(-18, -20, 12, 7),
+      Rect.fromLTWH(-18, -26, 7, 12),
+      Rect.fromLTWH(8, -15, 12, 7),
+      Rect.fromLTWH(14, -22, 7, 13),
+    ]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        paint,
+      );
+    }
   }
 
   void _rock(Canvas canvas, LevelPalette palette) {
-    final path = Path()
-      ..moveTo(-18, 4)
-      ..lineTo(-12, -12)
-      ..lineTo(2, -18)
-      ..lineTo(16, -8)
-      ..lineTo(18, 4)
-      ..close();
-    canvas.drawPath(path, fill(palette.padStoneDark));
+    canvas.drawPath(
+      Path()
+        ..moveTo(-18, 4)
+        ..lineTo(-12, -12)
+        ..lineTo(2, -18)
+        ..lineTo(16, -8)
+        ..lineTo(18, 4)
+        ..close(),
+      fill(palette.padStoneDark),
+    );
     canvas.drawPath(
       Path()
         ..moveTo(-12, -12)
@@ -416,7 +353,7 @@ class BoardGround {
     );
   }
 
-  void _pine(Canvas canvas, Color color, Color snow) {
+  void _pine(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-3, -10, 6, 16),
@@ -424,27 +361,31 @@ class BoardGround {
       ),
       fill(const Color(0xFF6B4A2E)),
     );
+    final branch = fill(palette.decorPrimary);
+    final snow = fill(palette.decorSecondary.withValues(alpha: 0.75));
     for (var i = 0; i < 3; i++) {
       final width = 26.0 - i * 6;
       final y = -10.0 - i * 11;
-      final triangle = Path()
-        ..moveTo(-width, y)
-        ..lineTo(0, y - 18)
-        ..lineTo(width, y)
-        ..close();
-      canvas.drawPath(triangle, fill(color));
+      canvas.drawPath(
+        Path()
+          ..moveTo(-width, y)
+          ..lineTo(0, y - 18)
+          ..lineTo(width, y)
+          ..close(),
+        branch,
+      );
       canvas.drawPath(
         Path()
           ..moveTo(-width * 0.7, y - 4)
           ..lineTo(0, y - 16)
           ..lineTo(width * 0.7, y - 4)
           ..close(),
-        fill(snow.withValues(alpha: 0.75)),
+        snow,
       );
     }
   }
 
-  void _ice(Canvas canvas, Color color) {
+  void _ice(Canvas canvas, LevelPalette palette) {
     final crystal = Path()
       ..moveTo(0, -26)
       ..lineTo(9, -8)
@@ -454,13 +395,15 @@ class BoardGround {
     canvas.drawPath(
       crystal,
       Paint()
-        ..shader = LinearGradient(colors: [color, const Color(0xFF6FAEC8)])
-            .createShader(const Rect.fromLTWH(-10, -28, 20, 34)),
+        ..shader = LinearGradient(
+          colors: [palette.decorSecondary, const Color(0xFF6FAEC8)],
+        ).createShader(const Rect.fromLTWH(-10, -28, 20, 34)),
     );
     canvas.drawPath(crystal, stroke(Colors.white.withValues(alpha: 0.6), 1.4));
   }
 
-  void _deadTree(Canvas canvas, Color color) {
+  void _deadTree(Canvas canvas, LevelPalette palette) {
+    final color = palette.decorPrimary;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-4, -22, 8, 28),
@@ -474,25 +417,25 @@ class BoardGround {
     canvas.drawLine(const Offset(-10, -22), const Offset(-13, -32), branch);
   }
 
-  void _lavaCrack(Canvas canvas, Color color) {
+  void _lavaCrack(Canvas canvas, LevelPalette palette) {
     canvas.drawOval(
       Rect.fromCenter(center: Offset.zero, width: 34, height: 16),
       fill(const Color(0xFF3A241E)),
     );
-    final paint = stroke(color, 2.4);
+    final paint = stroke(palette.decorSecondary, 2.4);
     canvas.drawLine(const Offset(-14, 0), const Offset(-4, -3), paint);
     canvas.drawLine(const Offset(-4, -3), const Offset(4, 3), paint);
     canvas.drawLine(const Offset(4, 3), const Offset(14, 0), paint);
     canvas.drawCircle(
-      const Offset(0, 0),
+      Offset.zero,
       12,
       Paint()
-        ..color = color.withValues(alpha: 0.18)
+        ..color = palette.decorSecondary.withValues(alpha: 0.18)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
   }
 
-  void _lantern(Canvas canvas, Color color) {
+  void _lantern(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(-2, -26, 4, 30),
@@ -504,10 +447,10 @@ class BoardGround {
       const Offset(0, -28),
       12,
       Paint()
-        ..color = color.withValues(alpha: 0.25)
+        ..color = palette.decorSecondary.withValues(alpha: 0.25)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
     );
-    canvas.drawCircle(const Offset(0, -28), 7, fill(color));
+    canvas.drawCircle(const Offset(0, -28), 7, fill(palette.decorSecondary));
     canvas.drawLine(
       const Offset(-6, -34),
       const Offset(6, -34),
@@ -515,8 +458,8 @@ class BoardGround {
     );
   }
 
-  void _reed(Canvas canvas, Color color) {
-    final paint = stroke(color, 2.2);
+  void _reed(Canvas canvas, LevelPalette palette) {
+    final paint = stroke(palette.decorPrimary, 2.2);
     for (var i = 0; i < 5; i++) {
       final x = (i - 2) * 6.0;
       canvas.drawLine(Offset(x, 4), Offset(x * 1.5, -24 - i * 2), paint);
@@ -561,6 +504,41 @@ class BoardGround {
       final a = _track.pointAt(distance);
       final b = _track.pointAt(math.min(distance + 24, _track.length));
       canvas.drawLine(a, b, dash);
+    }
+  }
+
+  /// 毒雾区：静态底色与气泡录制进静态层，飘动雾气由动态层补足。
+  void _paintFog(Canvas canvas) {
+    for (final zone in engine.level.fog) {
+      final center = zone.design;
+      final radius = zone.radius;
+      final random = math.Random(
+        engine.level.seed + zone.center.col.round() * 31,
+      );
+      canvas.drawCircle(
+        center,
+        radius,
+        fill(const Color(0xFF3F7A34).withValues(alpha: 0.2)),
+      );
+      canvas.drawCircle(
+        center,
+        radius * 0.72,
+        fill(const Color(0xFF6FBF4A).withValues(alpha: 0.18)),
+      );
+      canvas.drawCircle(
+        center,
+        radius,
+        stroke(const Color(0xFFB7E88A).withValues(alpha: 0.3), 2.5),
+      );
+      for (var i = 0; i < 10; i++) {
+        final angle = random.nextDouble() * math.pi * 2;
+        final distance = random.nextDouble() * radius * 0.8;
+        canvas.drawCircle(
+          center + Offset(math.cos(angle), math.sin(angle)) * distance,
+          2 + random.nextDouble() * 5,
+          fill(const Color(0xFFD9FFAF).withValues(alpha: 0.22)),
+        );
+      }
     }
   }
 

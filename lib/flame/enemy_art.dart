@@ -31,6 +31,9 @@ ui.Picture enemyBodySprite(EnemyKind kind, double radius) {
       case EnemyKind.boss:
         _paintBoss(canvas, radius);
         break;
+      case EnemyKind.flyer:
+        _paintFlyer(canvas, radius);
+        break;
     }
   });
   storeSprite(_enemyBodies, key, picture);
@@ -286,6 +289,54 @@ void _paintTank(Canvas canvas, double radius) {
         height: radius * 0.26,
       ),
       fill(const Color(0xFF5D3E24)),
+    );
+  }
+}
+
+void _paintFlyer(Canvas canvas, double radius) {
+  // 投影单独下移，表现低空悬停的高度感。
+  canvas.drawOval(
+    Rect.fromCenter(
+      center: Offset(0, radius * 2.1),
+      width: radius * 1.5,
+      height: radius * 0.42,
+    ),
+    fill(Colors.black.withValues(alpha: 0.16)),
+  );
+  final wing = fill(const Color(0xFF4B3A6B));
+  final wingEdge = stroke(const Color(0xFF2B2140), radius * 0.06);
+  for (final side in [-1.0, 1.0]) {
+    canvas.save();
+    canvas.translate(side * radius * 0.58, -radius * 0.08);
+    canvas.rotate(side * 0.55);
+    final rect = Rect.fromCenter(
+      center: Offset.zero,
+      width: radius * 1.6,
+      height: radius * 0.72,
+    );
+    canvas.drawOval(rect, wing);
+    canvas.drawOval(rect, wingEdge);
+    canvas.restore();
+  }
+  canvas.drawOval(
+    Rect.fromCenter(
+      center: Offset(0, radius * 0.1),
+      width: radius * 1.05,
+      height: radius * 1.3,
+    ),
+    Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF8A6BC4), Color(0xFF4A3468)],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
+  );
+  final eye = fill(const Color(0xFFFF5D5D));
+  for (final side in [-1.0, 1.0]) {
+    canvas.drawCircle(
+      Offset(side * radius * 0.26, -radius * 0.06),
+      radius * 0.12,
+      eye,
     );
   }
 }

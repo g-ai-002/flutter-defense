@@ -30,6 +30,23 @@ class BoardActorLayer {
     }
   }
 
+  /// 毒雾区上缓慢漂移的雾气，让静态毒圈有呼吸感。
+  void paintFogMist(Canvas canvas, double visualTime) {
+    for (final zone in engine.level.fog) {
+      final center = zone.design;
+      final radius = zone.radius;
+      for (var i = 0; i < 3; i++) {
+        final angle = visualTime * (0.28 + i * 0.09) + i * 2.1;
+        final drift = radius * (0.34 + i * 0.16);
+        canvas.drawCircle(
+          center + Offset(math.cos(angle), math.sin(angle)) * drift,
+          radius * (0.3 + 0.05 * math.sin(visualTime + i)),
+          fill(const Color(0xFFB7E88A).withValues(alpha: 0.09)),
+        );
+      }
+    }
+  }
+
   void paintPads(Canvas canvas, double visualTime) {
     final armedKind = engine.armedKind;
     final armed = armedKind != null;
@@ -93,10 +110,12 @@ class BoardActorLayer {
     for (final enemy in engine.enemies) {
       if (enemy.alive) order.add(enemy);
     }
-    order.sort(_byDistance);
+    order.sort(_byProgress);
     for (final enemy in order) {
       final position = engine.enemyPosition(enemy, alpha: alpha);
-      final bob = math.sin(visualTime * 7 + enemy.id) * 1.5;
+      final bob = enemy.flying
+          ? math.sin(visualTime * 6 + enemy.id) * 3 - 12
+          : math.sin(visualTime * 7 + enemy.id) * 1.5;
       paintEnemy(
         canvas,
         enemy.kind,
@@ -347,4 +366,4 @@ class BoardActorLayer {
   }
 }
 
-int _byDistance(Enemy a, Enemy b) => a.distance.compareTo(b.distance);
+int _byProgress(Enemy a, Enemy b) => a.progress.compareTo(b.progress);
