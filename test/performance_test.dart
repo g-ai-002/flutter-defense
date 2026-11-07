@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:carrot_defense/flame/art_utils.dart';
 import 'package:carrot_defense/flame/board_component.dart';
 import 'package:carrot_defense/game/engine/defense_engine.dart';
 import 'package:carrot_defense/game/engine/entities.dart';
@@ -46,6 +47,34 @@ void main() {
       ]);
       expect(track.pointAt(-50), track.points.first);
       expect(track.pointAt(track.length + 50), track.points.last);
+    });
+
+    test('单调游标与二分采样一致，距离回退后重新定位', () {
+      final track = PathTrack([
+        for (final point in kLevels.first.path) point.design,
+      ]);
+      final cursor = PathCursor();
+      for (var i = 0; i <= 200; i++) {
+        final distance = track.length * i / 200;
+        final lateral = (i % 7 - 3) * 2.5;
+        final sample = track.sampleAt(distance);
+        final expected =
+            sample.position +
+            Offset(-sample.tangent.dy, sample.tangent.dx) * lateral;
+        expect(
+          (cursor.sample(track, distance, lateral) - expected).distance,
+          lessThan(0.001),
+          reason: '游标在 $distance 处与二分采样不一致',
+        );
+      }
+      final sample = track.sampleAt(12);
+      final expected =
+          sample.position + Offset(-sample.tangent.dy, sample.tangent.dx) * 3;
+      expect(
+        (cursor.sample(track, 12, 3) - expected).distance,
+        lessThan(0.001),
+        reason: '距离回退后应从头重新定位',
+      );
     });
   });
 
@@ -160,6 +189,51 @@ void main() {
       _renderOnce(board);
       expect(board.staticLayerBuilds, 1, reason: '静态图层与尺寸无关');
       expect(board.backdropBuilds, 2, reason: '尺寸变化后背景需要重录');
+
+      board.onRemove();
+      engine.dispose();
+      paused.dispose();
+      speed.dispose();
+    });
+
+    test('重复渲染命中塔、建造台、萝卜与弹道精灵缓存', () {
+      final engine = DefenseEngine(level: kLevels.first);
+      final paused = ValueNotifier<bool>(false);
+      final speed = ValueNotifier<double>(1);
+      final board = BoardComponent(
+        engine: engine,
+        logicRate: LogicRate.hz120,
+        pausedNotifier: paused,
+        speed: speed,
+      )..size = Vector2(900, 540);
+
+      expect(engine.build(0, TowerKind.arrow), isTrue);
+      expect(engine.upgrade(0), isTrue);
+      expect(engine.build(1, TowerKind.frost), isTrue);
+      engine.selectSlot(0);
+      engine.projectiles.add(
+        Projectile(
+          kind: TowerKind.arrow,
+          targetId: 0,
+          position: engine.slotPositions[0],
+          targetPosition: engine.slotPositions[1],
+          speed: 900,
+          damage: 10,
+          splash: 0,
+          slowFactor: 1,
+          slowDuration: 0,
+          flightTime: 1,
+        ),
+      );
+      engine.startNextWave();
+      advance(engine, 2);
+
+      _renderOnce(board);
+      final builds = debugSpriteBuilds;
+      expect(builds, greaterThan(0), reason: '首次渲染应录制战场精灵');
+
+      _renderOnce(board);
+      expect(debugSpriteBuilds, builds, reason: '状态未变时不应重新录制精灵');
 
       board.onRemove();
       engine.dispose();
