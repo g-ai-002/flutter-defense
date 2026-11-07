@@ -12,20 +12,20 @@
 - ⏩ **战斗节奏**：1x / 2x / 3x 倍速，30 / 60 / 120Hz 逻辑刷新率可调，默认 60Hz
 - 🎨 **全程序化美术**：地貌装饰、土路、萝卜、塔、怪物、弹道、爆炸与飘字全部 Canvas 绘制，仓库无图片
 - 🎵 **运行时合成音频**：15 种音效与 16 秒五声音阶循环 BGM，通过 flutter_soloud 播放，仓库无音频文件
-- 🖥️ **自适应界面**：手机 / 折叠屏 / 平板 / Windows 窗口自适应，窄屏自动横屏全屏，HUD 悬浮不挤占战场
+- 🖥️ **自适应界面**：手机 / 折叠屏 / 平板 / Windows 窗口自适应，窄屏自动横屏全屏，竖屏与超窄屏下塔栏可横向滚动，HUD 悬浮不挤占战场
 - 🌓 深色模式、简体中文、Windows 优先 `Microsoft YaHei UI`，Web 使用 soup_fonts 思源黑体
 - 🧾 日志按天写入用户目录，设置页可查看最近日志
 - 🔒 完全本地运行，不包含任何联网功能
 
 ## 下载
 
-v0.1.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.1.0)
+v0.1.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.1.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-defense-0.1.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-defense-0.1.0-windows-x86_64.zip` |
-| Web | `flutter-defense-0.1.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-defense-0.1.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-defense-0.1.1-windows-x86_64.zip` |
+| Web | `flutter-defense-0.1.1-web.zip`（解压后起静态服务器） |
 
 ## 玩法
 
@@ -71,4 +71,5 @@ lib/
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.1.1 | 修复窄屏竖屏布局溢出，塔栏改为横向滚动，收敛卡片与配置重复 |
 | v0.1.0 | 首个可玩版本：10 关、4 塔、5 类敌人、星级进度、程序化美术与音频、三端构建发布 |
