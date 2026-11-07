@@ -132,6 +132,9 @@ ui.Picture _towerTurretSprite(TowerKind kind, double radius) {
       case TowerKind.lightning:
         _paintLightningTower(canvas, radius);
         break;
+      case TowerKind.poison:
+        _paintPoisonTower(canvas, radius);
+        break;
     }
   });
   _storeSprite(_towerTurrets, key, picture);
@@ -311,6 +314,7 @@ void paintEnemy(
   double flash = 0,
   double hpRatio = 1,
   bool slowed = false,
+  bool poisoned = false,
   bool boss = false,
   double bob = 0,
 }) {
@@ -318,6 +322,22 @@ void paintEnemy(
   canvas.translate(center.dx, center.dy + bob);
   canvas.drawPicture(_enemyBodySprite(kind, radius));
 
+  if (poisoned) {
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 1.02,
+      fill(const Color(0xFF7FD05A).withValues(alpha: 0.2)),
+    );
+    final bubble = fill(const Color(0xFFC9F79B).withValues(alpha: 0.8));
+    for (var i = 0; i < 3; i++) {
+      final angle = i * 2.1 + 0.4;
+      canvas.drawCircle(
+        Offset(math.cos(angle), math.sin(angle)) * radius * 0.72,
+        radius * 0.11,
+        bubble,
+      );
+    }
+  }
   if (slowed) {
     canvas.drawCircle(
       Offset.zero,
@@ -909,6 +929,56 @@ void _paintLightningTower(Canvas canvas, double r) {
     ..lineTo(r * 0.82, -r * 0.02)
     ..lineTo(r * 0.58, r * 0.42);
   canvas.drawPath(bolt, stroke(const Color(0xFFFFF6DE), r * 0.07));
+}
+
+void _paintPoisonTower(Canvas canvas, double r) {
+  // 药锅
+  canvas.drawCircle(
+    Offset.zero,
+    r * 0.58,
+    fill(const Color(0xFF7FD05A).withValues(alpha: 0.2)),
+  );
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Rect.fromLTWH(-r * 0.52, -r * 0.42, r * 0.92, r * 0.8),
+      Radius.circular(r * 0.3),
+    ),
+    Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF4F8C3A), Color(0xFF24421C)],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: r)),
+  );
+  canvas.drawOval(
+    Rect.fromCenter(
+      center: Offset(-r * 0.06, -r * 0.26),
+      width: r * 0.8,
+      height: r * 0.3,
+    ),
+    fill(const Color(0xFFA8E36B)),
+  );
+  final bubble = fill(const Color(0xFFD9FFAF));
+  canvas.drawCircle(Offset(-r * 0.22, -r * 0.28), r * 0.08, bubble);
+  canvas.drawCircle(Offset(r * 0.08, -r * 0.3), r * 0.05, bubble);
+  // 喷口
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Rect.fromLTWH(r * 0.24, -r * 0.14, r * 0.58, r * 0.28),
+      Radius.circular(r * 0.12),
+    ),
+    fill(const Color(0xFF3C5A2E)),
+  );
+  canvas.drawCircle(
+    Offset(r * 0.84, 0),
+    r * 0.15,
+    fill(const Color(0xFFB7F28A)),
+  );
+  canvas.drawCircle(
+    Offset(r * 0.84, 0),
+    r * 0.24,
+    stroke(const Color(0xFF6FBF4A), r * 0.05),
+  );
 }
 
 /// 空建造位：石制圆台 + 加号。

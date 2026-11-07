@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../game/endless.dart';
 import '../game/levels.dart';
+import '../models/endless.dart';
 import '../models/level.dart';
 import '../providers/progress_provider.dart';
 import '../providers/settings_provider.dart';
@@ -375,8 +377,10 @@ class _Entries extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final index = (progress.unlockedLevel - 1).clamp(0, kLevels.length - 1);
     final level = kLevels[index];
+    final best = progress.bestEndless;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -386,6 +390,28 @@ class _Entries extends StatelessWidget {
           title: progress.unlockedLevel > kLevels.length ? '再战终章' : '开始冒险',
           subtitle: '第 ${level.id} 关 · ${level.name} · ${level.waveCount} 波敌人',
           onTap: () => _openLevel(context, level),
+        ),
+        const SizedBox(height: 10),
+        EntryTile(
+          icon: Icons.all_inclusive_rounded,
+          title: '无尽挑战',
+          subtitle: best == null
+              ? '波次无尽，看看你能守住几波'
+              : '最佳第 ${best.waves} 波 · ${endlessRank(best.waves)} · '
+                    '${best.kills} 击杀',
+          accent: const Color(0xFF4F8C3A),
+          trailing: IconButton(
+            tooltip: '无尽排行榜',
+            onPressed: () =>
+                showEndlessRecordsDialog(context, progress.endlessRecords),
+            icon: Icon(
+              Icons.leaderboard_outlined,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            visualDensity: VisualDensity.compact,
+          ),
+          onTap: () => _openLevel(context, kEndlessLevel),
         ),
         const SizedBox(height: 10),
         EntryTile(

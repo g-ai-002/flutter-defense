@@ -1,4 +1,5 @@
 import 'package:carrot_defense/app.dart';
+import 'package:carrot_defense/models/endless.dart';
 import 'package:carrot_defense/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +21,47 @@ void main() {
     expect(find.text('开始冒险'), findsOneWidget);
     expect(find.text('关卡选择'), findsOneWidget);
     expect(find.text('玩法说明'), findsOneWidget);
+    expect(find.text('无尽挑战'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('无尽挑战入口可直接进入对局', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+
+    await tester.tap(find.text('无尽挑战'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('开始第 1 波'), findsOneWidget);
+    expect(find.text('第 1 波'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
+  testWidgets('首页可查看无尽排行榜', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await storage.addEndlessRecord(
+      const EndlessRecord(
+        waves: 9,
+        kills: 120,
+        gold: 900,
+        date: '2026-11-08',
+      ),
+    );
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+    expect(find.textContaining('最佳第 9 波'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('无尽排行榜'));
+    await tester.pumpAndSettle();
+    expect(find.text('无尽排行榜'), findsOneWidget);
+    expect(find.textContaining('第 9 波'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

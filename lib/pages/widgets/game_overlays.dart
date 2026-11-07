@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../game/engine/defense_engine.dart';
+import '../../models/endless.dart';
 import '../../models/level.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/app_theme.dart';
@@ -18,6 +19,10 @@ class GameResultOverlay extends StatelessWidget {
     required this.onRetry,
     required this.onNext,
     required this.onExit,
+    this.endless = false,
+    this.bestWaves = 0,
+    this.newRecord = false,
+    this.exitLabel = '返回选关',
   });
 
   final LevelDef level;
@@ -29,10 +34,22 @@ class GameResultOverlay extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onExit;
 
+  /// 无尽模式结算：以坚守波数计分，不评星，展示历史最佳与新纪录。
+  final bool endless;
+  final int bestWaves;
+  final bool newRecord;
+  final String exitLabel;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final accent = endless || victory ? const Color(0xFF3F7D46) : appOrange;
+    final title = endless
+        ? '坚守到第 ${engine.clearedWaves} 波'
+        : victory
+        ? '关卡完成！'
+        : '萝卜被抢走了';
     return Container(
       color: Colors.black.withValues(alpha: 0.52),
       alignment: Alignment.center,
@@ -70,20 +87,21 @@ class GameResultOverlay extends StatelessWidget {
                       height: 62,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: (victory ? const Color(0xFF3F7D46) : appOrange)
-                            .withValues(alpha: 0.14),
+                        color: accent.withValues(alpha: 0.14),
                       ),
                       child: Icon(
-                        victory
+                        endless
+                            ? Icons.military_tech_rounded
+                            : victory
                             ? Icons.emoji_events_rounded
                             : Icons.heart_broken_rounded,
                         size: 32,
-                        color: victory ? const Color(0xFF3F7D46) : appOrange,
+                        color: accent,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      victory ? '关卡完成！' : '萝卜被抢走了',
+                      title,
                       style: theme.textTheme.titleLarge?.copyWith(fontSize: 21),
                     ),
                     const SizedBox(height: 3),
@@ -93,7 +111,25 @@ class GameResultOverlay extends StatelessWidget {
                         color: colors.onSurfaceVariant,
                       ),
                     ),
-                    if (victory) ...[
+                    if (endless) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        newRecord
+                            ? '新纪录！称号：${endlessRank(engine.clearedWaves)}'
+                            : '历史最佳 $bestWaves 波 · '
+                                  '称号：${endlessRank(engine.clearedWaves)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: newRecord
+                              ? const Color(0xFFD99B1D)
+                              : colors.onSurfaceVariant,
+                          fontWeight: newRecord
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                    if (!endless && victory) ...[
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +170,7 @@ class GameResultOverlay extends StatelessWidget {
                           fontSize: 11,
                         ),
                       ),
-                    ] else ...[
+                    ] else if (!endless) ...[
                       const SizedBox(height: 8),
                       Text(
                         '冰霜塔减速配合火炮塔群伤，\n在弯道与长直路上布置火力会更稳。',
@@ -160,16 +196,26 @@ class GameResultOverlay extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          _Stat(label: '击杀', value: '${engine.kills}'),
+                          _Stat(
+                            label: endless ? '波次' : '击杀',
+                            value: endless
+                                ? '${engine.clearedWaves}'
+                                : '${engine.kills}',
+                          ),
                           _divider(colors),
-                          _Stat(label: '漏怪', value: '${engine.leaked}'),
+                          _Stat(
+                            label: endless ? '击杀' : '漏怪',
+                            value: endless
+                                ? '${engine.kills}'
+                                : '${engine.leaked}',
+                          ),
                           _divider(colors),
                           _Stat(label: '金币', value: '${engine.goldEarned}'),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    if (victory && hasNext)
+                    if (!endless && victory && hasNext)
                       FilledButton(
                         onPressed: onNext,
                         style: FilledButton.styleFrom(
@@ -183,12 +229,18 @@ class GameResultOverlay extends StatelessWidget {
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(44),
                         ),
-                        child: Text(victory ? '再玩一次' : '再试一次'),
+                        child: Text(
+                          endless
+                              ? '再来一局'
+                              : victory
+                              ? '再玩一次'
+                              : '再试一次',
+                        ),
                       ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        if (victory && hasNext) ...[
+                        if (!endless && victory && hasNext) ...[
                           Expanded(
                             child: OutlinedButton(
                               onPressed: onRetry,
@@ -206,7 +258,7 @@ class GameResultOverlay extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size(0, 40),
                             ),
-                            child: const Text('返回选关'),
+                            child: Text(exitLabel),
                           ),
                         ),
                       ],
@@ -269,6 +321,7 @@ class PauseOverlay extends StatelessWidget {
     required this.onResume,
     required this.onRestart,
     required this.onExit,
+    this.exitLabel = '返回选关',
   });
 
   final String logicLabel;
@@ -276,6 +329,7 @@ class PauseOverlay extends StatelessWidget {
   final VoidCallback onResume;
   final VoidCallback onRestart;
   final VoidCallback onExit;
+  final String exitLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +417,7 @@ class PauseOverlay extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 40),
                           ),
-                          child: const Text('返回选关'),
+                          child: Text(exitLabel),
                         ),
                       ),
                     ],

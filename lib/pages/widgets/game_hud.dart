@@ -153,9 +153,13 @@ class _TopBar extends StatelessWidget {
                     engine.status == GameStatus.preparing
                         ? '准备阶段'
                         : engine.status == GameStatus.battle
-                        ? '第 ${engine.waveIndex} 波'
+                        ? engine.endless
+                              ? '无尽 · 第 ${engine.waveIndex} 波'
+                              : '第 ${engine.waveIndex} 波'
                         : engine.status == GameStatus.victory
                         ? '关卡完成'
+                        : engine.endless
+                        ? '无尽挑战结束'
                         : '防线失守',
                     maxLines: 1,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -191,9 +195,10 @@ class _TopBar extends StatelessWidget {
             _InfoPill(
               icon: Icons.flag_rounded,
               iconColor: const Color(0xFF3F7D46),
-              label:
-                  '${engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex}'
-                  '/${engine.level.waveCount} 波',
+              label: engine.endless
+                  ? '第 ${engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex} 波'
+                  : '${engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex}'
+                        '/${engine.level.waveCount} 波',
               compact: compact,
             ),
           ],
@@ -550,7 +555,9 @@ class _TowerPanel extends StatelessWidget {
               ),
               if (!compact)
                 Text(
-                  '伤害 ${stats.damage.round()} · 范围 ${stats.range.round()} · '
+                  '伤害 ${stats.damage.round()}'
+                  '${stats.poisonDps > 0 ? ' +毒${stats.poisonDps.round()}/s' : ''} · '
+                  '范围 ${stats.range.round()} · '
                   '${stats.interval.toStringAsFixed(2)}s',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -697,6 +704,7 @@ class _TowerCard extends StatelessWidget {
       TowerKind.cannon => const Color(0xFF4C5560),
       TowerKind.frost => const Color(0xFF3E7FA6),
       TowerKind.lightning => const Color(0xFFA66A1E),
+      TowerKind.poison => const Color(0xFF4F8C3A),
     };
     final muted = !enabled && !selected;
     return Opacity(

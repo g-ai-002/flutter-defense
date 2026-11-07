@@ -30,7 +30,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.1.2';
+  static const String version = '0.2.0';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';
@@ -39,6 +39,7 @@ class AppConstants {
   static const String prefKeyLogicRate = 'logic_rate';
   static const String prefKeyStars = 'level_stars';
   static const String prefKeyUnlocked = 'level_unlocked';
+  static const String prefKeyEndless = 'endless_records';
 
   /// 战斗倍速档位。
   static const List<double> battleSpeeds = [1, 2, 3];

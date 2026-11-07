@@ -11,6 +11,8 @@ class TowerStats {
     this.slowFactor = 1,
     this.slowDuration = 0,
     this.chains = 1,
+    this.poisonDps = 0,
+    this.poisonDuration = 0,
   });
 
   final int cost;
@@ -21,6 +23,10 @@ class TowerStats {
   final double slowFactor;
   final double slowDuration;
   final int chains;
+
+  /// 中毒每秒伤害（无视护甲）与持续时间，持续期间再次命中取较高值。
+  final double poisonDps;
+  final double poisonDuration;
 
   double get dps => damage / interval;
 }
@@ -70,6 +76,35 @@ const Map<TowerKind, List<TowerStats>> kTowerStats = {
     TowerStats(cost: 130, range: 172, interval: 1.25, damage: 30, chains: 2),
     TowerStats(cost: 180, range: 190, interval: 1.10, damage: 50, chains: 3),
     TowerStats(cost: 260, range: 212, interval: 0.95, damage: 78, chains: 4),
+  ],
+  TowerKind.poison: [
+    TowerStats(
+      cost: 95,
+      range: 150,
+      interval: 1.0,
+      damage: 7,
+      splash: 44,
+      poisonDps: 9,
+      poisonDuration: 3,
+    ),
+    TowerStats(
+      cost: 135,
+      range: 164,
+      interval: 0.9,
+      damage: 12,
+      splash: 48,
+      poisonDps: 16,
+      poisonDuration: 3.5,
+    ),
+    TowerStats(
+      cost: 190,
+      range: 182,
+      interval: 0.8,
+      damage: 19,
+      splash: 54,
+      poisonDps: 27,
+      poisonDuration: 4,
+    ),
   ],
 };
 

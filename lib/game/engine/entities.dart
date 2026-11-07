@@ -13,6 +13,7 @@ enum GameEvent {
   arrowShot,
   cannonShot,
   frostShot,
+  poisonShot,
   lightning,
   hit,
   leak,
@@ -82,12 +83,15 @@ class Enemy {
 
   double slowTimer = 0;
   double slowFactor = 1;
+  double poisonTimer = 0;
+  double poisonDps = 0;
   double flash = 0;
   bool alive = true;
 
   bool get isBoss => kind == EnemyKind.boss;
   double get hpRatio => (hp / maxHp).clamp(0.0, 1.0);
   bool get slowed => slowTimer > 0;
+  bool get poisoned => poisonTimer > 0;
 
   double get currentSpeed => speed * (slowTimer > 0 ? slowFactor : 1);
 }
@@ -104,6 +108,8 @@ class Projectile {
     required this.slowFactor,
     required this.slowDuration,
     required this.flightTime,
+    this.poisonDps = 0,
+    this.poisonDuration = 0,
   }) : lastTarget = targetPosition;
 
   final TowerKind kind;
@@ -115,6 +121,8 @@ class Projectile {
   final double splash;
   final double slowFactor;
   final double slowDuration;
+  final double poisonDps;
+  final double poisonDuration;
   final double flightTime;
 
   double elapsed = 0;
@@ -124,7 +132,15 @@ class Projectile {
   double get progress => (elapsed / flightTime).clamp(0.0, 1.0);
 }
 
-enum EffectKind { explosion, spark, lightning, frostRing, buildDust, leak }
+enum EffectKind {
+  explosion,
+  spark,
+  lightning,
+  frostRing,
+  poison,
+  buildDust,
+  leak,
+}
 
 class Effect {
   Effect({

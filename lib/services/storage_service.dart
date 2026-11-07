@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../game/logic_rate.dart';
+import '../models/endless.dart';
 import '../utils/constants.dart';
 
 /// 轻量偏好存储：写入失败时静默忽略，不影响游戏主流程。
@@ -76,6 +77,32 @@ class StorageService {
   }
 
   int get unlockedLevel => _p.getInt(AppConstants.prefKeyUnlocked) ?? 1;
+
+  /// 无尽模式本地排行榜，最多保留 10 条，按波次、击杀、金币降序。
+  List<EndlessRecord> get endlessRecords {
+    final raw = _p.getString(AppConstants.prefKeyEndless);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final records = [
+        for (final item in decoded)
+          if (item is Map<String, dynamic>) EndlessRecord.fromJson(item),
+      ]..sort(EndlessRecord.compare);
+      return records;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> addEndlessRecord(EndlessRecord record) => _write((p) async {
+    final next = [...endlessRecords, record]..sort(EndlessRecord.compare);
+    await p.setString(
+      AppConstants.prefKeyEndless,
+      jsonEncode([for (final item in next.take(10)) item.toJson()]),
+    );
+    return true;
+  });
 
   Future<void> recordStars(int levelId, int starCount) => _write((p) async {
     final current = stars;

@@ -10,6 +10,7 @@ class EntryTile extends StatelessWidget {
     required this.onTap,
     this.accent,
     this.primary = false,
+    this.trailing,
   });
 
   final IconData icon;
@@ -18,6 +19,9 @@ class EntryTile extends StatelessWidget {
   final VoidCallback onTap;
   final Color? accent;
   final bool primary;
+
+  /// 右侧附加操作（如排行榜入口），不传时只显示箭头。
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -87,13 +91,16 @@ class EntryTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 20,
-                color: primary
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : colors.onSurfaceVariant,
-              ),
+              if (trailing != null)
+                trailing!
+              else
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: primary
+                      ? Colors.white.withValues(alpha: 0.8)
+                      : colors.onSurfaceVariant,
+                ),
             ],
           ),
         ),

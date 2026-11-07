@@ -57,7 +57,7 @@ const List<GridPos> _slotsB = [
   GridPos(14, 4),
 ];
 
-const List<GridPos> _pathC = [
+const List<GridPos> kPathC = [
   GridPos(-1.2, 1),
   GridPos(13, 1),
   GridPos(13, 3),
@@ -68,7 +68,7 @@ const List<GridPos> _pathC = [
   GridPos(5, 7),
 ];
 
-const List<GridPos> _slotsC = [
+const List<GridPos> kSlotsC = [
   GridPos(4, 0),
   GridPos(9, 0),
   GridPos(14, 0),
@@ -299,8 +299,8 @@ final List<LevelDef> kLevels = [
     name: '霜雪回廊',
     subtitle: '寒风中的折返长路',
     theme: LevelTheme.snow,
-    path: _pathC,
-    slots: _slotsC,
+    path: kPathC,
+    slots: kSlotsC,
     startGold: 300,
     carrotHp: 20,
     hpScale: 1.2,
@@ -424,7 +424,7 @@ final List<LevelDef> kLevels = [
     subtitle: '冰霜与铁甲的双重考验',
     theme: LevelTheme.snow,
     path: _pathC2,
-    slots: _slotsC.reversed.toList(),
+    slots: kSlotsC.reversed.toList(),
     startGold: 340,
     carrotHp: 22,
     hpScale: 2.15,

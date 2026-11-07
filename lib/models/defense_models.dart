@@ -7,7 +7,8 @@ enum TowerKind {
   arrow('弓弩塔', '单体速射，性价比高'),
   cannon('火炮塔', '范围轰击，清理成群小怪'),
   frost('冰霜塔', '减速敌人，为输出争取时间'),
-  lightning('雷电塔', '连锁闪电，最多命中多个目标');
+  lightning('雷电塔', '连锁闪电，最多命中多个目标'),
+  poison('毒液塔', '持续中毒，无视护甲慢慢腐蚀');
 
   const TowerKind(this.label, this.blurb);
 

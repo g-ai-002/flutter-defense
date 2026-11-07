@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../game/levels.dart';
+import '../models/endless.dart';
 import '../services/storage_service.dart';
 
 /// 关卡进度：星级与解锁状态，通关后立即持久化并通知界面。
@@ -22,6 +23,18 @@ class ProgressProvider extends ChangeNotifier {
   Future<void> record(int levelId, int starCount) async {
     await _storage.recordStars(levelId, starCount);
     _stars = Map.of(_storage.stars);
+    notifyListeners();
+  }
+
+  List<EndlessRecord> get endlessRecords => _storage.endlessRecords;
+
+  EndlessRecord? get bestEndless {
+    final records = endlessRecords;
+    return records.isEmpty ? null : records.first;
+  }
+
+  Future<void> recordEndless(EndlessRecord record) async {
+    await _storage.addEndlessRecord(record);
     notifyListeners();
   }
 }

@@ -94,6 +94,9 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         case GameEvent.frostShot:
           SoundService.play(SoundFx.frost);
           break;
+        case GameEvent.poisonShot:
+          SoundService.play(SoundFx.poison);
+          break;
         case GameEvent.lightning:
           SoundService.play(SoundFx.lightning);
           break;
@@ -897,6 +900,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         flash: enemy.flash,
         hpRatio: enemy.hpRatio,
         slowed: enemy.slowed,
+        poisoned: enemy.poisoned,
         boss: enemy.isBoss,
         bob: bob,
       );
@@ -967,6 +971,25 @@ class BoardComponent extends PositionComponent with TapCallbacks {
           );
           canvas.restore();
           break;
+        case TowerKind.poison:
+          final arc = math.sin(projectile.progress * math.pi) * 12;
+          final center = projectile.position - Offset(0, arc);
+          canvas.drawCircle(
+            center,
+            9,
+            fill(const Color(0xFF6FBF4A).withValues(alpha: 0.9)),
+          );
+          canvas.drawCircle(
+            center + const Offset(-3, 2),
+            7,
+            stroke(const Color(0xFFCBEF9A), 1.4),
+          );
+          canvas.drawCircle(
+            center + const Offset(3, -3),
+            2.4,
+            fill(const Color(0xFFE7FFCB)),
+          );
+          break;
         case TowerKind.lightning:
           break;
       }
@@ -1034,6 +1057,28 @@ class BoardComponent extends PositionComponent with TapCallbacks {
           break;
         case EffectKind.lightning:
           _paintLightning(canvas, effect, t);
+          break;
+        case EffectKind.poison:
+          final spread = effect.radius * (0.35 + 0.75 * t);
+          canvas.drawCircle(
+            effect.position,
+            spread,
+            fill(const Color(0xFF6FBF4A).withValues(alpha: (1 - t) * 0.2)),
+          );
+          canvas.drawCircle(
+            effect.position,
+            spread,
+            stroke(const Color(0xFFA8E36B).withValues(alpha: 1 - t), 2.6),
+          );
+          for (var i = 0; i < 5; i++) {
+            final angle = i * math.pi * 2 / 5 + 0.5;
+            canvas.drawCircle(
+              effect.position +
+                  Offset(math.cos(angle), math.sin(angle)) * spread * 0.7,
+              effect.radius * 0.12 * (1 - t),
+              fill(const Color(0xFFD9FFAF).withValues(alpha: 1 - t)),
+            );
+          }
           break;
         case EffectKind.buildDust:
           canvas.drawCircle(

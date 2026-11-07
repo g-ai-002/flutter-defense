@@ -43,7 +43,9 @@ class DefenseEngine {
 
   /// 已建造的塔，建造/出售时增量维护，渲染与索敌不再逐帧过滤。
   final List<Tower> _activeTowers = [];
-  late final List<Tower> _activeTowersView = UnmodifiableListView(_activeTowers);
+  late final List<Tower> _activeTowersView = UnmodifiableListView(
+    _activeTowers,
+  );
 
   /// 敌人 id 索引，弹道命中查询从 O(n) 降为 O(1)。
   final Map<int, Enemy> _enemyIndex = {};
@@ -121,6 +123,12 @@ class DefenseEngine {
 
   bool get isFinished =>
       status == GameStatus.victory || status == GameStatus.defeat;
+
+  bool get endless => level.endless;
+
+  /// 完整清理的波次数，失败时用于无尽模式结算。
+  int get clearedWaves =>
+      status == GameStatus.battle ? math.max(0, waveIndex - 1) : waveIndex;
 
   List<Tower> get activeTowers => _activeTowersView;
 
@@ -282,6 +290,7 @@ class DefenseEngine {
       battleTime += dt;
       waveElapsed += dt;
       _spawnDue();
+      _tickPoison(dt);
       _moveEnemies(dt);
       if (status != GameStatus.defeat) {
         _updateTowers(dt);
@@ -446,6 +455,10 @@ class DefenseEngine {
         _launch(tower, target, speed: 720, stats: stats);
         events.add(GameEvent.frostShot);
         break;
+      case TowerKind.poison:
+        _launch(tower, target, speed: 640, stats: stats);
+        events.add(GameEvent.poisonShot);
+        break;
       case TowerKind.lightning:
         _chainLightning(tower, target);
         events.add(GameEvent.lightning);
@@ -472,6 +485,8 @@ class DefenseEngine {
         splash: stats.splash,
         slowFactor: stats.slowFactor,
         slowDuration: stats.slowDuration,
+        poisonDps: stats.poisonDps,
+        poisonDuration: stats.poisonDuration,
         flightTime: math.max(0.08, distance / speed),
       ),
     );
@@ -550,13 +565,16 @@ class DefenseEngine {
         if (dx * dx + dy * dy <= reach * reach) {
           _damageEnemy(enemy, projectile.damage);
           _applySlow(enemy, projectile);
+          _applyPoison(enemy, projectile);
         }
       }
       effects.add(
         Effect(
-          kind: projectile.kind == TowerKind.frost
-              ? EffectKind.frostRing
-              : EffectKind.explosion,
+          kind: switch (projectile.kind) {
+            TowerKind.frost => EffectKind.frostRing,
+            TowerKind.poison => EffectKind.poison,
+            _ => EffectKind.explosion,
+          },
           position: impact,
           radius: projectile.splash,
           duration: 0.45,
@@ -578,6 +596,7 @@ class DefenseEngine {
     }
     _damageEnemy(target, projectile.damage);
     _applySlow(target, projectile);
+    _applyPoison(target, projectile);
     effects.add(
       Effect(
         kind: EffectKind.spark,
@@ -586,6 +605,22 @@ class DefenseEngine {
         duration: 0.22,
       ),
     );
+  }
+
+  void _applyPoison(Enemy enemy, Projectile projectile) {
+    if (projectile.poisonDps <= 0 || projectile.poisonDuration <= 0) return;
+    enemy.poisonDps = math.max(enemy.poisonDps, projectile.poisonDps);
+    enemy.poisonTimer = math.max(enemy.poisonTimer, projectile.poisonDuration);
+  }
+
+  /// 中毒伤害无视护甲，按逻辑帧持续结算，击杀仍然结算赏金。
+  void _tickPoison(double dt) {
+    for (final enemy in enemies) {
+      if (!enemy.alive || enemy.poisonTimer <= 0) continue;
+      enemy.poisonTimer = math.max(0, enemy.poisonTimer - dt);
+      _damageEnemy(enemy, enemy.poisonDps * dt, quiet: true, ignoreArmor: true);
+      if (enemy.poisonTimer <= 0) enemy.poisonDps = 0;
+    }
   }
 
   void _applySlow(Enemy enemy, Projectile projectile) {
@@ -598,10 +633,15 @@ class DefenseEngine {
     }
   }
 
-  void _damageEnemy(Enemy enemy, double damage) {
+  void _damageEnemy(
+    Enemy enemy,
+    double damage, {
+    bool quiet = false,
+    bool ignoreArmor = false,
+  }) {
     if (!enemy.alive) return;
-    enemy.hp -= damage * enemy.armor;
-    enemy.flash = 0.14;
+    enemy.hp -= damage * (ignoreArmor ? 1 : enemy.armor);
+    if (!quiet) enemy.flash = 0.14;
     if (enemy.hp > 0) return;
     enemy.alive = false;
     kills++;

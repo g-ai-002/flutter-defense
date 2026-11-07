@@ -38,6 +38,7 @@ class LevelDef {
     required this.hpScale,
     required this.waves,
     required this.seed,
+    this.endless = false,
   });
 
   final int id;
@@ -51,6 +52,9 @@ class LevelDef {
   final double hpScale;
   final List<WaveDef> waves;
   final int seed;
+
+  /// 无尽模式：波次表按上限生成，结算以坚守波数计分。
+  final bool endless;
 
   int get waveCount => waves.length;
 }

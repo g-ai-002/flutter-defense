@@ -16,6 +16,7 @@ enum SoundFx {
   arrow,
   cannon,
   frost,
+  poison,
   lightning,
   hit,
   leak,
@@ -52,6 +53,7 @@ class SoundService {
     SoundFx.arrow: 70,
     SoundFx.cannon: 110,
     SoundFx.frost: 90,
+    SoundFx.poison: 110,
     SoundFx.lightning: 120,
     SoundFx.hit: 60,
     SoundFx.coin: 80,
@@ -112,6 +114,17 @@ class SoundService {
       SynthNote(frequency: 1250, start: 0, duration: 0.07, gain: 0.35),
       SynthNote(frequency: 1860, start: 0.03, duration: 0.1, gain: 0.28),
       SynthNote(frequency: 980, start: 0.05, duration: 0.12, gain: 0.3),
+    ],
+    SoundFx.poison: [
+      SynthNote(
+        frequency: 420,
+        start: 0,
+        duration: 0.09,
+        gain: 0.4,
+        noise: 0.4,
+        slide: -0.35,
+      ),
+      SynthNote(frequency: 300, start: 0.06, duration: 0.14, gain: 0.32),
     ],
     SoundFx.lightning: [
       SynthNote(
@@ -247,6 +260,7 @@ class SoundService {
       if (fx == SoundFx.arrow ||
           fx == SoundFx.cannon ||
           fx == SoundFx.frost ||
+          fx == SoundFx.poison ||
           fx == SoundFx.lightning) {
         soloud.stopAudioSource(source);
       }
