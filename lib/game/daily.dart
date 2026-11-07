@@ -18,10 +18,7 @@ LevelDef dailyLevel([DateTime? now]) {
   final seed = dailySeed(date);
   final random = math.Random(seed);
   final base = kLevels[random.nextInt(kLevels.length)];
-  final branched = base.hasBranch;
-  final waves = [
-    for (var index = 0; index < kDailyWaves; index++) _dailyWave(random, index, branched),
-  ];
+  final lanes = base.routes.length;
   return LevelDef(
     id: 900,
     name: '每日挑战',
@@ -37,24 +34,19 @@ LevelDef dailyLevel([DateTime? now]) {
     hpScale: 1.15,
     seed: seed,
     daily: true,
-    waves: waves,
+    waves: [for (var index = 0; index < kDailyWaves; index++) _dailyWave(random, index + 1, lanes)],
   );
 }
 
-WaveDef _dailyWave(math.Random random, int index, bool branched) {
-  final wave = index + 1;
-  final lane = branched && random.nextInt(3) == 0 ? 1 : 0;
+/// 每日波次：数量随波次线性增长并设上限，分岔关卡按种子把主队分到支路。
+WaveDef _dailyWave(math.Random random, int wave, int lanes) {
+  final lane = lanes > 1 && random.nextInt(3) == 0 ? 1 : 0;
   return WaveDef(
     [
       SpawnGroup(EnemyKind.slime, math.min(24, 7 + wave), gap: 0.75, lane: lane),
+      // 疾风兔固定走主路，保证支路只承接按种子分流的小队。
       if (wave >= 2)
-        SpawnGroup(
-          EnemyKind.runner,
-          math.min(20, 2 + wave),
-          gap: 0.6,
-          delay: 1.2,
-          lane: branched && lane == 1 ? 0 : lane,
-        ),
+        SpawnGroup(EnemyKind.runner, math.min(20, 2 + wave), gap: 0.6, delay: 1.2, lane: 0),
       if (wave >= 4)
         SpawnGroup(EnemyKind.beetle, math.min(12, 1 + wave ~/ 2), gap: 0.9, delay: 2, lane: lane),
       if (wave >= 6) SpawnGroup(EnemyKind.tank, math.min(6, 1 + wave ~/ 5), gap: 1.5, delay: 3),

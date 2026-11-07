@@ -43,7 +43,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _recorded = false;
   int _stars = 0;
   int _bestWaves = 0;
-  bool _newEndlessRecord = false;
+  bool _newRecord = false;
 
   @override
   void initState() {
@@ -80,10 +80,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (_resultShown || !_engine.isFinished) return;
     _resultShown = true;
     _stars = _engine.stars;
-    if (_engine.endless) {
-      _finishEndlessRun();
-    } else if (_engine.daily) {
-      _finishDailyRun();
+    if (_engine.scored) {
+      _finishScoredRun();
     } else if (_engine.status == GameStatus.victory && !_recorded) {
       _recorded = true;
       unawaited(context.read<ProgressProvider>().record(widget.level.id, _stars));
@@ -104,41 +102,22 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     });
   }
 
-  void _finishEndlessRun() {
+  /// 无尽挑战与每日挑战都以坚守波数计分，只有记录位置不同。
+  void _finishScoredRun() {
     if (_recorded) return;
     _recorded = true;
     final progress = context.read<ProgressProvider>();
     final waves = _engine.clearedWaves;
-    _bestWaves = progress.bestEndless?.waves ?? 0;
-    _newEndlessRecord = waves > _bestWaves;
-    unawaited(
-      progress.recordEndless(
-        EndlessRecord.now(waves: waves, kills: _engine.kills, gold: _engine.goldEarned),
-      ),
-    );
+    final key = _engine.daily ? dailyKey(DateTime.now()) : null;
+    final record = EndlessRecord.now(waves: waves, kills: _engine.kills, gold: _engine.goldEarned);
+    _bestWaves = key == null
+        ? progress.bestEndless?.waves ?? 0
+        : progress.dailyBest(key)?.waves ?? 0;
+    _newRecord = waves > _bestWaves;
+    unawaited(key == null ? progress.recordEndless(record) : progress.recordDaily(key, record));
     LogService.info(
-      '无尽挑战结束: 第 $waves 波, 击杀 ${_engine.kills}, '
-      '金币 ${_engine.goldEarned}, 新纪录 $_newEndlessRecord',
-    );
-  }
-
-  void _finishDailyRun() {
-    if (_recorded) return;
-    _recorded = true;
-    final progress = context.read<ProgressProvider>();
-    final key = dailyKey(DateTime.now());
-    final waves = _engine.clearedWaves;
-    _bestWaves = progress.dailyBest(key)?.waves ?? 0;
-    _newEndlessRecord = waves > _bestWaves;
-    unawaited(
-      progress.recordDaily(
-        key,
-        EndlessRecord.now(waves: waves, kills: _engine.kills, gold: _engine.goldEarned),
-      ),
-    );
-    LogService.info(
-      '每日挑战结束: $key 第 $waves 波, 击杀 ${_engine.kills}, '
-      '金币 ${_engine.goldEarned}, 新纪录 $_newEndlessRecord',
+      '${key == null ? '无尽挑战' : '每日挑战 $key'}结束: 第 $waves 波, '
+      '击杀 ${_engine.kills}, 金币 ${_engine.goldEarned}, 新纪录 $_newRecord',
     );
   }
 
@@ -255,7 +234,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     endless: widget.level.endless,
                     daily: daily,
                     bestWaves: _bestWaves,
-                    newRecord: _newEndlessRecord,
+                    newRecord: _newRecord,
                     exitLabel: exitLabel,
                     onRetry: _restart,
                     onNext: _nextLevel,

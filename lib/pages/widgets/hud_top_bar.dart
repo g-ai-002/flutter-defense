@@ -93,7 +93,7 @@ class HudTopBar extends StatelessWidget {
             HudInfoPill(
               icon: Icons.flag_rounded,
               iconColor: const Color(0xFF3F7D46),
-              label: engine.endless || engine.daily
+              label: engine.scored
                   ? '第 ${_displayWave()} 波'
                   : '${_displayWave()}/${engine.level.waveCount} 波',
               compact: compact,

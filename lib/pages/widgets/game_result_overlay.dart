@@ -49,20 +49,19 @@ class GameResultOverlay extends StatelessWidget {
     final colors = theme.colorScheme;
     final scored = endless || daily;
     final accent = scored || victory ? const Color(0xFF3F7D46) : appOrange;
+    final waves = engine.clearedWaves;
     final title = daily
-        ? '今日挑战 · 第 ${engine.clearedWaves} 波'
+        ? '今日挑战 · 第 $waves 波'
         : endless
-        ? '坚守到第 ${engine.clearedWaves} 波'
+        ? '坚守到第 $waves 波'
         : victory
         ? '关卡完成！'
         : '萝卜被抢走了';
     final recordText = daily
-        ? newRecord
-              ? '今日新纪录！守住 ${engine.clearedWaves} 波'
-              : '今日最佳 $bestWaves 波'
-        : newRecord
-        ? '新纪录！称号：${endlessRank(engine.clearedWaves)}'
-        : '历史最佳 $bestWaves 波 · 称号：${endlessRank(engine.clearedWaves)}';
+        ? (newRecord ? '今日新纪录！守住 $waves 波' : '今日最佳 $bestWaves 波')
+        : (newRecord
+              ? '新纪录！称号：${endlessRank(waves)}'
+              : '历史最佳 $bestWaves 波 · 称号：${endlessRank(waves)}');
     return GameOverlayFrame(
       child: Column(
         mainAxisSize: MainAxisSize.min,
