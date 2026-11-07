@@ -299,68 +299,43 @@ class _TowerCard extends StatelessWidget {
                 width: selected ? 1.6 : 1,
               ),
             ),
-            child: compact
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TowerIcon(kind: kind, size: 22),
-                      Text(
-                        '$cost',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 9,
-                          height: 1.1,
-                          fontWeight: FontWeight.w700,
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      TowerIcon(kind: kind, size: 36),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              kind.label.replaceAll('塔', ''),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: tone,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.monetization_on_rounded,
-                                    size: 10,
-                                    color: Color(0xFFD99B1D),
-                                  ),
-                                  const SizedBox(width: 1),
-                                  Text(
-                                    '$cost',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TowerIcon(kind: kind, size: compact ? 22 : 30),
+                if (!compact)
+                  Text(
+                    kind.label.replaceAll('塔', ''),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 10,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: tone,
+                    ),
                   ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.monetization_on_rounded,
+                      size: 10,
+                      color: Color(0xFFD99B1D),
+                    ),
+                    Text(
+                      '$cost',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: compact ? 9 : 10,
+                        height: 1.1,
+                        fontWeight: FontWeight.w700,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -182,6 +182,9 @@ class _Hero extends StatelessWidget {
         ? 0.0
         : progress.totalStars / progress.maxStars;
     final carrotSize = compact ? (narrow ? 120.0 : 150.0) : 240.0;
+    final art = CarrotArt(size: carrotSize);
+    final copy = _HeroCopy(progress: progress, narrow: narrow);
+    final bar = _ProgressBar(ratio: ratio, progress: progress);
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -208,37 +211,34 @@ class _Hero extends StatelessWidget {
           ),
         ],
       ),
-      child: compact
-          ? Column(
+      child: Column(
+        crossAxisAlignment: compact
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
+        children: [
+          if (!compact)
+            Center(child: art)
+          else if (narrow) ...[
+            art,
+            const SizedBox(height: 6),
+            copy,
+          ] else
+            Row(
               children: [
-                if (narrow) ...[
-                  CarrotArt(size: carrotSize),
-                  const SizedBox(height: 6),
-                  _HeroCopy(progress: progress, narrow: narrow),
-                ] else
-                  Row(
-                    children: [
-                      CarrotArt(size: carrotSize),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _HeroCopy(progress: progress, narrow: narrow),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 12),
-                _ProgressBar(ratio: ratio, progress: progress),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(child: CarrotArt(size: carrotSize)),
-                const SizedBox(height: 10),
-                _HeroCopy(progress: progress, narrow: narrow),
-                const SizedBox(height: 16),
-                _ProgressBar(ratio: ratio, progress: progress),
+                art,
+                const SizedBox(width: 8),
+                Expanded(child: copy),
               ],
             ),
+          if (!compact) ...[
+            const SizedBox(height: 10),
+            copy,
+            const SizedBox(height: 16),
+          ] else
+            const SizedBox(height: 12),
+          bar,
+        ],
+      ),
     );
   }
 }

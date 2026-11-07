@@ -116,7 +116,23 @@ class LevelCard extends StatelessWidget {
                           const Spacer(),
                           Row(
                             children: [
-                              _Stars(stars: stars),
+                              Row(
+                                children: [
+                                  for (var i = 0; i < 3; i++)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 2),
+                                      child: Icon(
+                                        i < stars
+                                            ? Icons.star_rounded
+                                            : Icons.star_outline_rounded,
+                                        size: 17,
+                                        color: i < stars
+                                            ? const Color(0xFFF2B21C)
+                                            : colors.outline,
+                                      ),
+                                    ),
+                                ],
+                              ),
                               const Spacer(),
                               Text(
                                 '${level.waveCount} 波',
@@ -173,32 +189,6 @@ class LevelCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Stars extends StatelessWidget {
-  const _Stars({required this.stars});
-
-  final int stars;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (index) {
-        final active = index < stars;
-        return Padding(
-          padding: const EdgeInsets.only(right: 2),
-          child: Icon(
-            active ? Icons.star_rounded : Icons.star_outline_rounded,
-            size: 17,
-            color: active
-                ? const Color(0xFFF2B21C)
-                : Theme.of(context).colorScheme.outline,
-          ),
-        );
-      }),
     );
   }
 }
