@@ -47,8 +47,7 @@ class GameOverlayFrame extends StatelessWidget {
         tween: Tween(begin: 0.86, end: 1),
         duration: const Duration(milliseconds: 360),
         curve: Curves.easeOutBack,
-        builder: (context, scale, child) =>
-            Transform.scale(scale: scale, child: child),
+        builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
         child: card,
       );
     }
@@ -57,10 +56,7 @@ class GameOverlayFrame extends StatelessWidget {
       alignment: Alignment.center,
       child: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(14),
-            child: card,
-          ),
+          child: SingleChildScrollView(padding: const EdgeInsets.all(14), child: card),
         ),
       ),
     );

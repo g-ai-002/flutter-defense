@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../flame/defense_game.dart';
+import '../game/daily.dart';
 import '../game/engine/defense_engine.dart';
 import '../game/engine/entities.dart';
 import '../game/levels.dart';
@@ -21,11 +22,7 @@ import 'widgets/game_hud.dart';
 import 'widgets/game_overlays.dart';
 
 class GamePage extends StatefulWidget {
-  const GamePage({
-    super.key,
-    required this.level,
-    this.fromLevelSelect = false,
-  });
+  const GamePage({super.key, required this.level, this.fromLevelSelect = false});
 
   final LevelDef level;
 
@@ -74,8 +71,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       if (!_resultShown && !_engine.isFinished) _setPaused(true);
     }
   }
@@ -86,11 +82,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _stars = _engine.stars;
     if (_engine.endless) {
       _finishEndlessRun();
+    } else if (_engine.daily) {
+      _finishDailyRun();
     } else if (_engine.status == GameStatus.victory && !_recorded) {
       _recorded = true;
-      unawaited(
-        context.read<ProgressProvider>().record(widget.level.id, _stars),
-      );
+      unawaited(context.read<ProgressProvider>().record(widget.level.id, _stars));
       LogService.info(
         '通关 ${widget.level.name}, 星级 $_stars, 剩余萝卜 '
         '${_engine.carrotHp}/${_engine.carrotMaxHp}',
@@ -117,15 +113,31 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _newEndlessRecord = waves > _bestWaves;
     unawaited(
       progress.recordEndless(
-        EndlessRecord.now(
-          waves: waves,
-          kills: _engine.kills,
-          gold: _engine.goldEarned,
-        ),
+        EndlessRecord.now(waves: waves, kills: _engine.kills, gold: _engine.goldEarned),
       ),
     );
     LogService.info(
       '无尽挑战结束: 第 $waves 波, 击杀 ${_engine.kills}, '
+      '金币 ${_engine.goldEarned}, 新纪录 $_newEndlessRecord',
+    );
+  }
+
+  void _finishDailyRun() {
+    if (_recorded) return;
+    _recorded = true;
+    final progress = context.read<ProgressProvider>();
+    final key = dailyKey(DateTime.now());
+    final waves = _engine.clearedWaves;
+    _bestWaves = progress.dailyBest(key)?.waves ?? 0;
+    _newEndlessRecord = waves > _bestWaves;
+    unawaited(
+      progress.recordDaily(
+        key,
+        EndlessRecord.now(waves: waves, kills: _engine.kills, gold: _engine.goldEarned),
+      ),
+    );
+    LogService.info(
+      '每日挑战结束: $key 第 $waves 波, 击杀 ${_engine.kills}, '
       '金币 ${_engine.goldEarned}, 新纪录 $_newEndlessRecord',
     );
   }
@@ -162,25 +174,22 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   void _restart() {
     _resultTimer?.cancel();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => GamePage(level: widget.level)),
-    );
+    Navigator.of(context)
+        .pushReplacement(MaterialPageRoute<void>(builder: (_) => GamePage(level: widget.level)));
   }
 
   void _nextLevel() {
     final index = kLevels.indexWhere((item) => item.id == widget.level.id);
     if (index < 0 || index + 1 >= kLevels.length) return;
     _resultTimer?.cancel();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => GamePage(level: kLevels[index + 1]),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute<void>(builder: (_) => GamePage(level: kLevels[index + 1])));
   }
 
   void _openLevelSelect() {
     _resultTimer?.cancel();
-    if (widget.level.endless) {
+    if (widget.level.endless || widget.level.daily) {
       Navigator.of(context).pop();
       return;
     }
@@ -188,16 +197,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       Navigator.of(context).pop();
       return;
     }
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()),
-    );
+    Navigator.of(context)
+        .pushReplacement(MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()));
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
-    final hasNext = kLevels.any((item) => item.id == widget.level.id + 1);
-    final exitLabel = widget.level.endless ? '返回首页' : '返回选关';
+    final daily = widget.level.daily;
+    final hasNext = !daily && kLevels.any((item) => item.id == widget.level.id + 1);
+    final exitLabel = widget.level.endless || daily ? '返回首页' : '返回选关';
     return ImmersiveDisplayMode(
       child: PopScope(
         canPop: false,
@@ -210,10 +219,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             children: [
               Positioned.fill(
                 child: RepaintBoundary(
-                  child: GameWidget<DefenseGame>(
-                    key: ValueKey(_engine.hashCode),
-                    game: _game,
-                  ),
+                  child: GameWidget<DefenseGame>(key: ValueKey(_engine.hashCode), game: _game),
                 ),
               ),
               Positioned.fill(
@@ -247,6 +253,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     stars: _stars,
                     hasNext: hasNext,
                     endless: widget.level.endless,
+                    daily: daily,
                     bestWaves: _bestWaves,
                     newRecord: _newEndlessRecord,
                     exitLabel: exitLabel,

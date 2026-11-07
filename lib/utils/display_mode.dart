@@ -6,9 +6,7 @@ import 'package:flutter/services.dart';
 ///
 /// 平板、桌面与 Web 不改变方向与系统栏，避免突然旋转。
 bool shouldImmersiveLandscape(Size size) =>
-    !kIsWeb &&
-    defaultTargetPlatform == TargetPlatform.android &&
-    size.shortestSide < 600;
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android && size.shortestSide < 600;
 
 /// 游戏页显示模式：满足 [shouldImmersiveLandscape] 时切到横屏并隐藏系统栏，
 /// 离开后恢复系统栏与自动旋转。多个游戏页叠放时按引用计数只在最后一个退出时恢复。

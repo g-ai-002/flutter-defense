@@ -72,9 +72,7 @@ class PauseOverlay extends StatelessWidget {
           const SizedBox(height: 14),
           FilledButton(
             onPressed: onResume,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(44),
-            ),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
             child: const Text('继续游戏'),
           ),
           const SizedBox(height: 8),
@@ -83,9 +81,7 @@ class PauseOverlay extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: onRestart,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 40),
-                  ),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
                   child: const Text('重新开始'),
                 ),
               ),
@@ -93,9 +89,7 @@ class PauseOverlay extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: onExit,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 40),
-                  ),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
                   child: Text(exitLabel),
                 ),
               ),
@@ -108,11 +102,7 @@ class PauseOverlay extends StatelessWidget {
 }
 
 class _ToggleRow extends StatelessWidget {
-  const _ToggleRow({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-  });
+  const _ToggleRow({required this.title, required this.value, required this.onChanged});
 
   final String title;
   final bool value;

@@ -29,8 +29,9 @@ const List<TowerKind> _buildOrder = [
 class GreedyBot {
   GreedyBot(this.engine) {
     _slots = List.generate(engine.slotPositions.length, (index) => index)
-      ..sort((a, b) => _coverage(engine.slotPositions[b])
-          .compareTo(_coverage(engine.slotPositions[a])));
+      ..sort(
+        (a, b) => _coverage(engine.slotPositions[b]).compareTo(_coverage(engine.slotPositions[a])),
+      );
   }
 
   final DefenseEngine engine;
@@ -66,17 +67,15 @@ class GreedyBot {
     var upgraded = true;
     while (upgraded) {
       upgraded = false;
-      final candidates = engine.activeTowers
-          .where(
-            (tower) =>
-                tower.canUpgrade && engine.gold >= tower.upgradeCost,
-          )
-          .toList()
-        ..sort(
-          (a, b) => _coverage(
-            engine.slotPositions[b.slotIndex],
-          ).compareTo(_coverage(engine.slotPositions[a.slotIndex])),
-        );
+      final candidates =
+          engine.activeTowers
+              .where((tower) => tower.canUpgrade && engine.gold >= tower.upgradeCost)
+              .toList()
+            ..sort(
+              (a, b) =>
+                  _coverage(engine.slotPositions[b.slotIndex])
+                      .compareTo(_coverage(engine.slotPositions[a.slotIndex])),
+            );
       if (candidates.isEmpty) break;
       if (engine.upgrade(candidates.first.slotIndex)) upgraded = true;
     }
@@ -131,11 +130,7 @@ void main() {
       print(result);
     }
     final failed = results.where((result) => !result.won).toList();
-    expect(
-      failed,
-      isEmpty,
-      reason: failed.map((result) => result.toString()).join('\n'),
-    );
+    expect(failed, isEmpty, reason: failed.map((result) => result.toString()).join('\n'));
   });
 
   test('自动策略下的星级应保持在合理区间', () {
@@ -147,4 +142,3 @@ void main() {
     expect(results.first.engine.stars, 3);
   });
 }
-

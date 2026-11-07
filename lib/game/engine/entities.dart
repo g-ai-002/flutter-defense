@@ -18,6 +18,7 @@ enum GameEvent {
   lightning,
   hit,
   leak,
+  portal,
   waveStart,
   waveClear,
   victory,
@@ -61,6 +62,8 @@ class Enemy {
     required this.radius,
     required this.armor,
     required this.lateral,
+    required this.track,
+    required this.route,
     required this.routeLength,
     this.flying = false,
   }) : hp = maxHp;
@@ -79,6 +82,10 @@ class Enemy {
 
   /// 飞行敌人沿入口到萝卜的直线前进，不走土路。
   final bool flying;
+
+  /// 敌人选择的路线与本路线的采样轨道。
+  final PathTrack track;
+  final int route;
 
   /// 本局行进路线的总长度，用于统一进度比较。
   final double routeLength;
@@ -106,8 +113,7 @@ class Enemy {
   bool get poisoned => poisonTimer > 0;
 
   /// 归一化行进进度，地面与飞行敌人可以放在同一尺度上比较。
-  double get progress =>
-      routeLength <= 0 ? 1 : (distance / routeLength).clamp(0.0, 1.0);
+  double get progress => routeLength <= 0 ? 1 : (distance / routeLength).clamp(0.0, 1.0);
 
   double get currentSpeed => speed * (slowTimer > 0 ? slowFactor : 1);
 }
@@ -148,15 +154,7 @@ class Projectile {
   double get progress => (elapsed / flightTime).clamp(0.0, 1.0);
 }
 
-enum EffectKind {
-  explosion,
-  spark,
-  lightning,
-  frostRing,
-  poison,
-  buildDust,
-  leak,
-}
+enum EffectKind { explosion, spark, lightning, frostRing, poison, buildDust, leak, portal }
 
 class Effect {
   Effect({
@@ -174,49 +172,28 @@ class Effect {
     double radius,
     double duration, [
     List<Offset> points = const [],
-  ]) => Effect(
-    kind: kind,
-    position: position,
-    points: points,
-    radius: radius,
-    duration: duration,
-  );
+  ]) => Effect(kind: kind, position: position, points: points, radius: radius, duration: duration);
 
-  factory Effect.buildDust(
-    Offset position, {
-    double radius = 34,
-    double duration = 0.45,
-  }) => Effect._of(EffectKind.buildDust, position, radius, duration);
+  factory Effect.buildDust(Offset position, {double radius = 34, double duration = 0.45}) =>
+      Effect._of(EffectKind.buildDust, position, radius, duration);
 
-  factory Effect.spark(
-    Offset position, {
-    double radius = 14,
-    double duration = 0.22,
-  }) => Effect._of(EffectKind.spark, position, radius, duration);
+  factory Effect.spark(Offset position, {double radius = 14, double duration = 0.22}) =>
+      Effect._of(EffectKind.spark, position, radius, duration);
 
-  factory Effect.explosion(
-    Offset position, {
-    required double radius,
-    double duration = 0.45,
-  }) => Effect._of(EffectKind.explosion, position, radius, duration);
+  factory Effect.explosion(Offset position, {required double radius, double duration = 0.45}) =>
+      Effect._of(EffectKind.explosion, position, radius, duration);
 
-  factory Effect.frostRing(
-    Offset position, {
-    required double radius,
-    double duration = 0.45,
-  }) => Effect._of(EffectKind.frostRing, position, radius, duration);
+  factory Effect.frostRing(Offset position, {required double radius, double duration = 0.45}) =>
+      Effect._of(EffectKind.frostRing, position, radius, duration);
 
-  factory Effect.poisonCloud(
-    Offset position, {
-    required double radius,
-    double duration = 0.45,
-  }) => Effect._of(EffectKind.poison, position, radius, duration);
+  factory Effect.poisonCloud(Offset position, {required double radius, double duration = 0.45}) =>
+      Effect._of(EffectKind.poison, position, radius, duration);
 
-  factory Effect.leak(
-    Offset position, {
-    double radius = 46,
-    double duration = 0.5,
-  }) => Effect._of(EffectKind.leak, position, radius, duration);
+  factory Effect.leak(Offset position, {double radius = 46, double duration = 0.5}) =>
+      Effect._of(EffectKind.leak, position, radius, duration);
+
+  factory Effect.portal(Offset entry, Offset exit, {double radius = 38, double duration = 0.55}) =>
+      Effect._of(EffectKind.portal, entry, radius, duration, [entry, exit]);
 
   factory Effect.lightning(List<Offset> points, {double duration = 0.22}) =>
       Effect._of(EffectKind.lightning, points.first, 20, duration, points);
@@ -241,18 +218,11 @@ class Floater {
     this.duration = 1.1,
   });
 
-  factory Floater.gold(int amount, Offset position) => Floater(
-    text: '+$amount',
-    position: position,
-    color: const Color(0xFFFFE08A),
-  );
+  factory Floater.gold(int amount, Offset position) =>
+      Floater(text: '+$amount', position: position, color: const Color(0xFFFFE08A));
 
-  factory Floater.damage(int amount, Offset position) => Floater(
-    text: '-$amount',
-    position: position,
-    color: const Color(0xFFFF7A6B),
-    big: true,
-  );
+  factory Floater.damage(int amount, Offset position) =>
+      Floater(text: '-$amount', position: position, color: const Color(0xFFFF7A6B), big: true);
 
   factory Floater.notice(String text, Offset position) =>
       Floater(text: text, position: position, color: const Color(0xFFFFE08A));

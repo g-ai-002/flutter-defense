@@ -19,23 +19,15 @@ class EndlessRecord {
     date: json['date'] as String? ?? '',
   );
 
-  factory EndlessRecord.now({
-    required int waves,
-    required int kills,
-    required int gold,
-  }) => EndlessRecord(
-    waves: waves,
-    kills: kills,
-    gold: gold,
-    date: DateTime.now().toIso8601String().substring(0, 10),
-  );
+  factory EndlessRecord.now({required int waves, required int kills, required int gold}) =>
+      EndlessRecord(
+        waves: waves,
+        kills: kills,
+        gold: gold,
+        date: DateTime.now().toIso8601String().substring(0, 10),
+      );
 
-  Map<String, Object> toJson() => {
-    'waves': waves,
-    'kills': kills,
-    'gold': gold,
-    'date': date,
-  };
+  Map<String, Object> toJson() => {'waves': waves, 'kills': kills, 'gold': gold, 'date': date};
 
   static int compare(EndlessRecord a, EndlessRecord b) {
     if (a.waves != b.waves) return b.waves.compareTo(a.waves);

@@ -29,9 +29,7 @@ class EntryTile extends StatelessWidget {
     final colors = theme.colorScheme;
     final tone = accent ?? colors.primary;
     final foreground = primary ? Colors.white : colors.onSurface;
-    final subtitleColor = primary
-        ? Colors.white.withValues(alpha: 0.82)
-        : colors.onSurfaceVariant;
+    final subtitleColor = primary ? Colors.white.withValues(alpha: 0.82) : colors.onSurfaceVariant;
     return Material(
       color: primary ? tone : colors.surface,
       borderRadius: BorderRadius.circular(16),
@@ -59,11 +57,7 @@ class EntryTile extends StatelessWidget {
                       : tone.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: primary ? Colors.white : tone,
-                ),
+                child: Icon(icon, size: 22, color: primary ? Colors.white : tone),
               ),
               const SizedBox(width: 13),
               Expanded(
@@ -73,10 +67,7 @@ class EntryTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: foreground,
-                        fontSize: 15,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(color: foreground, fontSize: 15),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -97,9 +88,7 @@ class EntryTile extends StatelessWidget {
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
-                  color: primary
-                      ? Colors.white.withValues(alpha: 0.8)
-                      : colors.onSurfaceVariant,
+                  color: primary ? Colors.white.withValues(alpha: 0.8) : colors.onSurfaceVariant,
                 ),
             ],
           ),

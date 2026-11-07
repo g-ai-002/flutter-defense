@@ -16,8 +16,7 @@ class SettingsProvider extends ChangeNotifier {
   final StorageService _storage;
 
   bool get darkMode => _storage.darkMode;
-  Future<void> setDarkMode(bool value) =>
-      _update(() => _storage.setDarkMode(value));
+  Future<void> setDarkMode(bool value) => _update(() => _storage.setDarkMode(value));
 
   bool get soundEnabled => _storage.soundEnabled;
   Future<void> setSoundEnabled(bool value) => _update(() async {
@@ -39,11 +38,9 @@ class SettingsProvider extends ChangeNotifier {
   });
 
   LogicRate get logicRate => _storage.logicRate;
-  Future<void> setLogicRate(LogicRate value) =>
-      _update(() => _storage.setLogicRate(value));
+  Future<void> setLogicRate(LogicRate value) => _update(() => _storage.setLogicRate(value));
 
-  void _syncFeedback() =>
-      SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
+  void _syncFeedback() => SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
 
   /// 写入偏好后统一通知界面，避免每个 setter 重复一遍。
   Future<void> _update(Future<void> Function() write) async {

@@ -8,7 +8,7 @@ void main() {
   setUpAll(initTestEnvironment);
 
   test('关卡编号连续、波次完整、建造点不压路', () {
-    expect(kLevels.length, 11);
+    expect(kLevels.length, 12);
     for (var index = 0; index < kLevels.length; index++) {
       final level = kLevels[index];
       expect(level.id, index + 1, reason: '关卡编号必须连续');

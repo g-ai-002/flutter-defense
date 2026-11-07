@@ -42,6 +42,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   });
 
+  testWidgets('每日挑战入口使用日期种子进入对局', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+
+    await tester.tap(find.text('每日挑战'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('开始第 1 波'), findsOneWidget);
+    expect(find.text('第 1 波'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
   testWidgets('首页可查看无尽排行榜', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1280, 820));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -98,7 +115,7 @@ void main() {
     expect(find.text('青草平原'), findsOneWidget);
     expect(find.text('魔王城塞'), findsOneWidget);
     expect(find.text('毒沼秘境'), findsOneWidget);
-    expect(find.text('通关上一关解锁'), findsNWidgets(10));
+    expect(find.text('通关上一关解锁'), findsNWidgets(11));
     expect(tester.takeException(), isNull);
   });
 

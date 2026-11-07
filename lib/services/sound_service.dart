@@ -20,6 +20,7 @@ enum SoundFx {
   lightning,
   hit,
   leak,
+  portal,
   waveStart,
   waveClear,
   victory,
@@ -57,20 +58,13 @@ class SoundService {
     SoundFx.lightning: 120,
     SoundFx.hit: 60,
     SoundFx.coin: 80,
+    SoundFx.portal: 140,
   };
 
   static const Map<SoundFx, List<SynthNote>> _presets = {
-    SoundFx.tap: [
-      SynthNote(frequency: 980, start: 0, duration: 0.04, gain: 0.4),
-    ],
+    SoundFx.tap: [SynthNote(frequency: 980, start: 0, duration: 0.04, gain: 0.4)],
     SoundFx.build: [
-      SynthNote(
-        frequency: 330,
-        start: 0,
-        duration: 0.09,
-        gain: 0.6,
-        noise: 0.3,
-      ),
+      SynthNote(frequency: 330, start: 0, duration: 0.09, gain: 0.6, noise: 0.3),
       SynthNote(frequency: 494, start: 0.07, duration: 0.12, gain: 0.5),
       SynthNote(frequency: 659, start: 0.14, duration: 0.14, gain: 0.4),
     ],
@@ -84,31 +78,12 @@ class SoundService {
       SynthNote(frequency: 392, start: 0.08, duration: 0.15, gain: 0.4),
     ],
     SoundFx.arrow: [
-      SynthNote(
-        frequency: 1500,
-        start: 0,
-        duration: 0.045,
-        gain: 0.28,
-        noise: 0.35,
-        slide: -0.3,
-      ),
+      SynthNote(frequency: 1500, start: 0, duration: 0.045, gain: 0.28, noise: 0.35, slide: -0.3),
     ],
     SoundFx.cannon: [
-      SynthNote(
-        frequency: 170,
-        start: 0,
-        duration: 0.16,
-        gain: 0.7,
-        noise: 0.4,
-      ),
+      SynthNote(frequency: 170, start: 0, duration: 0.16, gain: 0.7, noise: 0.4),
       SynthNote(frequency: 90, start: 0, duration: 0.22, gain: 0.6, noise: 0.2),
-      SynthNote(
-        frequency: 420,
-        start: 0.02,
-        duration: 0.09,
-        gain: 0.3,
-        noise: 0.5,
-      ),
+      SynthNote(frequency: 420, start: 0.02, duration: 0.09, gain: 0.3, noise: 0.5),
     ],
     SoundFx.frost: [
       SynthNote(frequency: 1250, start: 0, duration: 0.07, gain: 0.35),
@@ -116,51 +91,22 @@ class SoundService {
       SynthNote(frequency: 980, start: 0.05, duration: 0.12, gain: 0.3),
     ],
     SoundFx.poison: [
-      SynthNote(
-        frequency: 420,
-        start: 0,
-        duration: 0.09,
-        gain: 0.4,
-        noise: 0.4,
-        slide: -0.35,
-      ),
+      SynthNote(frequency: 420, start: 0, duration: 0.09, gain: 0.4, noise: 0.4, slide: -0.35),
       SynthNote(frequency: 300, start: 0.06, duration: 0.14, gain: 0.32),
     ],
     SoundFx.lightning: [
-      SynthNote(
-        frequency: 760,
-        start: 0,
-        duration: 0.14,
-        gain: 0.5,
-        noise: 0.75,
-      ),
-      SynthNote(
-        frequency: 1520,
-        start: 0.03,
-        duration: 0.1,
-        gain: 0.35,
-        noise: 0.5,
-      ),
-      SynthNote(
-        frequency: 380,
-        start: 0.08,
-        duration: 0.16,
-        gain: 0.4,
-        noise: 0.6,
-      ),
+      SynthNote(frequency: 760, start: 0, duration: 0.14, gain: 0.5, noise: 0.75),
+      SynthNote(frequency: 1520, start: 0.03, duration: 0.1, gain: 0.35, noise: 0.5),
+      SynthNote(frequency: 380, start: 0.08, duration: 0.16, gain: 0.4, noise: 0.6),
     ],
-    SoundFx.hit: [
-      SynthNote(
-        frequency: 320,
-        start: 0,
-        duration: 0.06,
-        gain: 0.3,
-        noise: 0.55,
-      ),
-    ],
+    SoundFx.hit: [SynthNote(frequency: 320, start: 0, duration: 0.06, gain: 0.3, noise: 0.55)],
     SoundFx.leak: [
       SynthNote(frequency: 300, start: 0, duration: 0.14, gain: 0.55),
       SynthNote(frequency: 220, start: 0.1, duration: 0.2, gain: 0.5),
+    ],
+    SoundFx.portal: [
+      SynthNote(frequency: 520, start: 0, duration: 0.14, gain: 0.38, slide: 0.7),
+      SynthNote(frequency: 1180, start: 0.06, duration: 0.2, gain: 0.3),
     ],
     SoundFx.waveStart: [
       SynthNote(frequency: 392, start: 0, duration: 0.12, gain: 0.5),
@@ -224,8 +170,7 @@ class SoundService {
 
   /// 某个音效对应的合成音频，供测试校验配方。
   @visibleForTesting
-  static Uint8List clipOf(SoundFx fx) =>
-      _clips.putIfAbsent(fx, () => synthesizeWav(_presets[fx]!));
+  static Uint8List clipOf(SoundFx fx) => _clips.putIfAbsent(fx, () => synthesizeWav(_presets[fx]!));
 
   static void play(SoundFx fx) {
     if (soundEnabled) {
@@ -322,6 +267,5 @@ class SoundService {
 }
 
 Map<String, Uint8List> _synthesizeClips(Object? _) => {
-  for (final fx in SoundFx.values)
-    fx.name: synthesizeWav(SoundService._presets[fx]!),
+  for (final fx in SoundFx.values) fx.name: synthesizeWav(SoundService._presets[fx]!),
 };

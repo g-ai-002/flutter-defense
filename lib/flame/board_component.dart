@@ -79,9 +79,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     final layout = _layoutFor();
-    final design = layout.toDesign(
-      Offset(event.localPosition.x, event.localPosition.y),
-    );
+    final design = layout.toDesign(Offset(event.localPosition.x, event.localPosition.y));
     if (!layout.contains(design)) return;
     final slot = layout.slotAt(engine.slotPositions, design);
     if (slot == null) {
@@ -128,14 +126,8 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     canvas.restore();
 
     final palette = paletteOf(engine.level.theme);
-    canvas.drawRRect(
-      _frame,
-      dynStroke(palette.frame.withValues(alpha: 0.55), 3),
-    );
-    canvas.drawRRect(
-      _frameInner,
-      dynStroke(Colors.white.withValues(alpha: 0.18), 1.2),
-    );
+    canvas.drawRRect(_frame, dynStroke(palette.frame.withValues(alpha: 0.55), 3));
+    canvas.drawRRect(_frameInner, dynStroke(Colors.white.withValues(alpha: 0.18), 1.2));
   }
 
   @override

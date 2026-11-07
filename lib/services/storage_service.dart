@@ -30,9 +30,7 @@ class StorageService {
     return prefs;
   }
 
-  Future<void> _write(
-    Future<bool> Function(SharedPreferences prefs) action,
-  ) async {
+  Future<void> _write(Future<bool> Function(SharedPreferences prefs) action) async {
     try {
       await action(_p);
     } catch (_) {}
@@ -54,8 +52,7 @@ class StorageService {
   Future<void> setHapticsEnabled(bool value) =>
       _write((p) => p.setBool(AppConstants.prefKeyHaptics, value));
 
-  LogicRate get logicRate =>
-      LogicRate.byName(_p.getString(AppConstants.prefKeyLogicRate));
+  LogicRate get logicRate => LogicRate.byName(_p.getString(AppConstants.prefKeyLogicRate));
   Future<void> setLogicRate(LogicRate value) =>
       _write((p) => p.setString(AppConstants.prefKeyLogicRate, value.name));
 
@@ -100,6 +97,39 @@ class StorageService {
     await p.setString(
       AppConstants.prefKeyEndless,
       jsonEncode([for (final item in next.take(10)) item.toJson()]),
+    );
+    return true;
+  });
+
+  /// 每日挑战最佳成绩：`{yyyy-MM-dd: 记录}`，最多保留最近 14 天。
+  Map<String, EndlessRecord> get dailyRecords {
+    final raw = _p.getString(AppConstants.prefKeyDaily);
+    if (raw == null || raw.isEmpty) return const {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return const {};
+      return {
+        for (final entry in decoded.entries)
+          if (entry.value is Map<String, dynamic>)
+            '${entry.key}': EndlessRecord.fromJson(entry.value as Map<String, dynamic>),
+      };
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  Future<void> recordDaily(String key, EndlessRecord record) => _write((p) async {
+    final current = dailyRecords;
+    final best = current[key];
+    if (best != null && EndlessRecord.compare(record, best) >= 0) return true;
+    final next = {...current, key: record};
+    final keys = next.keys.toList()..sort();
+    while (keys.length > 14) {
+      next.remove(keys.removeAt(0));
+    }
+    await p.setString(
+      AppConstants.prefKeyDaily,
+      jsonEncode({for (final entry in next.entries) entry.key: entry.value.toJson()}),
     );
     return true;
   });

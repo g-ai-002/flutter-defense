@@ -50,10 +50,7 @@ void main() {
     });
 
     test('空波次立即完成', () {
-      final schedule = WaveSchedule(
-        const WaveDef([SpawnGroup(EnemyKind.slime, 0)]),
-        hpScale: 1,
-      );
+      final schedule = WaveSchedule(const WaveDef([SpawnGroup(EnemyKind.slime, 0)]), hpScale: 1);
       expect(schedule.total, 0);
       expect(schedule.done, isTrue);
       expect(schedule.nextAt(0), isNull);

@@ -36,13 +36,7 @@ LevelDef straightLevel({
     path: const [GridPos(-1.2, 4), GridPos(15, 4)],
     slots:
         slots ??
-        const [
-          GridPos(4, 3),
-          GridPos(6, 3),
-          GridPos(8, 3),
-          GridPos(10, 3),
-          GridPos(12, 3),
-        ],
+        const [GridPos(4, 3), GridPos(6, 3), GridPos(8, 3), GridPos(10, 3), GridPos(12, 3)],
     startGold: startGold,
     carrotHp: carrotHp,
     hpScale: hpScale,
@@ -62,9 +56,5 @@ double advance(DefenseEngine engine, double seconds, {double step = 1 / 60}) {
   return elapsed;
 }
 
-SpawnGroup spawn(
-  EnemyKind kind,
-  int count, {
-  double gap = 0.6,
-  double delay = 0,
-}) => SpawnGroup(kind, count, gap: gap, delay: delay);
+SpawnGroup spawn(EnemyKind kind, int count, {double gap = 0.6, double delay = 0}) =>
+    SpawnGroup(kind, count, gap: gap, delay: delay);

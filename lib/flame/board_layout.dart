@@ -18,10 +18,7 @@ class BoardLayout {
     final top = hudTopInset(view);
     final bottom = hudBottomInset(view);
     final availableHeight = math.max(1.0, view.height - top - bottom);
-    var scale = math.min(
-      (view.width - 24) / kDesignWidth,
-      availableHeight / kDesignHeight,
-    );
+    var scale = math.min((view.width - 24) / kDesignWidth, availableHeight / kDesignHeight);
     scale = scale.clamp(0.15, 1.6);
     return BoardLayout(
       origin: Offset(
@@ -35,17 +32,10 @@ class BoardLayout {
   Offset toDesign(Offset local) => (local - origin) / scale;
 
   bool contains(Offset design) =>
-      design.dx >= 0 &&
-      design.dy >= 0 &&
-      design.dx <= kDesignWidth &&
-      design.dy <= kDesignHeight;
+      design.dx >= 0 && design.dy >= 0 && design.dx <= kDesignWidth && design.dy <= kDesignHeight;
 
   /// 返回离 [point] 最近且在 [radius] 内的建造位序号。
-  int? slotAt(
-    List<Offset> slots,
-    Offset point, {
-    double radius = kSlotTapRadius,
-  }) {
+  int? slotAt(List<Offset> slots, Offset point, {double radius = kSlotTapRadius}) {
     var best = -1;
     var bestDistance = radius;
     for (var i = 0; i < slots.length; i++) {

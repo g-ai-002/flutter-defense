@@ -34,9 +34,7 @@ class MusicService {
       target(true);
       return;
     }
-    if (!_failed &&
-        _handle != null &&
-        SoLoud.instance.getIsValidVoiceHandle(_handle!)) {
+    if (!_failed && _handle != null && SoLoud.instance.getIsValidVoiceHandle(_handle!)) {
       return;
     }
     final starting = _starting;

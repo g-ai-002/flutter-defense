@@ -31,9 +31,7 @@ class HudTopBar extends StatelessWidget {
     final colors = theme.colorScheme;
     final showTitle = !compact && width >= 780;
     final showWaveText = width >= 700;
-    final hpRatio = engine.carrotMaxHp == 0
-        ? 0.0
-        : engine.carrotHp / engine.carrotMaxHp;
+    final hpRatio = engine.carrotMaxHp == 0 ? 0.0 : engine.carrotHp / engine.carrotMaxHp;
     return Container(
       height: compact ? 38 : 46,
       padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6),
@@ -79,13 +77,9 @@ class HudTopBar extends StatelessWidget {
           HudInfoPill(
             icon: Icons.favorite_rounded,
             iconColor: const Color(0xFFE4572E),
-            label: compact
-                ? '${engine.carrotHp}'
-                : '萝卜 ${engine.carrotHp}/${engine.carrotMaxHp}',
+            label: compact ? '${engine.carrotHp}' : '萝卜 ${engine.carrotHp}/${engine.carrotMaxHp}',
             compact: compact,
-            trailing: compact
-                ? null
-                : HudMiniBar(ratio: hpRatio, color: const Color(0xFFE4572E)),
+            trailing: compact ? null : HudMiniBar(ratio: hpRatio, color: const Color(0xFFE4572E)),
           ),
           const SizedBox(width: 5),
           HudInfoPill(
@@ -99,7 +93,7 @@ class HudTopBar extends StatelessWidget {
             HudInfoPill(
               icon: Icons.flag_rounded,
               iconColor: const Color(0xFF3F7D46),
-              label: engine.endless
+              label: engine.endless || engine.daily
                   ? '第 ${_displayWave()} 波'
                   : '${_displayWave()}/${engine.level.waveCount} 波',
               compact: compact,
@@ -119,9 +113,8 @@ class HudTopBar extends StatelessWidget {
     );
   }
 
-  int _displayWave() => engine.status == GameStatus.preparing
-      ? engine.waveIndex + 1
-      : engine.waveIndex;
+  int _displayWave() =>
+      engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex;
 
   String _statusLabel() {
     return switch (engine.status) {
@@ -129,9 +122,16 @@ class HudTopBar extends StatelessWidget {
       GameStatus.battle =>
         engine.endless
             ? '无尽 · 第 ${engine.waveIndex} 波'
+            : engine.daily
+            ? '每日挑战 · 第 ${engine.waveIndex} 波'
             : '第 ${engine.waveIndex} 波',
       GameStatus.victory => '关卡完成',
-      GameStatus.defeat => engine.endless ? '无尽挑战结束' : '防线失守',
+      GameStatus.defeat =>
+        engine.endless
+            ? '无尽挑战结束'
+            : engine.daily
+            ? '每日挑战结束'
+            : '防线失守',
     };
   }
 }

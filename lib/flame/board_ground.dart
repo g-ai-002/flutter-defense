@@ -85,9 +85,8 @@ class BoardGround {
         Offset.zero,
         24,
         Paint()
-          ..shader = const RadialGradient(
-            colors: [Color(0x59B84DFF), Color(0x00B84DFF)],
-          ).createShader(rect),
+          ..shader = const RadialGradient(colors: [Color(0x59B84DFF), Color(0x00B84DFF)])
+              .createShader(rect),
       );
     });
     _startGlow = picture;
@@ -101,6 +100,7 @@ class BoardGround {
     _paintDecorations(canvas);
     _paintPath(canvas);
     fog.paintFogGround(canvas, engine.level);
+    _paintPortals(canvas);
     _paintStartBase(canvas);
     _staticLayer = recorder.endRecording();
     _staticLayerBuilds++;
@@ -130,10 +130,7 @@ class BoardGround {
       glow,
       Paint()
         ..shader = RadialGradient(
-          colors: [
-            palette.accent.withValues(alpha: 0.18),
-            palette.accent.withValues(alpha: 0),
-          ],
+          colors: [palette.accent.withValues(alpha: 0.18), palette.accent.withValues(alpha: 0)],
         ).createShader(glow),
     );
     final shadowRect = Rect.fromLTWH(
@@ -142,10 +139,7 @@ class BoardGround {
       kDesignWidth * layout.scale,
       kDesignHeight * layout.scale,
     );
-    final shadow = RRect.fromRectAndRadius(
-      shadowRect,
-      const Radius.circular(28),
-    );
+    final shadow = RRect.fromRectAndRadius(shadowRect, const Radius.circular(28));
     // 用三层同心圆角矩形代替实时高斯模糊，静态背景重放时更省 GPU。
     for (var i = 3; i >= 1; i--) {
       canvas.drawRRect(
@@ -169,15 +163,9 @@ class BoardGround {
     );
     for (final blob in _blobs) {
       canvas.drawOval(
-        Rect.fromCenter(
-          center: blob.position,
-          width: blob.radius * 2,
-          height: blob.radius * 1.3,
-        ),
+        Rect.fromCenter(center: blob.position, width: blob.radius * 2, height: blob.radius * 1.3),
         Paint()
-          ..color = (blob.light ? Colors.white : palette.groundDeep).withValues(
-            alpha: blob.alpha,
-          ),
+          ..color = (blob.light ? Colors.white : palette.groundDeep).withValues(alpha: blob.alpha),
       );
     }
     // 细微草纹，增加地面层次。
@@ -198,10 +186,7 @@ class BoardGround {
       Paint()
         ..shader = RadialGradient(
           radius: 0.9,
-          colors: [
-            Colors.transparent,
-            palette.groundDeep.withValues(alpha: 0.35),
-          ],
+          colors: [Colors.transparent, palette.groundDeep.withValues(alpha: 0.35)],
           stops: const [0.6, 1],
         ).createShader(rect),
     );
@@ -232,10 +217,7 @@ class BoardGround {
 
   void _tree(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-4, -18, 8, 26),
-        const Radius.circular(3),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-4, -18, 8, 26), const Radius.circular(3)),
       fill(palette.decorPrimary),
     );
     final leaf = fill(palette.decorSecondary);
@@ -246,27 +228,15 @@ class BoardGround {
     ]) {
       canvas.drawCircle(Offset(dx, dy), radius, leaf);
     }
-    canvas.drawCircle(
-      const Offset(-4, -34),
-      9,
-      fill(Colors.white.withValues(alpha: 0.16)),
-    );
+    canvas.drawCircle(const Offset(-4, -34), 9, fill(Colors.white.withValues(alpha: 0.16)));
   }
 
   void _flower(Canvas canvas, LevelPalette palette) {
-    canvas.drawLine(
-      const Offset(0, 2),
-      const Offset(0, -14),
-      stroke(const Color(0xFF4C8F3B), 2),
-    );
+    canvas.drawLine(const Offset(0, 2), const Offset(0, -14), stroke(const Color(0xFF4C8F3B), 2));
     final petal = fill(palette.decorSecondary);
     for (var i = 0; i < 5; i++) {
       final angle = i * math.pi / 2.5;
-      canvas.drawCircle(
-        Offset(math.cos(angle) * 6, -14 + math.sin(angle) * 6),
-        4.5,
-        petal,
-      );
+      canvas.drawCircle(Offset(math.cos(angle) * 6, -14 + math.sin(angle) * 6), 4.5, petal);
     }
     canvas.drawCircle(const Offset(0, -14), 3, fill(const Color(0xFFF2A03D)));
   }
@@ -288,10 +258,7 @@ class BoardGround {
 
   void _mushroom(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-5, -14, 10, 18),
-        const Radius.circular(4),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-5, -14, 10, 18), const Radius.circular(4)),
       fill(const Color(0xFFF2E7D0)),
     );
     canvas.drawArc(
@@ -302,10 +269,7 @@ class BoardGround {
       fill(palette.decorSecondary),
     );
     final dot = fill(Colors.white.withValues(alpha: 0.65));
-    for (final (dx, dy, radius) in const [
-      (-7.0, -20.0, 3.0),
-      (8.0, -17.0, 2.4),
-    ]) {
+    for (final (dx, dy, radius) in const [(-7.0, -20.0, 3.0), (8.0, -17.0, 2.4)]) {
       canvas.drawCircle(Offset(dx, dy), radius, dot);
     }
   }
@@ -313,10 +277,7 @@ class BoardGround {
   void _cactus(Canvas canvas, LevelPalette palette) {
     final paint = fill(palette.decorPrimary);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-6, -30, 12, 34),
-        const Radius.circular(6),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-6, -30, 12, 34), const Radius.circular(6)),
       paint,
     );
     for (final rect in const [
@@ -325,10 +286,7 @@ class BoardGround {
       Rect.fromLTWH(8, -15, 12, 7),
       Rect.fromLTWH(14, -22, 7, 13),
     ]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
-        paint,
-      );
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), paint);
     }
   }
 
@@ -356,10 +314,7 @@ class BoardGround {
 
   void _pine(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-3, -10, 6, 16),
-        const Radius.circular(2),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-3, -10, 6, 16), const Radius.circular(2)),
       fill(const Color(0xFF6B4A2E)),
     );
     final branch = fill(palette.decorPrimary);
@@ -396,9 +351,8 @@ class BoardGround {
     canvas.drawPath(
       crystal,
       Paint()
-        ..shader = LinearGradient(
-          colors: [palette.decorSecondary, const Color(0xFF6FAEC8)],
-        ).createShader(const Rect.fromLTWH(-10, -28, 20, 34)),
+        ..shader = LinearGradient(colors: [palette.decorSecondary, const Color(0xFF6FAEC8)])
+            .createShader(const Rect.fromLTWH(-10, -28, 20, 34)),
     );
     canvas.drawPath(crystal, stroke(Colors.white.withValues(alpha: 0.6), 1.4));
   }
@@ -406,10 +360,7 @@ class BoardGround {
   void _deadTree(Canvas canvas, LevelPalette palette) {
     final color = palette.decorPrimary;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-4, -22, 8, 28),
-        const Radius.circular(3),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-4, -22, 8, 28), const Radius.circular(3)),
       fill(color),
     );
     final branch = stroke(color, 3);
@@ -438,10 +389,7 @@ class BoardGround {
 
   void _lantern(Canvas canvas, LevelPalette palette) {
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-2, -26, 4, 30),
-        const Radius.circular(2),
-      ),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(-2, -26, 4, 30), const Radius.circular(2)),
       fill(const Color(0xFF2F4A54)),
     );
     canvas.drawCircle(
@@ -465,46 +413,69 @@ class BoardGround {
       final x = (i - 2) * 6.0;
       canvas.drawLine(Offset(x, 4), Offset(x * 1.5, -24 - i * 2), paint);
     }
-    canvas.drawOval(
-      const Rect.fromLTWH(-2, -32, 5, 10),
-      fill(const Color(0xFF7C5C3A)),
-    );
+    canvas.drawOval(const Rect.fromLTWH(-2, -32, 5, 10), fill(const Color(0xFF7C5C3A)));
   }
 
   void _paintPath(Canvas canvas) {
-    final path = Path();
-    final points = _track.points;
-    path.moveTo(points.first.dx, points.first.dy);
-    for (var i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
-    }
     final palette = _palette;
-    canvas.drawPath(path, stroke(palette.pathEdge, 60));
-    canvas.drawPath(path, stroke(palette.pathFill, 50));
-    canvas.drawPath(
-      path,
-      stroke(palette.pathLight.withValues(alpha: 0.35), 26),
-    );
+    final light = engine.level.hasBranch ? 0.2 : 0.35;
+    for (final track in engine.tracks) {
+      final path = Path();
+      final points = track.points;
+      path.moveTo(points.first.dx, points.first.dy);
+      for (var i = 1; i < points.length; i++) {
+        path.lineTo(points[i].dx, points[i].dy);
+      }
+      canvas.drawPath(path, stroke(palette.pathEdge, 60));
+      canvas.drawPath(path, stroke(palette.pathFill, 50));
+      canvas.drawPath(path, stroke(palette.pathLight.withValues(alpha: light), 26));
 
-    // 路面碎石与虚线
-    final random = math.Random(engine.level.seed + 31);
-    for (var distance = 26.0; distance < _track.length; distance += 44) {
-      final point = _track.pointAt(distance);
-      final tangent = _track.tangentAt(distance);
-      final normal = Offset(-tangent.dy, tangent.dx);
-      final offset = (random.nextDouble() - 0.5) * 30;
-      final size = 1.5 + random.nextDouble() * 2.2;
-      canvas.drawCircle(
-        point + normal * offset,
-        size,
-        fill(palette.pathEdge.withValues(alpha: 0.45)),
-      );
+      // 路面碎石与虚线
+      final random = math.Random(engine.level.seed + 31);
+      for (var distance = 26.0; distance < track.length; distance += 44) {
+        final point = track.pointAt(distance);
+        final tangent = track.tangentAt(distance);
+        final normal = Offset(-tangent.dy, tangent.dx);
+        final offset = (random.nextDouble() - 0.5) * 30;
+        final size = 1.5 + random.nextDouble() * 2.2;
+        canvas.drawCircle(
+          point + normal * offset,
+          size,
+          fill(palette.pathEdge.withValues(alpha: 0.45)),
+        );
+      }
+      final dash = stroke(Colors.white.withValues(alpha: 0.28), 3);
+      for (var distance = 30.0; distance < track.length - 40; distance += 58) {
+        final a = track.pointAt(distance);
+        final b = track.pointAt(math.min(distance + 24, track.length));
+        canvas.drawLine(a, b, dash);
+      }
     }
-    final dash = stroke(Colors.white.withValues(alpha: 0.28), 3);
-    for (var distance = 30.0; distance < _track.length - 40; distance += 58) {
-      final a = _track.pointAt(distance);
-      final b = _track.pointAt(math.min(distance + 24, _track.length));
-      canvas.drawLine(a, b, dash);
+  }
+
+  /// 传送门入口与出口：紫色漩涡静态记录，动态层只补粒子与跳跃反馈。
+  void _paintPortals(Canvas canvas) {
+    for (final portal in engine.level.portals) {
+      for (final center in [portal.entryDesign, portal.exitDesign]) {
+        final rect = Rect.fromCircle(center: center, radius: 44);
+        canvas.drawCircle(
+          center,
+          44,
+          Paint()
+            ..shader = const RadialGradient(colors: [Color(0x997C4DFF), Color(0x002A0A4A)])
+                .createShader(rect),
+        );
+        canvas.drawCircle(center, 31, stroke(const Color(0xFF7C4DFF), 3));
+        canvas.drawCircle(center, 21, stroke(Colors.white.withValues(alpha: 0.5), 1.6));
+        for (var i = 0; i < 4; i++) {
+          final angle = i * math.pi / 2 + 0.7;
+          canvas.drawCircle(
+            center + Offset(math.cos(angle), math.sin(angle)) * 26,
+            4,
+            fill(const Color(0xFFD9C4FF)),
+          );
+        }
+      }
     }
   }
 
@@ -521,9 +492,8 @@ class BoardGround {
       start,
       28,
       Paint()
-        ..shader = const RadialGradient(
-          colors: [Color(0xFF2B1B2C), Color(0xFF120B10)],
-        ).createShader(Rect.fromCircle(center: start, radius: 28)),
+        ..shader = const RadialGradient(colors: [Color(0xFF2B1B2C), Color(0xFF120B10)])
+            .createShader(Rect.fromCircle(center: start, radius: 28)),
     );
     canvas.drawCircle(start, 28, stroke(const Color(0xFF5C4330), 3));
     for (var i = 0; i < 6; i++) {
@@ -562,14 +532,25 @@ List<_Decor> _buildDecorations(DefenseEngine engine) {
   final result = <_Decor>[];
   final track = engine.track;
   final carrot = track.end;
+  final portals = [
+    for (final portal in engine.level.portals) ...[portal.entryDesign, portal.exitDesign],
+  ];
   for (var attempt = 0; attempt < 420 && result.length < 34; attempt++) {
     final position = Offset(
       40 + random.nextDouble() * (kDesignWidth - 80),
       36 + random.nextDouble() * (kDesignHeight - 72),
     );
-    if (track.distanceTo(position) < 52) continue;
+    var nearRoad = false;
+    for (final route in engine.tracks) {
+      if (route.distanceTo(position) < 52) {
+        nearRoad = true;
+        break;
+      }
+    }
+    if (nearRoad) continue;
     if ((position - carrot).distance < 96) continue;
     if ((position - track.start).distance < 72) continue;
+    if (portals.any((portal) => (portal - position).distance < 72)) continue;
     var rejected = false;
     for (final slot in engine.slotPositions) {
       if ((slot - position).distance < 56) {

@@ -55,17 +55,9 @@ void main() {
       expect(enemy.routeLength, engine.track.airLength);
 
       advance(engine, 9);
-      final expected = Offset.lerp(
-        engine.track.start,
-        engine.track.end,
-        enemy.progress,
-      )!;
+      final expected = Offset.lerp(engine.track.start, engine.track.end, enemy.progress)!;
       expect((enemy.position - expected).distance, lessThan(0.01));
-      expect(
-        engine.track.distanceTo(enemy.position),
-        greaterThan(80),
-        reason: '航线中段应离开土路',
-      );
+      expect(engine.track.distanceTo(enemy.position), greaterThan(80), reason: '航线中段应离开土路');
     });
 
     test('免疫减速与中毒，但仍会被正常命中', () {
@@ -175,17 +167,16 @@ void main() {
 
   group('毒沼秘境', () {
     test('包含毒雾区与蝠妖波次，强度高于魔王城塞', () {
-      final level = kLevels.last;
+      final index = kLevels.indexWhere((item) => item.name == '毒沼秘境');
+      final level = kLevels[index];
       expect(level.name, '毒沼秘境');
       expect(level.hasFog, isTrue);
       expect(level.fog.every((zone) => zone.radius > 0), isTrue);
       expect(
-        level.waves.any(
-          (wave) => wave.groups.any((group) => group.kind == EnemyKind.flyer),
-        ),
+        level.waves.any((wave) => wave.groups.any((group) => group.kind == EnemyKind.flyer)),
         isTrue,
       );
-      expect(level.hpScale, greaterThan(kLevels[kLevels.length - 2].hpScale));
+      expect(level.hpScale, greaterThan(kLevels[index - 1].hpScale));
     });
   });
 }

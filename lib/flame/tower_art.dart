@@ -49,11 +49,7 @@ void _paintArrowTower(Canvas canvas, double r) {
   // 弓臂
   final bow = stroke(const Color(0xFF4B2E18), r * 0.12);
   canvas.drawArc(
-    Rect.fromCenter(
-      center: Offset(r * 0.12, 0),
-      width: r * 0.9,
-      height: r * 1.35,
-    ),
+    Rect.fromCenter(center: Offset(r * 0.12, 0), width: r * 0.9, height: r * 1.35),
     -math.pi / 2,
     math.pi,
     false,
@@ -80,16 +76,8 @@ void _paintArrowTower(Canvas canvas, double r) {
 
 void _paintCannonTower(Canvas canvas, double r) {
   // 炮轮
-  canvas.drawCircle(
-    Offset(-r * 0.12, r * 0.18),
-    r * 0.46,
-    fill(const Color(0xFF4C3A2B)),
-  );
-  canvas.drawCircle(
-    Offset(-r * 0.12, r * 0.18),
-    r * 0.2,
-    fill(const Color(0xFF8C7357)),
-  );
+  canvas.drawCircle(Offset(-r * 0.12, r * 0.18), r * 0.46, fill(const Color(0xFF4C3A2B)));
+  canvas.drawCircle(Offset(-r * 0.12, r * 0.18), r * 0.2, fill(const Color(0xFF8C7357)));
   // 炮身
   canvas.drawRRect(
     RRect.fromRectAndRadius(
@@ -103,29 +91,13 @@ void _paintCannonTower(Canvas canvas, double r) {
         colors: [Color(0xFF5C6470), Color(0xFF272C34)],
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: r)),
   );
-  canvas.drawCircle(
-    Offset(r * 0.88, 0),
-    r * 0.2,
-    fill(const Color(0xFF1B1F25)),
-  );
-  canvas.drawCircle(
-    Offset(r * 0.88, 0),
-    r * 0.28,
-    stroke(const Color(0xFF6E7681), r * 0.06),
-  );
-  canvas.drawCircle(
-    Offset(-r * 0.34, 0),
-    r * 0.22,
-    fill(const Color(0xFF3B414B)),
-  );
+  canvas.drawCircle(Offset(r * 0.88, 0), r * 0.2, fill(const Color(0xFF1B1F25)));
+  canvas.drawCircle(Offset(r * 0.88, 0), r * 0.28, stroke(const Color(0xFF6E7681), r * 0.06));
+  canvas.drawCircle(Offset(-r * 0.34, 0), r * 0.22, fill(const Color(0xFF3B414B)));
 }
 
 void _paintFrostTower(Canvas canvas, double r) {
-  canvas.drawCircle(
-    Offset.zero,
-    r * 0.7,
-    fill(const Color(0xFFBDEBFF).withValues(alpha: 0.28)),
-  );
+  canvas.drawCircle(Offset.zero, r * 0.7, fill(const Color(0xFFBDEBFF).withValues(alpha: 0.28)));
   final crystal = Path()
     ..moveTo(r * 0.9, 0)
     ..lineTo(r * 0.18, -r * 0.52)
@@ -178,14 +150,8 @@ void _paintLightningTower(Canvas canvas, double r) {
     Offset(r * 0.68, -r * 0.02),
     r * 0.22,
     Paint()
-      ..shader =
-          const RadialGradient(colors: [Color(0xFFFFF6C2), Color(0xFFF2B21C)])
-              .createShader(
-                Rect.fromCircle(
-                  center: Offset(r * 0.68, -r * 0.02),
-                  radius: r * 0.24,
-                ),
-              ),
+      ..shader = const RadialGradient(colors: [Color(0xFFFFF6C2), Color(0xFFF2B21C)])
+          .createShader(Rect.fromCircle(center: Offset(r * 0.68, -r * 0.02), radius: r * 0.24)),
   );
   final bolt = Path()
     ..moveTo(r * 0.86, -r * 0.44)
@@ -197,11 +163,7 @@ void _paintLightningTower(Canvas canvas, double r) {
 
 void _paintPoisonTower(Canvas canvas, double r) {
   // 药锅
-  canvas.drawCircle(
-    Offset.zero,
-    r * 0.58,
-    fill(const Color(0xFF7FD05A).withValues(alpha: 0.2)),
-  );
+  canvas.drawCircle(Offset.zero, r * 0.58, fill(const Color(0xFF7FD05A).withValues(alpha: 0.2)));
   canvas.drawRRect(
     RRect.fromRectAndRadius(
       Rect.fromLTWH(-r * 0.52, -r * 0.42, r * 0.92, r * 0.8),
@@ -215,11 +177,7 @@ void _paintPoisonTower(Canvas canvas, double r) {
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: r)),
   );
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(-r * 0.06, -r * 0.26),
-      width: r * 0.8,
-      height: r * 0.3,
-    ),
+    Rect.fromCenter(center: Offset(-r * 0.06, -r * 0.26), width: r * 0.8, height: r * 0.3),
     fill(const Color(0xFFA8E36B)),
   );
   final bubble = fill(const Color(0xFFD9FFAF));
@@ -233,14 +191,6 @@ void _paintPoisonTower(Canvas canvas, double r) {
     ),
     fill(const Color(0xFF3C5A2E)),
   );
-  canvas.drawCircle(
-    Offset(r * 0.84, 0),
-    r * 0.15,
-    fill(const Color(0xFFB7F28A)),
-  );
-  canvas.drawCircle(
-    Offset(r * 0.84, 0),
-    r * 0.24,
-    stroke(const Color(0xFF6FBF4A), r * 0.05),
-  );
+  canvas.drawCircle(Offset(r * 0.84, 0), r * 0.15, fill(const Color(0xFFB7F28A)));
+  canvas.drawCircle(Offset(r * 0.84, 0), r * 0.24, stroke(const Color(0xFF6FBF4A), r * 0.05));
 }

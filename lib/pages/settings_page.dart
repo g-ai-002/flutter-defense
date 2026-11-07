@@ -66,9 +66,7 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     Text(
                       '逻辑刷新率',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -147,16 +145,10 @@ class SettingsPage extends StatelessWidget {
                         if (isDesktopPlatform)
                           OutlinedButton.icon(
                             onPressed: () async {
-                              final path = await FileSystemService.instance
-                                  .getLogRootPath();
-                              await FileSystemService.instance.openDirectory(
-                                path,
-                              );
+                              final path = await FileSystemService.instance.getLogRootPath();
+                              await FileSystemService.instance.openDirectory(path);
                             },
-                            icon: const Icon(
-                              Icons.folder_open_rounded,
-                              size: 17,
-                            ),
+                            icon: const Icon(Icons.folder_open_rounded, size: 17),
                             label: const Text('打开日志目录'),
                           ),
                       ],
@@ -170,9 +162,7 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     Text(
                       '${AppConstants.appName} v${AppConstants.version}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -212,11 +202,7 @@ Future<void> _showLogs(BuildContext context) {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
+                    Icon(Icons.receipt_long_outlined, size: 18, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text('最近日志', style: theme.textTheme.titleSmall),
                     const Spacer(),
@@ -233,11 +219,7 @@ Future<void> _showLogs(BuildContext context) {
                     reverse: true,
                     child: SelectableText(
                       LogService.getRecentLogs(400).join('\n'),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        height: 1.55,
-                        fontFamily: 'monospace',
-                      ),
+                      style: const TextStyle(fontSize: 11, height: 1.55, fontFamily: 'monospace'),
                     ),
                   ),
                 ),

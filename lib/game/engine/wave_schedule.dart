@@ -3,17 +3,17 @@ import '../../models/level.dart';
 
 /// 一个出怪事件：波次开始后 [time] 秒生成 [kind]，血量按 [hpScale] 缩放。
 class SpawnEvent {
-  const SpawnEvent(this.time, this.kind, this.hpScale);
+  const SpawnEvent(this.time, this.kind, this.hpScale, {this.lane = -1});
 
   final double time;
   final EnemyKind kind;
   final double hpScale;
+  final int lane;
 }
 
 /// 波次时间表：把多组敌人展开为按时间排序的事件，并记录消费进度。
 class WaveSchedule {
-  WaveSchedule(WaveDef wave, {required double hpScale})
-    : _events = _build(wave, hpScale);
+  WaveSchedule(WaveDef wave, {required double hpScale}) : _events = _build(wave, hpScale);
 
   final List<SpawnEvent> _events;
   int _cursor = 0;
@@ -37,7 +37,7 @@ class WaveSchedule {
     final events = <SpawnEvent>[
       for (final group in wave.groups)
         for (var i = 0; i < group.count; i++)
-          SpawnEvent(group.delay + i * group.gap, group.kind, hpScale),
+          SpawnEvent(group.delay + i * group.gap, group.kind, hpScale, lane: group.lane),
     ];
     events.sort((a, b) => a.time.compareTo(b.time));
     return events;

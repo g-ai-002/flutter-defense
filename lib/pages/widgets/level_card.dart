@@ -122,13 +122,9 @@ class LevelCard extends StatelessWidget {
                                     Padding(
                                       padding: const EdgeInsets.only(right: 2),
                                       child: Icon(
-                                        i < stars
-                                            ? Icons.star_rounded
-                                            : Icons.star_outline_rounded,
+                                        i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
                                         size: 17,
-                                        color: i < stars
-                                            ? const Color(0xFFF2B21C)
-                                            : colors.outline,
+                                        color: i < stars ? const Color(0xFFF2B21C) : colors.outline,
                                       ),
                                     ),
                                 ],
@@ -155,10 +151,7 @@ class LevelCard extends StatelessWidget {
                     color: colors.surface.withValues(alpha: 0.45),
                     alignment: Alignment.center,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                       decoration: BoxDecoration(
                         color: colors.surface.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(999),

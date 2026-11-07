@@ -34,12 +34,7 @@ class GameHud extends StatelessWidget {
           builder: (context, _) {
             return Stack(
               children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: _WaveProgressLine(engine: engine),
-                ),
+                Positioned(top: 0, left: 0, right: 0, child: _WaveProgressLine(engine: engine)),
                 Positioned(
                   top: compact ? 5 : 8,
                   left: 8,

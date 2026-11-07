@@ -37,4 +37,11 @@ class ProgressProvider extends ChangeNotifier {
     await _storage.addEndlessRecord(record);
     notifyListeners();
   }
+
+  EndlessRecord? dailyBest(String dateKey) => _storage.dailyRecords[dateKey];
+
+  Future<void> recordDaily(String dateKey, EndlessRecord record) async {
+    await _storage.recordDaily(dateKey, record);
+    notifyListeners();
+  }
 }

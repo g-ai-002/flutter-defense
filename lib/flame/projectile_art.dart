@@ -31,20 +31,15 @@ ui.Picture _projectileSprite(TowerKind kind) {
         break;
       case TowerKind.cannon:
         canvas.drawCircle(Offset.zero, 7, fill(const Color(0xFF2A2A30)));
-        canvas.drawCircle(
-          const Offset(-2, -2),
-          2.5,
-          fill(const Color(0xFF8E8E99)),
-        );
+        canvas.drawCircle(const Offset(-2, -2), 2.5, fill(const Color(0xFF8E8E99)));
         break;
       case TowerKind.frost:
         canvas.drawCircle(
           Offset.zero,
           10,
           Paint()
-            ..shader = const RadialGradient(
-              colors: [Color(0x479FE6FF), Color(0x009FE6FF)],
-            ).createShader(Rect.fromCircle(center: Offset.zero, radius: 10)),
+            ..shader = const RadialGradient(colors: [Color(0x479FE6FF), Color(0x009FE6FF)])
+                .createShader(Rect.fromCircle(center: Offset.zero, radius: 10)),
         );
         final shard = Path()
           ..moveTo(8, 0)
@@ -56,21 +51,9 @@ ui.Picture _projectileSprite(TowerKind kind) {
         canvas.drawPath(shard, stroke(const Color(0xFF6EC6EC), 1.5));
         break;
       case TowerKind.poison:
-        canvas.drawCircle(
-          Offset.zero,
-          9,
-          fill(const Color(0xFF6FBF4A).withValues(alpha: 0.9)),
-        );
-        canvas.drawCircle(
-          const Offset(-3, 2),
-          7,
-          stroke(const Color(0xFFCBEF9A), 1.4),
-        );
-        canvas.drawCircle(
-          const Offset(3, -3),
-          2.4,
-          fill(const Color(0xFFE7FFCB)),
-        );
+        canvas.drawCircle(Offset.zero, 9, fill(const Color(0xFF6FBF4A).withValues(alpha: 0.9)));
+        canvas.drawCircle(const Offset(-3, 2), 7, stroke(const Color(0xFFCBEF9A), 1.4));
+        canvas.drawCircle(const Offset(3, -3), 2.4, fill(const Color(0xFFE7FFCB)));
         break;
       case TowerKind.lightning:
         break;
@@ -116,10 +99,7 @@ void paintProjectile(Canvas canvas, Projectile projectile) {
       break;
     case TowerKind.poison:
       canvas.save();
-      canvas.translate(
-        position.dx,
-        position.dy - math.sin(projectile.progress * math.pi) * 12,
-      );
+      canvas.translate(position.dx, position.dy - math.sin(projectile.progress * math.pi) * 12);
       canvas.drawPicture(_projectileSprite(TowerKind.poison));
       canvas.restore();
       break;

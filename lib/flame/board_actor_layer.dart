@@ -23,11 +23,7 @@ class BoardActorLayer {
     final end = engine.track.end;
     paintCarrot(canvas, end, 44, pulse: engine.carrotPulse);
     if (engine.carrotHp <= 0) {
-      canvas.drawCircle(
-        end,
-        56,
-        dynFill(const Color(0xFF3A0D0D).withValues(alpha: 0.35)),
-      );
+      canvas.drawCircle(end, 56, dynFill(const Color(0xFF3A0D0D).withValues(alpha: 0.35)));
     }
   }
 
@@ -133,12 +129,7 @@ class BoardActorLayer {
       switch (effect.kind) {
         case EffectKind.explosion:
           final radius = effect.radius * (0.35 + 0.85 * t);
-          _dot(
-            canvas,
-            at,
-            radius,
-            const Color(0xFFFF9A3D).withValues(alpha: fade * 0.55),
-          );
+          _dot(canvas, at, radius, const Color(0xFFFF9A3D).withValues(alpha: fade * 0.55));
           _ring(
             canvas,
             at,
@@ -181,19 +172,8 @@ class BoardActorLayer {
           _paintLightning(canvas, effect, t, visualTime);
         case EffectKind.poison:
           final spread = effect.radius * (0.35 + 0.75 * t);
-          _dot(
-            canvas,
-            at,
-            spread,
-            const Color(0xFF6FBF4A).withValues(alpha: fade * 0.2),
-          );
-          _ring(
-            canvas,
-            at,
-            spread,
-            const Color(0xFFA8E36B).withValues(alpha: fade),
-            2.6,
-          );
+          _dot(canvas, at, spread, const Color(0xFF6FBF4A).withValues(alpha: fade * 0.2));
+          _ring(canvas, at, spread, const Color(0xFFA8E36B).withValues(alpha: fade), 2.6);
           for (var i = 0; i < 5; i++) {
             _dot(
               canvas,
@@ -232,6 +212,22 @@ class BoardActorLayer {
             effect.radius * (0.3 + 0.5 * t),
             const Color(0xFFFF4D3D).withValues(alpha: fade * 0.25),
           );
+        case EffectKind.portal:
+          for (final point in effect.points) {
+            _ring(
+              canvas,
+              point,
+              effect.radius * (0.45 + 0.85 * t),
+              const Color(0xFF9B7BFF).withValues(alpha: fade),
+              3,
+            );
+            _dot(
+              canvas,
+              point,
+              effect.radius * (0.3 + 0.4 * t),
+              const Color(0xFFD9C4FF).withValues(alpha: fade * 0.3),
+            );
+          }
       }
     }
   }
@@ -245,8 +241,7 @@ class BoardActorLayer {
         floater.color.withValues(alpha: 1 - t),
         bold: true,
       );
-      final position =
-          floater.position - Offset(0, 30 * t + painter.height / 2);
+      final position = floater.position - Offset(0, 30 * t + painter.height / 2);
       painter.paint(canvas, position - Offset(painter.width / 2, 0));
     }
   }
@@ -283,12 +278,7 @@ class BoardActorLayer {
     return picture;
   }
 
-  void _paintLightning(
-    Canvas canvas,
-    Effect effect,
-    double t,
-    double visualTime,
-  ) {
+  void _paintLightning(Canvas canvas, Effect effect, double t, double visualTime) {
     final path = Path();
     for (var i = 0; i < effect.points.length; i++) {
       final point = effect.points[i];
@@ -305,22 +295,11 @@ class BoardActorLayer {
         path.lineTo(p.dx, p.dy);
       }
     }
-    canvas.drawPath(
-      path,
-      dynStroke(const Color(0xFFB98CFF).withValues(alpha: (1 - t) * 0.6), 7),
-    );
-    canvas.drawPath(
-      path,
-      dynStroke(Colors.white.withValues(alpha: 1 - t), 2.2),
-    );
+    canvas.drawPath(path, dynStroke(const Color(0xFFB98CFF).withValues(alpha: (1 - t) * 0.6), 7));
+    canvas.drawPath(path, dynStroke(Colors.white.withValues(alpha: 1 - t), 2.2));
   }
 
-  TextPainter _textPainter(
-    String text,
-    double fontSize,
-    Color color, {
-    bool bold = false,
-  }) {
+  TextPainter _textPainter(String text, double fontSize, Color color, {bool bold = false}) {
     // 透明度按 1/16 量化，飘字渐隐时不再每帧新建 TextPainter。
     final alpha = color.a <= 0 ? 0 : (color.a * 16).ceil().clamp(1, 16);
     final key = '$text|$fontSize|$alpha|$bold';
@@ -339,13 +318,7 @@ class BoardActorLayer {
           fontSize: fontSize,
           color: color.withValues(alpha: alpha / 16),
           fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-          shadows: const [
-            Shadow(
-              color: Color(0x99000000),
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
+          shadows: const [Shadow(color: Color(0x99000000), blurRadius: 3, offset: Offset(0, 1))],
         ),
       ),
       textDirection: TextDirection.ltr,

@@ -14,21 +14,29 @@ import 'wave_schedule.dart';
 /// 塔防核心逻辑：纯数据驱动，不依赖渲染，可在测试中直接快进模拟。
 class DefenseEngine {
   DefenseEngine({required this.level})
-    : track = PathTrack([for (final point in level.path) point.design]),
+    : tracks = [
+        for (final route in level.routes) PathTrack([for (final point in route) point.design]),
+      ],
       slotPositions = [for (final slot in level.slots) slot.design],
-      fogZones = [
-        for (final zone in level.fog) (zone.design, zone.radius * zone.radius),
-      ] {
+      fogZones = [for (final zone in level.fog) (zone.design, zone.radius * zone.radius)] {
+    track = tracks.first;
     gold = level.startGold;
     carrotMaxHp = level.carrotHp;
     carrotHp = level.carrotHp;
     towers = List<Tower?>.filled(level.slots.length, null);
     prepTimer = _firstPrepSeconds;
+    _resolvePortals();
     _lastHudKey = _hudKey();
   }
 
   final LevelDef level;
-  final PathTrack track;
+
+  /// 全部可行路线，主路固定在第 0 条。
+  final List<PathTrack> tracks;
+  late final PathTrack track;
+
+  /// 每对传送门在每条路线上的入口/出口弧长；出口不在本路线上时跳过。
+  final List<({int route, double entry, double exit, Offset at, Offset away})> _portalJumps = [];
   final List<Offset> slotPositions;
 
   /// 毒雾区中心与半径平方，逐帧判定避免开方。
@@ -43,9 +51,7 @@ class DefenseEngine {
 
   /// 已建造的塔，建造/出售时增量维护，渲染与索敌不再逐帧过滤。
   final List<Tower> _activeTowers = [];
-  late final List<Tower> _activeTowersView = UnmodifiableListView(
-    _activeTowers,
-  );
+  late final List<Tower> _activeTowersView = UnmodifiableListView(_activeTowers);
 
   /// 敌人 id 索引，弹道命中查询从 O(n) 降为 O(1)。
   final Map<int, Enemy> _enemyIndex = {};
@@ -85,8 +91,7 @@ class DefenseEngine {
   static const double _nextPrepSeconds = 10;
   static const double _hudRefreshSeconds = 0.1;
 
-  Tower? towerAt(int slot) =>
-      slot < 0 || slot >= towers.length ? null : towers[slot];
+  Tower? towerAt(int slot) => slot < 0 || slot >= towers.length ? null : towers[slot];
 
   Tower? get selectedTower {
     final slot = selectedSlot;
@@ -111,14 +116,14 @@ class DefenseEngine {
 
   int get earlyBonus => status == GameStatus.preparing ? prepTimer.ceil() : 0;
 
-  bool get isFinished =>
-      status == GameStatus.victory || status == GameStatus.defeat;
+  bool get isFinished => status == GameStatus.victory || status == GameStatus.defeat;
 
   bool get endless => level.endless;
 
+  bool get daily => level.daily;
+
   /// 完整清理的波次数，失败时用于无尽模式结算。
-  int get clearedWaves =>
-      status == GameStatus.battle ? math.max(0, waveIndex - 1) : waveIndex;
+  int get clearedWaves => status == GameStatus.battle ? math.max(0, waveIndex - 1) : waveIndex;
 
   List<Tower> get activeTowers => _activeTowersView;
 
@@ -152,11 +157,8 @@ class DefenseEngine {
     if (!canBuild(kind, slot)) return false;
     final cost = towerStats(kind, 1).cost;
     gold -= cost;
-    final tower = Tower(
-      slotIndex: slot,
-      kind: kind,
-      position: slotPositions[slot],
-    )..totalSpent = cost;
+    final tower = Tower(slotIndex: slot, kind: kind, position: slotPositions[slot])
+      ..totalSpent = cost;
     towers[slot] = tower;
     _activeTowers.add(tower);
     selectedSlot = slot;
@@ -202,9 +204,7 @@ class DefenseEngine {
     if (bonus > 0) {
       gold += bonus;
       goldEarned += bonus;
-      floaters.add(
-        Floater.notice('提前出击 +$bonus', track.start + const Offset(30, -20)),
-      );
+      floaters.add(Floater.notice('提前出击 +$bonus', track.start + const Offset(30, -20)));
     }
     _beginWave();
     return true;
@@ -266,6 +266,9 @@ class DefenseEngine {
     final base = kEnemyStats[item.kind]!;
     final id = _nextEnemyId++;
     final lateral = item.kind == EnemyKind.boss ? 0.0 : ((id % 5) - 2) * 4.5;
+    final laneCount = base.flying ? 1 : tracks.length;
+    final lane = item.lane >= 0 ? item.lane % laneCount : (laneCount > 1 ? id % laneCount : 0);
+    final route = tracks[lane];
     final enemy = Enemy(
       id: id,
       kind: item.kind,
@@ -276,8 +279,10 @@ class DefenseEngine {
       radius: base.radius,
       armor: base.armor,
       lateral: lateral,
+      track: route,
+      route: lane,
       flying: base.flying,
-      routeLength: base.flying ? track.airLength : track.length,
+      routeLength: base.flying ? route.airLength : route.length,
     );
     final position = _routePosition(enemy);
     enemy
@@ -288,10 +293,29 @@ class DefenseEngine {
     _enemyIndex[id] = enemy;
   }
 
+  /// 预计算传送门在每条路线上的弧长，出口不在路线上或没有前进时忽略。
+  void _resolvePortals() {
+    for (final portal in level.portals) {
+      for (var route = 0; route < tracks.length; route++) {
+        final entry = tracks[route].nearest(portal.entryDesign);
+        final exit = tracks[route].nearest(portal.exitDesign);
+        if (entry.gap > portal.radius || exit.gap > portal.radius) continue;
+        if (exit.along <= entry.along + 2) continue;
+        _portalJumps.add((
+          route: route,
+          entry: entry.along,
+          exit: exit.along,
+          at: portal.entryDesign,
+          away: portal.exitDesign,
+        ));
+      }
+    }
+  }
+
   /// 地面敌人沿土路前进，飞行敌人走入口到萝卜的直线。
   Offset _routePosition(Enemy enemy) => enemy.flying
-      ? Offset.lerp(track.start, track.end, enemy.progress)!
-      : enemy.cursor.sample(track, enemy.distance, enemy.lateral);
+      ? Offset.lerp(enemy.track.start, enemy.track.end, enemy.progress)!
+      : enemy.cursor.sample(enemy.track, enemy.distance, enemy.lateral);
 
   void _moveEnemies(double dt) {
     var defeated = false;
@@ -320,26 +344,40 @@ class DefenseEngine {
     if (enemy.slowTimer > 0) {
       enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
     }
+    final before = enemy.distance;
     enemy.distance += enemy.currentSpeed * dt;
+    final portaled = _usePortal(enemy, before);
     enemy.position = _routePosition(enemy);
+    // 瞬移不参与插值，避免渲染层把敌人从入口拖出一条长线。
+    if (portaled) enemy.prevPosition = enemy.position;
     if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
     _applyFog(enemy, dt);
+  }
+
+  /// 越过入口弧长时瞬移到前方出口，同一敌人每道门只结算一次。
+  bool _usePortal(Enemy enemy, double before) {
+    if (enemy.flying || _portalJumps.isEmpty) return false;
+    for (final jump in _portalJumps) {
+      if (jump.route != enemy.route) continue;
+      if (before >= jump.entry || enemy.distance < jump.entry) continue;
+      if (jump.exit <= enemy.distance) continue;
+      enemy.distance = jump.exit;
+      effects.add(Effect.portal(jump.at, jump.away));
+      events.add(GameEvent.portal);
+      return true;
+    }
+    return false;
   }
 
   /// 毒雾只腐蚀地面敌人，伤害按最大生命值比例结算且无视护甲。
   void _applyFog(Enemy enemy, double dt) {
     if (enemy.flying || fogZones.isEmpty || !_insideFog(enemy.position)) return;
-    _damageEnemy(
-      enemy,
-      enemy.maxHp * kFogDpsRatio * dt,
-      quiet: true,
-      ignoreArmor: true,
-    );
+    _damageEnemy(enemy, enemy.maxHp * kFogDpsRatio * dt, quiet: true, ignoreArmor: true);
   }
 
   /// 敌人走到终点扣减萝卜血量；血量归零时返回 true。
   bool _leak(Enemy enemy) {
-    final goal = track.end;
+    final goal = enemy.track.end;
     enemy.alive = false;
     _aliveCount--;
     leaked++;
@@ -440,12 +478,7 @@ class DefenseEngine {
     TowerKind.poison: (640, GameEvent.poisonShot),
   };
 
-  void _launch(
-    Tower tower,
-    Enemy target, {
-    required double speed,
-    required TowerStats stats,
-  }) {
+  void _launch(Tower tower, Enemy target, {required double speed, required TowerStats stats}) {
     final targetPosition = enemyPosition(target);
     final distance = (targetPosition - tower.position).distance;
     projectiles.add(
@@ -537,10 +570,7 @@ class DefenseEngine {
       }
       effects.add(switch (projectile.kind) {
         TowerKind.frost => Effect.frostRing(impact, radius: projectile.splash),
-        TowerKind.poison => Effect.poisonCloud(
-          impact,
-          radius: projectile.splash,
-        ),
+        TowerKind.poison => Effect.poisonCloud(impact, radius: projectile.splash),
         _ => Effect.explosion(impact, radius: projectile.splash),
       });
       return;
@@ -584,12 +614,7 @@ class DefenseEngine {
     }
   }
 
-  void _damageEnemy(
-    Enemy enemy,
-    double damage, {
-    bool quiet = false,
-    bool ignoreArmor = false,
-  }) {
+  void _damageEnemy(Enemy enemy, double damage, {bool quiet = false, bool ignoreArmor = false}) {
     if (!enemy.alive) return;
     enemy.hp -= damage * (ignoreArmor ? 1 : enemy.armor);
     if (!quiet) enemy.flash = 0.14;
@@ -601,9 +626,7 @@ class DefenseEngine {
     goldEarned += enemy.bounty;
     final position = enemy.position;
     floaters.add(Floater.gold(enemy.bounty, position + const Offset(0, -24)));
-    effects.add(
-      Effect.spark(position, radius: enemy.radius * 1.6, duration: 0.35),
-    );
+    effects.add(Effect.spark(position, radius: enemy.radius * 1.6, duration: 0.35));
     events.add(GameEvent.gold);
     if (enemy.isBoss) {
       effects.add(Effect.explosion(position, radius: 120, duration: 0.8));
@@ -688,6 +711,5 @@ class DefenseEngine {
 
   void dispose() => hud.dispose();
 
-  static Offset _direction(double angle) =>
-      Offset(math.cos(angle), math.sin(angle));
+  static Offset _direction(double angle) => Offset(math.cos(angle), math.sin(angle));
 }

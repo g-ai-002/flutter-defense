@@ -18,16 +18,8 @@ void paintFogGround(Canvas canvas, LevelDef level) {
     final radius = zone.radius;
     final random = math.Random(level.seed + zone.center.col.round() * 31);
     canvas.drawCircle(center, radius, fill(kFogDeep.withValues(alpha: 0.2)));
-    canvas.drawCircle(
-      center,
-      radius * 0.72,
-      fill(kFogCore.withValues(alpha: 0.18)),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      stroke(kFogRim.withValues(alpha: 0.3), 2.5),
-    );
+    canvas.drawCircle(center, radius * 0.72, fill(kFogCore.withValues(alpha: 0.18)));
+    canvas.drawCircle(center, radius, stroke(kFogRim.withValues(alpha: 0.3), 2.5));
     for (var i = 0; i < 10; i++) {
       final angle = random.nextDouble() * math.pi * 2;
       final distance = random.nextDouble() * radius * 0.8;

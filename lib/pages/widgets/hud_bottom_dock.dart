@@ -28,11 +28,7 @@ class HudBottomDock extends StatelessWidget {
             child: selected != null
                 ? _TowerPanel(engine: engine, tower: selected, compact: compact)
                 : selectedSlot != null
-                ? _BuildPanel(
-                    engine: engine,
-                    slot: selectedSlot,
-                    compact: compact,
-                  )
+                ? _BuildPanel(engine: engine, slot: selectedSlot, compact: compact)
                 : _ShopPanel(engine: engine, compact: compact),
           ),
           SizedBox(width: compact ? 5 : 8),
@@ -76,11 +72,7 @@ class _ShopPanel extends StatelessWidget {
 }
 
 class _BuildPanel extends StatelessWidget {
-  const _BuildPanel({
-    required this.engine,
-    required this.slot,
-    required this.compact,
-  });
+  const _BuildPanel({required this.engine, required this.slot, required this.compact});
 
   final DefenseEngine engine;
   final int slot;
@@ -92,28 +84,15 @@ class _BuildPanel extends StatelessWidget {
     return Row(
       children: [
         if (!compact) ...[
-          Icon(
-            Icons.add_location_alt_outlined,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.add_location_alt_outlined, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 5),
-          Text(
-            '空地建造',
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text('空地建造', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(width: 8),
         ],
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: _TowerCardStrip(
-              engine: engine,
-              compact: compact,
-              slot: slot,
-            ),
+            child: _TowerCardStrip(engine: engine, compact: compact, slot: slot),
           ),
         ),
         HudIconButton(
@@ -129,11 +108,7 @@ class _BuildPanel extends StatelessWidget {
 
 /// 塔栏卡片条：默认点击进入布塔模式，指定空地时直接建造。
 class _TowerCardStrip extends StatelessWidget {
-  const _TowerCardStrip({
-    required this.engine,
-    required this.compact,
-    this.slot,
-  });
+  const _TowerCardStrip({required this.engine, required this.compact, this.slot});
 
   final DefenseEngine engine;
   final bool compact;
@@ -155,9 +130,8 @@ class _TowerCardStrip extends StatelessWidget {
                   : engine.gold >= towerStats(kind, 1).cost,
               selected: buildSlot == null && engine.armedKind == kind,
               compact: compact,
-              onTap: () => buildSlot != null
-                  ? engine.build(buildSlot, kind)
-                  : engine.toggleArmed(kind),
+              onTap: () =>
+                  buildSlot != null ? engine.build(buildSlot, kind) : engine.toggleArmed(kind),
             ),
           ),
       ],
@@ -166,11 +140,7 @@ class _TowerCardStrip extends StatelessWidget {
 }
 
 class _TowerPanel extends StatelessWidget {
-  const _TowerPanel({
-    required this.engine,
-    required this.tower,
-    required this.compact,
-  });
+  const _TowerPanel({required this.engine, required this.tower, required this.compact});
 
   final DefenseEngine engine;
   final Tower tower;
@@ -286,16 +256,11 @@ class _TowerCard extends StatelessWidget {
           child: Container(
             width: compact ? 58 : 88,
             height: compact ? 44 : 62,
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 4 : 7,
-              vertical: 3,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 7, vertical: 3),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selected
-                    ? colors.primary
-                    : colors.outline.withValues(alpha: 0.5),
+                color: selected ? colors.primary : colors.outline.withValues(alpha: 0.5),
                 width: selected ? 1.6 : 1,
               ),
             ),
@@ -318,11 +283,7 @@ class _TowerCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.monetization_on_rounded,
-                      size: 10,
-                      color: Color(0xFFD99B1D),
-                    ),
+                    const Icon(Icons.monetization_on_rounded, size: 10, color: Color(0xFFD99B1D)),
                     Text(
                       '$cost',
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -364,9 +325,7 @@ class _WaveButton extends StatelessWidget {
           onPressed: engine.startNextWave,
           style: FilledButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -375,10 +334,7 @@ class _WaveButton extends StatelessWidget {
                 '开始第 $nextWave 波',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: compact ? 11 : 13,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: TextStyle(fontSize: compact ? 11 : 13, fontWeight: FontWeight.w800),
               ),
               Text(
                 compact

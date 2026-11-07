@@ -59,22 +59,39 @@ class PathTrack {
     final index = low;
     final span = _cumulative[index] - _cumulative[index - 1];
     final t = span <= 0 ? 0.0 : (clamped - _cumulative[index - 1]) / span;
-    return PathSample(
-      Offset.lerp(points[index - 1], points[index], t)!,
-      _tangents[index - 1],
-    );
+    return PathSample(Offset.lerp(points[index - 1], points[index], t)!, _tangents[index - 1]);
   }
 
   /// 点到路径的最短距离，用于校验建造点与摆放装饰。
   double distanceTo(Offset point) {
     var best = double.infinity;
     for (var i = 1; i < points.length; i++) {
-      best = math.min(
-        best,
-        _distanceToSegment(point, points[i - 1], points[i]),
-      );
+      best = math.min(best, _distanceToSegment(point, points[i - 1], points[i]));
     }
     return best;
+  }
+
+  /// 最近点：返回沿路径的弧长与点到路径的垂距，供传送门定位。
+  ({double along, double gap}) nearest(Offset point) {
+    var bestGap = double.infinity;
+    var bestAlong = 0.0;
+    for (var i = 1; i < points.length; i++) {
+      final a = points[i - 1];
+      final b = points[i];
+      final ab = b - a;
+      final lengthSquared = ab.dx * ab.dx + ab.dy * ab.dy;
+      final ap = point - a;
+      final t = lengthSquared <= 0
+          ? 0.0
+          : ((ap.dx * ab.dx + ap.dy * ab.dy) / lengthSquared).clamp(0.0, 1.0);
+      final closest = a + ab * t;
+      final gap = (point - closest).distance;
+      if (gap < bestGap) {
+        bestGap = gap;
+        bestAlong = _cumulative[i - 1] + math.sqrt(lengthSquared) * t;
+      }
+    }
+    return (along: bestAlong, gap: bestGap);
   }
 }
 
@@ -90,9 +107,7 @@ class PathCursor {
     final cumulative = track._cumulative;
     final clamped = distance.clamp(0.0, track.length);
     var index = _segment;
-    if (index < 1 ||
-        index >= cumulative.length ||
-        clamped < cumulative[index - 1]) {
+    if (index < 1 || index >= cumulative.length || clamped < cumulative[index - 1]) {
       index = 1;
     }
     while (index < cumulative.length - 1 && clamped > cumulative[index]) {

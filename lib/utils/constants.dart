@@ -12,10 +12,8 @@ const double kGridOriginX = (kDesignWidth - kGridCols * kCellSize) / 2;
 const double kGridOriginY = (kDesignHeight - kGridRows * kCellSize) / 2;
 
 /// 网格坐标（可为小数）换算为设计画布坐标，返回格子中心。
-Offset gridToDesign(double col, double row) => Offset(
-  kGridOriginX + (col + 0.5) * kCellSize,
-  kGridOriginY + (row + 0.5) * kCellSize,
-);
+Offset gridToDesign(double col, double row) =>
+    Offset(kGridOriginX + (col + 0.5) * kCellSize, kGridOriginY + (row + 0.5) * kCellSize);
 
 /// 屏幕较矮时 HUD 使用紧凑高度，棋盘区域据此预留空间。
 bool compactHudFor(Size size) => size.height < 600 || size.width < 760;
@@ -30,7 +28,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.3.2';
+  static const String version = '0.4.0';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';
@@ -40,6 +38,7 @@ class AppConstants {
   static const String prefKeyStars = 'level_stars';
   static const String prefKeyUnlocked = 'level_unlocked';
   static const String prefKeyEndless = 'endless_records';
+  static const String prefKeyDaily = 'daily_records';
 
   /// 战斗倍速档位。
   static const List<double> battleSpeeds = [1, 2, 3];

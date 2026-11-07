@@ -4,12 +4,7 @@ import '../../theme/app_theme.dart';
 
 /// 设置页等信息页共用的分区卡片。
 class SectionCard extends StatelessWidget {
-  const SectionCard({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.children,
-  });
+  const SectionCard({super.key, required this.title, required this.icon, required this.children});
 
   final String title;
   final IconData icon;

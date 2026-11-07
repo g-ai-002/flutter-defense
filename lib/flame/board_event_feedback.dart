@@ -43,15 +43,14 @@ class BoardEventFeedback {
           break;
         case GameEvent.leak:
           SoundService.play(SoundFx.leak);
-          LogService.warning(
-            '敌人突破防线, 萝卜剩余 ${engine.carrotHp}/${engine.carrotMaxHp}',
-          );
+          LogService.warning('敌人突破防线, 萝卜剩余 ${engine.carrotHp}/${engine.carrotMaxHp}');
+          break;
+        case GameEvent.portal:
+          SoundService.play(SoundFx.portal);
           break;
         case GameEvent.waveStart:
           SoundService.play(SoundFx.waveStart);
-          LogService.info(
-            '第 ${engine.waveIndex}/${engine.level.waveCount} 波开始',
-          );
+          LogService.info('第 ${engine.waveIndex}/${engine.level.waveCount} 波开始');
           break;
         case GameEvent.waveClear:
           SoundService.play(SoundFx.waveClear);

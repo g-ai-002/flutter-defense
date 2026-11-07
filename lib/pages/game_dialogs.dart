@@ -25,7 +25,9 @@ Future<void> showRulesDialog(BuildContext context) {
                   '怪物会沿着土路冲向终点萝卜。点击空地建造防御塔，'
                   '点击已建的塔可以升级或出售。撑过全部波次即可通关。'
                   '蝠妖会直线飞越土路，且免疫减速与中毒；'
-                  '绿色毒雾区会持续腐蚀经过的地面怪物，可以用来削弱强敌。',
+                  '绿色毒雾区会持续腐蚀经过的地面怪物，可以用来削弱强敌。'
+                  '分岔路口的敌人会分流绕行，紫色传送门会让敌人跳过一段土路；'
+                  '每日挑战按日期生成固定种子，同一天可以反复挑战刷新最佳波数。',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
                     color: colors.onSurfaceVariant,
@@ -95,10 +97,7 @@ Future<void> showRulesDialog(BuildContext context) {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('知道了'),
-          ),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('知道了')),
         ],
       );
     },
@@ -127,10 +126,7 @@ Future<bool> confirmLeaveGame(BuildContext context, {required bool playing}) {
 }
 
 /// 无尽模式本地排行榜：最多 10 条，按波次、击杀、金币排序。
-Future<void> showEndlessRecordsDialog(
-  BuildContext context,
-  List<EndlessRecord> records,
-) {
+Future<void> showEndlessRecordsDialog(BuildContext context, List<EndlessRecord> records) {
   return showDialog<void>(
     context: context,
     builder: (dialogContext) {
@@ -161,9 +157,7 @@ Future<void> showEndlessRecordsDialog(
                               child: Text(
                                 '${i + 1}',
                                 style: theme.textTheme.labelLarge?.copyWith(
-                                  color: i < 3
-                                      ? const Color(0xFFD99B1D)
-                                      : colors.onSurfaceVariant,
+                                  color: i < 3 ? const Color(0xFFD99B1D) : colors.onSurfaceVariant,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
@@ -202,10 +196,7 @@ Future<void> showEndlessRecordsDialog(
                 ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('关闭'),
-          ),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('关闭')),
         ],
       );
     },

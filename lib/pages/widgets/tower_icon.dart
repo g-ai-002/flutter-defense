@@ -27,15 +27,9 @@ class _TowerIconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    paintTowerIcon(
-      canvas,
-      kind,
-      Offset(size.width / 2, size.height / 2),
-      size.width * 0.36,
-    );
+    paintTowerIcon(canvas, kind, Offset(size.width / 2, size.height / 2), size.width * 0.36);
   }
 
   @override
-  bool shouldRepaint(covariant _TowerIconPainter oldDelegate) =>
-      oldDelegate.kind != kind;
+  bool shouldRepaint(covariant _TowerIconPainter oldDelegate) => oldDelegate.kind != kind;
 }

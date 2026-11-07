@@ -11,8 +11,7 @@ void main() {
       expect(layout.toDesign(layout.origin), Offset.zero);
 
       final bottomRight = layout.toDesign(
-        layout.origin +
-            Offset(kDesignWidth * layout.scale, kDesignHeight * layout.scale),
+        layout.origin + Offset(kDesignWidth * layout.scale, kDesignHeight * layout.scale),
       );
       expect(bottomRight.dx, closeTo(kDesignWidth, 0.001));
       expect(bottomRight.dy, closeTo(kDesignHeight, 0.001));
@@ -25,10 +24,7 @@ void main() {
       expect(layout.contains(const Offset(0, -1)), isFalse);
       expect(layout.contains(const Offset(kDesignWidth + 1, 0)), isFalse);
       expect(layout.contains(const Offset(0, kDesignHeight + 1)), isFalse);
-      expect(
-        layout.contains(const Offset(kDesignWidth, kDesignHeight)),
-        isTrue,
-      );
+      expect(layout.contains(const Offset(kDesignWidth, kDesignHeight)), isTrue);
     });
 
     test('建造位按最近距离命中，超出半径返回 null', () {
@@ -44,10 +40,7 @@ void main() {
     test('超小窗口下缩放收敛到下限且仍居中', () {
       final layout = BoardLayout.resolve(const Size(200, 320));
       expect(layout.scale, 0.15);
-      expect(
-        layout.origin.dx + kDesignWidth * layout.scale / 2,
-        closeTo(100, 1),
-      );
+      expect(layout.origin.dx + kDesignWidth * layout.scale / 2, closeTo(100, 1));
     });
   });
 }

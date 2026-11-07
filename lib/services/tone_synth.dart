@@ -35,10 +35,7 @@ class SynthNote {
 }
 
 /// 纯 Dart 音效合成：把若干乐音渲染成 16 位单声道 WAV 字节。
-Uint8List synthesizeWav(
-  List<SynthNote> notes, {
-  int sampleRate = kSynthSampleRate,
-}) {
+Uint8List synthesizeWav(List<SynthNote> notes, {int sampleRate = kSynthSampleRate}) {
   const tailSeconds = 0.04;
   final seconds = notes.fold<double>(
     0,
@@ -60,15 +57,10 @@ Uint8List synthesizeWav(
       if (index >= totalSamples) break;
       final progress = i / count;
       final envelope =
-          math.min(1, i / attack) *
-          math.min(1, (count - i) / release) *
-          math.exp(-3.2 * progress);
+          math.min(1, i / attack) * math.min(1, (count - i) / release) * math.exp(-3.2 * progress);
       final frequency = note.frequency * (1 + note.slide * progress);
       phase += 2 * math.pi * frequency / sampleRate;
-      final tone =
-          math.sin(phase) +
-          0.32 * math.sin(2 * phase) +
-          0.12 * math.sin(3 * phase);
+      final tone = math.sin(phase) + 0.32 * math.sin(2 * phase) + 0.12 * math.sin(3 * phase);
       final hit = note.noise * (random.nextDouble() * 2 - 1);
       mix[index] += envelope * (tone * gain + hit);
     }
@@ -129,20 +121,8 @@ const List<_PluckNote> _musicNotes = [
   // 轻巧的打击垫，让循环更有推进感。
   _PluckNote(start: 2.0, frequency: 196.00, duration: 0.2, gain: 0.16, damp: 4),
   _PluckNote(start: 6.0, frequency: 196.00, duration: 0.2, gain: 0.16, damp: 4),
-  _PluckNote(
-    start: 10.0,
-    frequency: 220.00,
-    duration: 0.2,
-    gain: 0.16,
-    damp: 4,
-  ),
-  _PluckNote(
-    start: 14.0,
-    frequency: 174.61,
-    duration: 0.2,
-    gain: 0.16,
-    damp: 4,
-  ),
+  _PluckNote(start: 10.0, frequency: 220.00, duration: 0.2, gain: 0.16, damp: 4),
+  _PluckNote(start: 14.0, frequency: 174.61, duration: 0.2, gain: 0.16, damp: 4),
 ];
 
 /// 合成背景音乐：拨弦叠加低音，首尾淡入淡出后无缝循环。
@@ -152,10 +132,7 @@ Uint8List synthesizeMusicWav({int sampleRate = kMusicSampleRate}) {
   final random = math.Random(20261108);
   for (final note in _musicNotes) {
     final offset = (note.start * sampleRate).round();
-    final count = math.min(
-      (note.duration * sampleRate).round(),
-      totalSamples - offset,
-    );
+    final count = math.min((note.duration * sampleRate).round(), totalSamples - offset);
     final attack = math.max(1, (0.004 * sampleRate).round());
     for (var i = 0; i < count; i++) {
       final time = i / sampleRate;

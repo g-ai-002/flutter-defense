@@ -1,3 +1,4 @@
+import 'package:carrot_defense/game/daily.dart';
 import 'package:carrot_defense/game/engine/defense_engine.dart';
 import 'package:carrot_defense/game/levels.dart';
 import 'package:carrot_defense/pages/widgets/game_overlays.dart';
@@ -69,6 +70,40 @@ void main() {
     expect(find.text('下一关'), findsOneWidget);
     expect(find.text('击杀'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('每日挑战结算展示当天最佳与再来一局', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1100, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    final level = dailyLevel(DateTime(2026, 11, 8));
+    final engine = DefenseEngine(level: level)..startNextWave();
+    await tester.pumpWidget(
+      _host(
+        GameResultOverlay(
+          level: level,
+          engine: engine,
+          victory: false,
+          stars: 0,
+          hasNext: false,
+          daily: true,
+          bestWaves: 4,
+          newRecord: true,
+          exitLabel: '返回首页',
+          onRetry: () {},
+          onNext: () {},
+          onExit: () {},
+        ),
+        storage,
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining('今日挑战'), findsOneWidget);
+    expect(find.textContaining('今日新纪录'), findsOneWidget);
+    expect(find.text('再来一局'), findsOneWidget);
+    expect(find.text('返回首页'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    engine.dispose();
   });
 
   testWidgets('失败结算展示建议与重试入口', (tester) async {

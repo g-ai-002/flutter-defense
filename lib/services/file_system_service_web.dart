@@ -2,9 +2,7 @@
 class FileSystemService {
   FileSystemService._(this.appDirName);
 
-  static final FileSystemService instance = FileSystemService._(
-    'CarrotDefense',
-  );
+  static final FileSystemService instance = FileSystemService._('CarrotDefense');
 
   final String appDirName;
 

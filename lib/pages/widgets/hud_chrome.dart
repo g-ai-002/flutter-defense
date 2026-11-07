@@ -4,10 +4,7 @@ import '../../theme/app_theme.dart';
 
 /// HUD 通用装饰与小型控件，供顶栏、底栏共用。
 
-BoxDecoration hudPanelDecoration(
-  BuildContext context, {
-  required double radius,
-}) {
+BoxDecoration hudPanelDecoration(BuildContext context, {required double radius}) {
   final dark = Theme.of(context).brightness == Brightness.dark;
   return appPanelDecoration(
     context,
@@ -37,10 +34,7 @@ class HudMiniBar extends StatelessWidget {
       child: FractionallySizedBox(
         widthFactor: ratio.clamp(0.0, 1.0),
         child: Container(
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(99),
-          ),
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(99)),
         ),
       ),
     );
@@ -157,10 +151,7 @@ class HudIconButton extends StatelessWidget {
       icon: Icon(icon, size: compact ? 17 : 19),
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
-      constraints: BoxConstraints.tightFor(
-        width: compact ? 28 : 32,
-        height: compact ? 28 : 32,
-      ),
+      constraints: BoxConstraints.tightFor(width: compact ? 28 : 32, height: compact ? 28 : 32),
     );
   }
 }
@@ -195,10 +186,7 @@ class HudPanelButton extends StatelessWidget {
           const SizedBox(width: 3),
           Text(label, style: const TextStyle(fontSize: 12)),
         ] else if (label.contains('升级'))
-          Text(
-            label.replaceAll('升级 ', ''),
-            style: const TextStyle(fontSize: 11),
-          ),
+          Text(label.replaceAll('升级 ', ''), style: const TextStyle(fontSize: 11)),
       ],
     );
     return Material(

@@ -39,7 +39,9 @@ void main() {
       final engine = DefenseEngine(
         level: straightLevel(
           startGold: 70,
-          waves: [WaveDef([spawn(EnemyKind.slime, 1)])],
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 1)]),
+          ],
         ),
       );
       expect(engine.build(0, TowerKind.arrow), isTrue);
@@ -141,9 +143,7 @@ void main() {
           hpScale: 5,
           slots: const [GridPos(7, 3)],
           waves: [
-            WaveDef([
-              spawn(EnemyKind.tank, 4, gap: 0.35),
-            ], reward: 0),
+            WaveDef([spawn(EnemyKind.tank, 4, gap: 0.35)], reward: 0),
           ],
         ),
       );
@@ -168,9 +168,7 @@ void main() {
           hpScale: 6,
           slots: const [GridPos(7, 3)],
           waves: [
-            WaveDef([
-              spawn(EnemyKind.tank, 4, gap: 0.25),
-            ], reward: 0),
+            WaveDef([spawn(EnemyKind.tank, 4, gap: 0.25)], reward: 0),
           ],
         ),
       );

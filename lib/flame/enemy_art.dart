@@ -40,37 +40,18 @@ ui.Picture enemyBodySprite(EnemyKind kind, double radius) {
   return picture;
 }
 
-void _eyes(
-  Canvas canvas,
-  double radius, {
-  Color color = const Color(0xFF2A2118),
-}) {
+void _eyes(Canvas canvas, double radius, {Color color = const Color(0xFF2A2118)}) {
   final eye = fill(color);
   canvas.drawCircle(Offset(-radius * 0.3, -radius * 0.08), radius * 0.13, eye);
   canvas.drawCircle(Offset(radius * 0.3, -radius * 0.08), radius * 0.13, eye);
-  canvas.drawCircle(
-    Offset(-radius * 0.27, -radius * 0.12),
-    radius * 0.045,
-    fill(Colors.white),
-  );
-  canvas.drawCircle(
-    Offset(radius * 0.33, -radius * 0.12),
-    radius * 0.045,
-    fill(Colors.white),
-  );
+  canvas.drawCircle(Offset(-radius * 0.27, -radius * 0.12), radius * 0.045, fill(Colors.white));
+  canvas.drawCircle(Offset(radius * 0.33, -radius * 0.12), radius * 0.045, fill(Colors.white));
 }
 
 void _paintSlime(Canvas canvas, double radius) {
   final body = Path()
     ..moveTo(-radius, radius * 0.62)
-    ..cubicTo(
-      -radius,
-      -radius * 0.55,
-      radius,
-      -radius * 0.55,
-      radius,
-      radius * 0.62,
-    )
+    ..cubicTo(-radius, -radius * 0.55, radius, -radius * 0.55, radius, radius * 0.62)
     ..quadraticBezierTo(0, radius * 0.92, -radius, radius * 0.62)
     ..close();
   canvas.drawPath(
@@ -84,20 +65,12 @@ void _paintSlime(Canvas canvas, double radius) {
   );
   canvas.drawPath(body, stroke(const Color(0xFF3E7F2D), radius * 0.07));
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.3),
-      width: radius * 1.2,
-      height: radius * 0.55,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.3), width: radius * 1.2, height: radius * 0.55),
     fill(const Color(0xFFC6F0A5).withValues(alpha: 0.5)),
   );
   _eyes(canvas, radius);
   canvas.drawArc(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.2),
-      width: radius * 0.42,
-      height: radius * 0.3,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.2), width: radius * 0.42, height: radius * 0.3),
     0.2,
     math.pi - 0.4,
     false,
@@ -117,19 +90,11 @@ void _paintSlime(Canvas canvas, double radius) {
 void _paintRunner(Canvas canvas, double radius) {
   final fur = fill(const Color(0xFFF2A867));
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.1),
-      width: radius * 1.55,
-      height: radius * 1.7,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.1), width: radius * 1.55, height: radius * 1.7),
     fur,
   );
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.38),
-      width: radius * 1.0,
-      height: radius * 0.8,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.38), width: radius * 1.0, height: radius * 0.8),
     fill(const Color(0xFFFFE7CB)),
   );
   // 耳朵
@@ -156,11 +121,7 @@ void _paintRunner(Canvas canvas, double radius) {
     canvas.restore();
   }
   _eyes(canvas, radius);
-  canvas.drawCircle(
-    Offset(0, radius * 0.16),
-    radius * 0.08,
-    fill(const Color(0xFFC46A4A)),
-  );
+  canvas.drawCircle(Offset(0, radius * 0.16), radius * 0.08, fill(const Color(0xFFC46A4A)));
   // 脚
   canvas.drawOval(
     Rect.fromCenter(
@@ -182,11 +143,7 @@ void _paintRunner(Canvas canvas, double radius) {
 
 void _paintBeetle(Canvas canvas, double radius) {
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.12),
-      width: radius * 1.9,
-      height: radius * 1.65,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.12), width: radius * 1.9, height: radius * 1.65),
     Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
@@ -195,11 +152,7 @@ void _paintBeetle(Canvas canvas, double radius) {
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
   );
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.12),
-      width: radius * 1.9,
-      height: radius * 1.65,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.12), width: radius * 1.9, height: radius * 1.65),
     stroke(const Color(0xFF252D35), radius * 0.08),
   );
   canvas.drawLine(
@@ -226,11 +179,7 @@ void _paintBeetle(Canvas canvas, double radius) {
   _eyes(canvas, radius, color: const Color(0xFF11171B));
   // 头甲
   canvas.drawArc(
-    Rect.fromCenter(
-      center: Offset(0, -radius * 0.2),
-      width: radius * 1.1,
-      height: radius * 0.9,
-    ),
+    Rect.fromCenter(center: Offset(0, -radius * 0.2), width: radius * 1.1, height: radius * 0.9),
     math.pi,
     math.pi,
     false,
@@ -240,11 +189,7 @@ void _paintBeetle(Canvas canvas, double radius) {
 
 void _paintTank(Canvas canvas, double radius) {
   final body = RRect.fromRectAndRadius(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.08),
-      width: radius * 1.95,
-      height: radius * 1.75,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.08), width: radius * 1.95, height: radius * 1.75),
     Radius.circular(radius * 0.55),
   );
   canvas.drawRRect(
@@ -296,11 +241,7 @@ void _paintTank(Canvas canvas, double radius) {
 void _paintFlyer(Canvas canvas, double radius) {
   // 投影单独下移，表现低空悬停的高度感。
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 2.1),
-      width: radius * 1.5,
-      height: radius * 0.42,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 2.1), width: radius * 1.5, height: radius * 0.42),
     fill(Colors.black.withValues(alpha: 0.16)),
   );
   final wing = fill(const Color(0xFF4B3A6B));
@@ -309,21 +250,13 @@ void _paintFlyer(Canvas canvas, double radius) {
     canvas.save();
     canvas.translate(side * radius * 0.58, -radius * 0.08);
     canvas.rotate(side * 0.55);
-    final rect = Rect.fromCenter(
-      center: Offset.zero,
-      width: radius * 1.6,
-      height: radius * 0.72,
-    );
+    final rect = Rect.fromCenter(center: Offset.zero, width: radius * 1.6, height: radius * 0.72);
     canvas.drawOval(rect, wing);
     canvas.drawOval(rect, wingEdge);
     canvas.restore();
   }
   canvas.drawOval(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.1),
-      width: radius * 1.05,
-      height: radius * 1.3,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.1), width: radius * 1.05, height: radius * 1.3),
     Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
@@ -333,11 +266,7 @@ void _paintFlyer(Canvas canvas, double radius) {
   );
   final eye = fill(const Color(0xFFFF5D5D));
   for (final side in [-1.0, 1.0]) {
-    canvas.drawCircle(
-      Offset(side * radius * 0.26, -radius * 0.06),
-      radius * 0.12,
-      eye,
-    );
+    canvas.drawCircle(Offset(side * radius * 0.26, -radius * 0.06), radius * 0.12, eye);
   }
 }
 
@@ -349,14 +278,7 @@ void _paintBoss(Canvas canvas, double radius) {
   );
   final body = Path()
     ..moveTo(-radius, radius * 0.55)
-    ..cubicTo(
-      -radius * 1.1,
-      -radius * 0.75,
-      radius * 1.1,
-      -radius * 0.75,
-      radius,
-      radius * 0.55,
-    )
+    ..cubicTo(-radius * 1.1, -radius * 0.75, radius * 1.1, -radius * 0.75, radius, radius * 0.55)
     ..quadraticBezierTo(0, radius * 1.0, -radius, radius * 0.55)
     ..close();
   canvas.drawPath(
@@ -406,11 +328,7 @@ void _paintBoss(Canvas canvas, double radius) {
   );
   // 獠牙与嘴
   canvas.drawArc(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.28),
-      width: radius * 0.56,
-      height: radius * 0.4,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.28), width: radius * 0.56, height: radius * 0.4),
     math.pi + 0.15,
     math.pi - 0.3,
     false,

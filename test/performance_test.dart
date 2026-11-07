@@ -20,9 +20,7 @@ void main() {
 
   group('路径采样', () {
     test('二分采样与线性参考实现一致', () {
-      final track = PathTrack([
-        for (final point in kLevels.first.path) point.design,
-      ]);
+      final track = PathTrack([for (final point in kLevels.first.path) point.design]);
       for (var i = 0; i <= 200; i++) {
         final distance = track.length * i / 200;
         final sample = track.sampleAt(distance);
@@ -42,37 +40,26 @@ void main() {
     });
 
     test('越界距离收敛到端点', () {
-      final track = PathTrack([
-        for (final point in kLevels.first.path) point.design,
-      ]);
+      final track = PathTrack([for (final point in kLevels.first.path) point.design]);
       expect(track.pointAt(-50), track.points.first);
       expect(track.pointAt(track.length + 50), track.points.last);
     });
 
     test('起点、终点与飞行航线长度由路径统一提供', () {
-      final track = PathTrack([
-        for (final point in kLevels.first.path) point.design,
-      ]);
+      final track = PathTrack([for (final point in kLevels.first.path) point.design]);
       expect(track.start, track.points.first);
       expect(track.end, track.points.last);
-      expect(
-        track.airLength,
-        closeTo((track.points.last - track.points.first).distance, 0.001),
-      );
+      expect(track.airLength, closeTo((track.points.last - track.points.first).distance, 0.001));
     });
 
     test('单调游标与二分采样一致，距离回退后重新定位', () {
-      final track = PathTrack([
-        for (final point in kLevels.first.path) point.design,
-      ]);
+      final track = PathTrack([for (final point in kLevels.first.path) point.design]);
       final cursor = PathCursor();
       for (var i = 0; i <= 200; i++) {
         final distance = track.length * i / 200;
         final lateral = (i % 7 - 3) * 2.5;
         final sample = track.sampleAt(distance);
-        final expected =
-            sample.position +
-            Offset(-sample.tangent.dy, sample.tangent.dx) * lateral;
+        final expected = sample.position + Offset(-sample.tangent.dy, sample.tangent.dx) * lateral;
         expect(
           (cursor.sample(track, distance, lateral) - expected).distance,
           lessThan(0.001),
@@ -80,8 +67,7 @@ void main() {
         );
       }
       final sample = track.sampleAt(12);
-      final expected =
-          sample.position + Offset(-sample.tangent.dy, sample.tangent.dx) * 3;
+      final expected = sample.position + Offset(-sample.tangent.dy, sample.tangent.dx) * 3;
       expect(
         (cursor.sample(track, 12, 3) - expected).distance,
         lessThan(0.001),
@@ -112,12 +98,8 @@ void main() {
 
       final sample = engine.track.sampleAt(enemy.distance);
       final expected =
-          sample.position +
-          Offset(-sample.tangent.dy, sample.tangent.dx) * enemy.lateral;
-      expect(
-        (engine.enemyPosition(enemy) - expected).distance,
-        lessThan(0.001),
-      );
+          sample.position + Offset(-sample.tangent.dy, sample.tangent.dx) * enemy.lateral;
+      expect((engine.enemyPosition(enemy) - expected).distance, lessThan(0.001));
     });
 
     test('已建塔列表增量维护且可原地复用', () {
@@ -186,11 +168,7 @@ void main() {
         engine.update(1 / 60);
         if (killedAt < 0 && engine.kills == 1) {
           killedAt = i;
-          expect(
-            engine.status,
-            GameStatus.victory,
-            reason: '存活计数归零后应立刻结算，不再等待下一帧压缩列表',
-          );
+          expect(engine.status, GameStatus.victory, reason: '存活计数归零后应立刻结算，不再等待下一帧压缩列表');
         }
       }
       expect(killedAt, greaterThanOrEqualTo(0));

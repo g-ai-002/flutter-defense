@@ -131,5 +131,4 @@ const Map<LevelTheme, LevelPalette> _palettes = {
   ),
 };
 
-LevelPalette paletteOf(LevelTheme theme) =>
-    _palettes[theme] ?? _palettes[LevelTheme.meadow]!;
+LevelPalette paletteOf(LevelTheme theme) => _palettes[theme] ?? _palettes[LevelTheme.meadow]!;

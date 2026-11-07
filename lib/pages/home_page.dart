@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../game/daily.dart';
 import '../game/endless.dart';
 import '../game/levels.dart';
 import '../models/endless.dart';
@@ -43,8 +44,7 @@ class HomePage extends StatelessWidget {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide =
-                  constraints.maxWidth >= 980 && constraints.maxHeight >= 600;
+              final wide = constraints.maxWidth >= 980 && constraints.maxHeight >= 600;
               final horizontal = constraints.maxWidth >= 900 ? 36.0 : 18.0;
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 22),
@@ -56,8 +56,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         _TopBar(
                           darkMode: settings.darkMode,
-                          onToggleDark: () =>
-                              settings.setDarkMode(!settings.darkMode),
+                          onToggleDark: () => settings.setDarkMode(!settings.darkMode),
                         ),
                         const SizedBox(height: 16),
                         if (wide)
@@ -66,19 +65,12 @@ class HomePage extends StatelessWidget {
                             children: [
                               Expanded(
                                 flex: 6,
-                                child: _Hero(
-                                  progress: progress,
-                                  compact: false,
-                                  narrow: false,
-                                ),
+                                child: _Hero(progress: progress, compact: false, narrow: false),
                               ),
                               const SizedBox(width: 26),
                               SizedBox(
                                 width: 430,
-                                child: _Entries(
-                                  progress: progress,
-                                  compact: false,
-                                ),
+                                child: _Entries(progress: progress, compact: false),
                               ),
                             ],
                           )
@@ -145,10 +137,7 @@ class _TopBar extends StatelessWidget {
         IconButton(
           tooltip: darkMode ? '切换浅色' : '切换深色',
           onPressed: onToggleDark,
-          icon: Icon(
-            darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            size: 20,
-          ),
+          icon: Icon(darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 20),
           color: colors.onSurfaceVariant,
         ),
         IconButton(
@@ -163,11 +152,7 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.progress,
-    required this.compact,
-    required this.narrow,
-  });
+  const _Hero({required this.progress, required this.compact, required this.narrow});
 
   final ProgressProvider progress;
   final bool compact;
@@ -178,9 +163,7 @@ class _Hero extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final ratio = progress.maxStars == 0
-        ? 0.0
-        : progress.totalStars / progress.maxStars;
+    final ratio = progress.maxStars == 0 ? 0.0 : progress.totalStars / progress.maxStars;
     final carrotSize = compact ? (narrow ? 120.0 : 150.0) : 240.0;
     final art = CarrotArt(size: carrotSize);
     final copy = _HeroCopy(progress: progress, narrow: narrow);
@@ -212,9 +195,7 @@ class _Hero extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: compact
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
         children: [
           if (!compact)
             Center(child: art)
@@ -270,10 +251,7 @@ class _HeroCopy extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           '建造弓弩、火炮、冰霜与雷电防御塔，\n抵挡一波波怪物，别让它们碰到萝卜。',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colors.onSurfaceVariant,
-            height: 1.55,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant, height: 1.55),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -284,11 +262,7 @@ class _HeroCopy extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.star_rounded,
-                  size: 18,
-                  color: Color(0xFFF2B21C),
-                ),
+                const Icon(Icons.star_rounded, size: 18, color: Color(0xFFF2B21C)),
                 const SizedBox(width: 4),
                 Text(
                   '${progress.totalStars} / ${progress.maxStars} 星',
@@ -299,11 +273,7 @@ class _HeroCopy extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.flag_rounded,
-                  size: 16,
-                  color: colors.onSurfaceVariant,
-                ),
+                Icon(Icons.flag_rounded, size: 16, color: colors.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   '已解锁 ${math.min(progress.unlockedLevel, kLevels.length)} '
@@ -382,6 +352,9 @@ class _Entries extends StatelessWidget {
     final index = (progress.unlockedLevel - 1).clamp(0, kLevels.length - 1);
     final level = kLevels[index];
     final best = progress.bestEndless;
+    final now = DateTime.now();
+    final daily = dailyLevel(now);
+    final dailyBest = progress.dailyBest(dailyKey(now));
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -403,8 +376,7 @@ class _Entries extends StatelessWidget {
           accent: const Color(0xFF4F8C3A),
           trailing: IconButton(
             tooltip: '无尽排行榜',
-            onPressed: () =>
-                showEndlessRecordsDialog(context, progress.endlessRecords),
+            onPressed: () => showEndlessRecordsDialog(context, progress.endlessRecords),
             icon: Icon(
               Icons.leaderboard_outlined,
               size: 20,
@@ -413,6 +385,14 @@ class _Entries extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
           onTap: () => _openLevel(context, kEndlessLevel),
+        ),
+        const SizedBox(height: 10),
+        EntryTile(
+          icon: Icons.event_available_rounded,
+          title: '每日挑战',
+          subtitle: '${daily.subtitle} · 最佳 ${dailyBest?.waves ?? 0} 波',
+          accent: const Color(0xFF7C4DFF),
+          onTap: () => _openLevel(context, daily),
         ),
         const SizedBox(height: 10),
         EntryTile(
@@ -444,16 +424,13 @@ class _Entries extends StatelessWidget {
 }
 
 void _openLevel(BuildContext context, LevelDef level) {
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(builder: (_) => GamePage(level: level)));
+  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => GamePage(level: level)));
 }
 
 void _openLevels(BuildContext context) {
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()));
+  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()));
 }
 
 void _openSettings(BuildContext context) {
-  Navigator.of(context)
-      .push(MaterialPageRoute<void>(builder: (_) => const SettingsPage()));
+  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsPage()));
 }

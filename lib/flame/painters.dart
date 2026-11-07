@@ -36,11 +36,7 @@ ui.Picture _towerBodySprite(TowerKind kind, int level, double radius) {
           colors: [Color(0xFFB98A5E), Color(0xFF7B5233)],
         ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
     );
-    canvas.drawCircle(
-      Offset.zero,
-      radius * 1.02,
-      stroke(const Color(0xFF5C3A22), radius * 0.06),
-    );
+    canvas.drawCircle(Offset.zero, radius * 1.02, stroke(const Color(0xFF5C3A22), radius * 0.06));
     canvas.drawCircle(
       Offset.zero,
       radius * 0.78,
@@ -50,11 +46,7 @@ ui.Picture _towerBodySprite(TowerKind kind, int level, double radius) {
       canvas.drawCircle(
         Offset((i - 1) * radius * 0.36, radius * 0.78),
         radius * 0.11,
-        fill(
-          i < level
-              ? const Color(0xFFFFD24D)
-              : const Color(0xFF3B2A1C).withValues(alpha: 0.5),
-        ),
+        fill(i < level ? const Color(0xFFFFD24D) : const Color(0xFF3B2A1C).withValues(alpha: 0.5)),
       );
     }
   });
@@ -68,11 +60,7 @@ ui.Picture _padBaseSprite(double radius) {
   if (cached != null) return cached;
   final picture = recordPicture((canvas) {
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(0, radius * 0.55),
-        width: radius * 2.2,
-        height: radius * 0.7,
-      ),
+      Rect.fromCenter(center: Offset(0, radius * 0.55), width: radius * 2.2, height: radius * 0.7),
       fill(Colors.black.withValues(alpha: 0.14)),
     );
     canvas.drawCircle(
@@ -85,20 +73,13 @@ ui.Picture _padBaseSprite(double radius) {
           colors: [Color(0xFFF0EAD8), Color(0xFFC8BE9E)],
         ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
     );
-    canvas.drawCircle(
-      Offset.zero,
-      radius,
-      stroke(const Color(0xFF8E866A), radius * 0.08),
-    );
+    canvas.drawCircle(Offset.zero, radius, stroke(const Color(0xFF8E866A), radius * 0.08));
     canvas.drawCircle(
       Offset.zero,
       radius * 0.74,
       fill(const Color(0xFF7F775E).withValues(alpha: 0.18)),
     );
-    final plus = stroke(
-      const Color(0xFF6E654C).withValues(alpha: 0.8),
-      radius * 0.12,
-    );
+    final plus = stroke(const Color(0xFF6E654C).withValues(alpha: 0.8), radius * 0.12);
     canvas.drawLine(Offset(-radius * 0.26, 0), Offset(radius * 0.26, 0), plus);
     canvas.drawLine(Offset(0, -radius * 0.26), Offset(0, radius * 0.26), plus);
   });
@@ -107,12 +88,7 @@ ui.Picture _padBaseSprite(double radius) {
 }
 
 /// 终点萝卜：圆润的橙色身体、绿叶与表情。
-void paintCarrot(
-  Canvas canvas,
-  Offset center,
-  double radius, {
-  double pulse = 0,
-}) {
+void paintCarrot(Canvas canvas, Offset center, double radius, {double pulse = 0}) {
   final wobble = math.sin(pulse * 22) * 3 * pulse;
   canvas.save();
   canvas.translate(center.dx + wobble, center.dy);
@@ -136,24 +112,13 @@ void _paintCarrotBody(Canvas canvas, double radius) {
 
   // 土堆
   canvas.drawOval(
-    Rect.fromCenter(
-      center: const Offset(0, 20),
-      width: radius * 2.5,
-      height: radius * 0.7,
-    ),
+    Rect.fromCenter(center: const Offset(0, 20), width: radius * 2.5, height: radius * 0.7),
     fill(const Color(0xFF8A5A32).withValues(alpha: 0.55)),
   );
 
   final body = Path()
     ..moveTo(-radius * 0.52, -radius * 0.35)
-    ..cubicTo(
-      -radius * 0.62,
-      radius * 0.15,
-      -radius * 0.25,
-      radius * 0.75,
-      0,
-      radius * 1.02,
-    )
+    ..cubicTo(-radius * 0.62, radius * 0.15, -radius * 0.25, radius * 0.75, 0, radius * 1.02)
     ..cubicTo(
       radius * 0.25,
       radius * 0.75,
@@ -180,10 +145,7 @@ void _paintCarrotBody(Canvas canvas, double radius) {
         colors: [Color(0xFFFFA84D), Color(0xFFE86B21)],
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
   );
-  canvas.drawPath(
-    body,
-    stroke(const Color(0xFFB9501A).withValues(alpha: 0.65), radius * 0.06),
-  );
+  canvas.drawPath(body, stroke(const Color(0xFFB9501A).withValues(alpha: 0.65), radius * 0.06));
 
   // 高光与纹路
   canvas.drawOval(
@@ -210,11 +172,7 @@ void _paintCarrotBody(Canvas canvas, double radius) {
     canvas.translate(0, -radius * 0.42);
     canvas.rotate(angle);
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(0, -radius * 0.4),
-        width: radius * 0.34,
-        height: radius * 0.8,
-      ),
+      Rect.fromCenter(center: Offset(0, -radius * 0.4), width: radius * 0.34, height: radius * 0.8),
       leafPaint,
     );
     canvas.restore();
@@ -224,22 +182,10 @@ void _paintCarrotBody(Canvas canvas, double radius) {
   final eye = fill(const Color(0xFF4A2A1A));
   canvas.drawCircle(Offset(-radius * 0.2, radius * 0.02), radius * 0.075, eye);
   canvas.drawCircle(Offset(radius * 0.2, radius * 0.02), radius * 0.075, eye);
-  canvas.drawCircle(
-    Offset(-radius * 0.17, -radius * 0.01),
-    radius * 0.028,
-    fill(Colors.white),
-  );
-  canvas.drawCircle(
-    Offset(radius * 0.23, -radius * 0.01),
-    radius * 0.028,
-    fill(Colors.white),
-  );
+  canvas.drawCircle(Offset(-radius * 0.17, -radius * 0.01), radius * 0.028, fill(Colors.white));
+  canvas.drawCircle(Offset(radius * 0.23, -radius * 0.01), radius * 0.028, fill(Colors.white));
   canvas.drawArc(
-    Rect.fromCenter(
-      center: Offset(0, radius * 0.18),
-      width: radius * 0.3,
-      height: radius * 0.22,
-    ),
+    Rect.fromCenter(center: Offset(0, radius * 0.18), width: radius * 0.3, height: radius * 0.22),
     0.15,
     math.pi - 0.3,
     false,
@@ -376,11 +322,7 @@ void paintPad(
   if (armed || selected) {
     final glow = armed ? const Color(0xFF9BE36C) : const Color(0xFFFFE08A);
     final spread = radius * (1.1 + 0.06 * math.sin(pulse * 4));
-    canvas.drawCircle(
-      Offset.zero,
-      spread,
-      dynStroke(glow.withValues(alpha: 0.85), radius * 0.1),
-    );
+    canvas.drawCircle(Offset.zero, spread, dynStroke(glow.withValues(alpha: 0.85), radius * 0.1));
     canvas.drawCircle(
       Offset.zero,
       spread + radius * 0.08,
@@ -391,11 +333,6 @@ void paintPad(
 }
 
 /// UI 中的塔图标：与战场塔同一套绘制，缩放到指定尺寸。
-void paintTowerIcon(
-  Canvas canvas,
-  TowerKind kind,
-  Offset center,
-  double radius,
-) {
+void paintTowerIcon(Canvas canvas, TowerKind kind, Offset center, double radius) {
   paintTower(canvas, kind, center, radius, angle: -0.5, level: 1);
 }

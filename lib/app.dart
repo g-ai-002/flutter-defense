@@ -20,8 +20,7 @@ class CarrotDefenseApp extends StatefulWidget {
   State<CarrotDefenseApp> createState() => _CarrotDefenseAppState();
 }
 
-class _CarrotDefenseAppState extends State<CarrotDefenseApp>
-    with WidgetsBindingObserver {
+class _CarrotDefenseAppState extends State<CarrotDefenseApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -81,9 +80,7 @@ class _CarrotDefenseAppState extends State<CarrotDefenseApp>
             // Web 首次点击用于解除浏览器的自动播放限制。
             builder: (context, child) => Listener(
               behavior: HitTestBehavior.translucent,
-              onPointerDown: kIsWeb
-                  ? (_) => MusicService.retryOnInteraction()
-                  : null,
+              onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
               child: child ?? const SizedBox.shrink(),
             ),
             home: const HomePage(),

@@ -29,10 +29,7 @@ class LevelSelectPage extends StatelessWidget {
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(999),
@@ -40,11 +37,7 @@ class LevelSelectPage extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      size: 15,
-                      color: Color(0xFFF2B21C),
-                    ),
+                    const Icon(Icons.star_rounded, size: 15, color: Color(0xFFF2B21C)),
                     const SizedBox(width: 3),
                     Text(
                       '${progress.totalStars}/${progress.maxStars}',
@@ -78,21 +71,14 @@ class LevelSelectPage extends StatelessWidget {
                             color: appGreen.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.flag_rounded,
-                            color: appGreen,
-                            size: 21,
-                          ),
+                          child: const Icon(Icons.flag_rounded, color: appGreen, size: 21),
                         ),
                         const SizedBox(width: 11),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '萝卜村的防线',
-                                style: theme.textTheme.titleMedium,
-                              ),
+                              Text('萝卜村的防线', style: theme.textTheme.titleMedium),
                               Text(
                                 '通关后解锁下一关，剩余血量越多星级越高',
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -128,8 +114,7 @@ class LevelSelectPage extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) =>
-                              GamePage(level: level, fromLevelSelect: true),
+                          builder: (_) => GamePage(level: level, fromLevelSelect: true),
                         ),
                       );
                     },

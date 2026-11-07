@@ -16,10 +16,7 @@ class LevelThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _ThumbPainter(level, locked),
-      child: const SizedBox.expand(),
-    );
+    return CustomPaint(painter: _ThumbPainter(level, locked), child: const SizedBox.expand());
   }
 }
 
@@ -49,46 +46,56 @@ class _ThumbPainter extends CustomPainter {
         ).createShader(rect),
     );
 
-    final scale = math.min(
-      size.width / kDesignWidth,
-      size.height / kDesignHeight,
-    );
+    final scale = math.min(size.width / kDesignWidth, size.height / kDesignHeight);
     final origin = Offset(
       (size.width - kDesignWidth * scale) / 2,
       (size.height - kDesignHeight * scale) / 2,
     );
-    Offset map(double col, double row) =>
-        origin + gridToDesign(col, row) * scale;
+    Offset map(double col, double row) => origin + gridToDesign(col, row) * scale;
 
-    final path = Path();
-    for (var i = 0; i < level.path.length; i++) {
-      final point = map(level.path[i].col, level.path[i].row);
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
+    final road = locked ? const Color(0xFFA19A8C) : palette.pathFill;
+    for (final route in level.routes) {
+      final path = Path();
+      for (var i = 0; i < route.length; i++) {
+        final point = map(route[i].col, route[i].row);
+        if (i == 0) {
+          path.moveTo(point.dx, point.dy);
+        } else {
+          path.lineTo(point.dx, point.dy);
+        }
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(4, 26 * scale)
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = road,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(2, 12 * scale)
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = Colors.white.withValues(alpha: 0.18),
+      );
+    }
+    fog.paintFogThumb(canvas, level, origin, scale);
+    for (final portal in level.portals) {
+      for (final point in [portal.entry, portal.exit]) {
+        canvas.drawCircle(
+          map(point.col, point.row),
+          math.max(2, 16 * scale),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(1, 6 * scale)
+            ..color = Colors.white.withValues(alpha: locked ? 0.25 : 0.7),
+        );
       }
     }
-    final road = locked ? const Color(0xFFA19A8C) : palette.pathFill;
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(4, 26 * scale)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..color = road,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(2, 12 * scale)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..color = Colors.white.withValues(alpha: 0.18),
-    );
-    fog.paintFogThumb(canvas, level, origin, scale);
     for (final slot in level.slots) {
       final point = map(slot.col, slot.row);
       canvas.drawCircle(

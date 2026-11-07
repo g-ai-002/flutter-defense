@@ -19,6 +19,7 @@ class GameResultOverlay extends StatelessWidget {
     required this.onNext,
     required this.onExit,
     this.endless = false,
+    this.daily = false,
     this.bestWaves = 0,
     this.newRecord = false,
     this.exitLabel = '返回选关',
@@ -35,6 +36,9 @@ class GameResultOverlay extends StatelessWidget {
 
   /// 无尽模式结算：以坚守波数计分，不评星，展示历史最佳与新纪录。
   final bool endless;
+
+  /// 每日挑战结算：与无尽模式同口径，记录当天最佳波数。
+  final bool daily;
   final int bestWaves;
   final bool newRecord;
   final String exitLabel;
@@ -43,12 +47,22 @@ class GameResultOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final accent = endless || victory ? const Color(0xFF3F7D46) : appOrange;
-    final title = endless
+    final scored = endless || daily;
+    final accent = scored || victory ? const Color(0xFF3F7D46) : appOrange;
+    final title = daily
+        ? '今日挑战 · 第 ${engine.clearedWaves} 波'
+        : endless
         ? '坚守到第 ${engine.clearedWaves} 波'
         : victory
         ? '关卡完成！'
         : '萝卜被抢走了';
+    final recordText = daily
+        ? newRecord
+              ? '今日新纪录！守住 ${engine.clearedWaves} 波'
+              : '今日最佳 $bestWaves 波'
+        : newRecord
+        ? '新纪录！称号：${endlessRank(engine.clearedWaves)}'
+        : '历史最佳 $bestWaves 波 · 称号：${endlessRank(engine.clearedWaves)}';
     return GameOverlayFrame(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -61,7 +75,9 @@ class GameResultOverlay extends StatelessWidget {
               color: accent.withValues(alpha: 0.14),
             ),
             child: Icon(
-              endless
+              daily
+                  ? Icons.today_rounded
+                  : endless
                   ? Icons.military_tech_rounded
                   : victory
                   ? Icons.emoji_events_rounded
@@ -71,34 +87,24 @@ class GameResultOverlay extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(fontSize: 21),
-          ),
+          Text(title, style: theme.textTheme.titleLarge?.copyWith(fontSize: 21)),
           const SizedBox(height: 3),
           Text(
             level.name,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          if (endless) ...[
+          if (scored) ...[
             const SizedBox(height: 8),
             Text(
-              newRecord
-                  ? '新纪录！称号：${endlessRank(engine.clearedWaves)}'
-                  : '历史最佳 $bestWaves 波 · '
-                        '称号：${endlessRank(engine.clearedWaves)}',
+              recordText,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: newRecord
-                    ? const Color(0xFFD99B1D)
-                    : colors.onSurfaceVariant,
+                color: newRecord ? const Color(0xFFD99B1D) : colors.onSurfaceVariant,
                 fontWeight: newRecord ? FontWeight.w700 : FontWeight.w500,
                 fontSize: 11,
               ),
             ),
           ],
-          if (!endless && victory) ...[
+          if (!scored && victory) ...[
             const SizedBox(height: 12),
             _StarRow(stars: stars),
             const SizedBox(height: 4),
@@ -113,7 +119,7 @@ class GameResultOverlay extends StatelessWidget {
                 fontSize: 11,
               ),
             ),
-          ] else if (!endless) ...[
+          ] else if (!scored) ...[
             const SizedBox(height: 8),
             Text(
               '冰霜塔减速配合火炮塔群伤，\n在弯道与长直路上布置火力会更稳。',
@@ -135,13 +141,13 @@ class GameResultOverlay extends StatelessWidget {
             child: Row(
               children: [
                 _Stat(
-                  label: endless ? '波次' : '击杀',
-                  value: endless ? '${engine.clearedWaves}' : '${engine.kills}',
+                  label: scored ? '波次' : '击杀',
+                  value: scored ? '${engine.clearedWaves}' : '${engine.kills}',
                 ),
                 _divider(colors),
                 _Stat(
-                  label: endless ? '击杀' : '漏怪',
-                  value: endless ? '${engine.kills}' : '${engine.leaked}',
+                  label: scored ? '击杀' : '漏怪',
+                  value: scored ? '${engine.kills}' : '${engine.leaked}',
                 ),
                 _divider(colors),
                 _Stat(label: '金币', value: '${engine.goldEarned}'),
@@ -149,22 +155,18 @@ class GameResultOverlay extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (!endless && victory && hasNext)
+          if (!scored && victory && hasNext)
             FilledButton(
               onPressed: onNext,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(44),
-              ),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
               child: const Text('下一关'),
             )
           else
             FilledButton(
               onPressed: onRetry,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(44),
-              ),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
               child: Text(
-                endless
+                scored
                     ? '再来一局'
                     : victory
                     ? '再玩一次'
@@ -174,13 +176,11 @@ class GameResultOverlay extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              if (!endless && victory && hasNext) ...[
+              if (!scored && victory && hasNext) ...[
                 Expanded(
                   child: OutlinedButton(
                     onPressed: onRetry,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                    ),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
                     child: const Text('重玩本关'),
                   ),
                 ),
@@ -189,9 +189,7 @@ class GameResultOverlay extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: onExit,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 40),
-                  ),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
                   child: Text(exitLabel),
                 ),
               ),
@@ -202,11 +200,8 @@ class GameResultOverlay extends StatelessWidget {
     );
   }
 
-  Widget _divider(ColorScheme colors) => Container(
-    width: 1,
-    height: 22,
-    color: colors.outline.withValues(alpha: 0.6),
-  );
+  Widget _divider(ColorScheme colors) =>
+      Container(width: 1, height: 22, color: colors.outline.withValues(alpha: 0.6));
 }
 
 class _StarRow extends StatelessWidget {
@@ -225,8 +220,7 @@ class _StarRow extends StatelessWidget {
           tween: Tween(begin: 0, end: 1),
           duration: Duration(milliseconds: 260 + index * 120),
           curve: Curves.elasticOut,
-          builder: (context, value, child) =>
-              Transform.scale(scale: value, child: child),
+          builder: (context, value, child) => Transform.scale(scale: value, child: child),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
@@ -253,12 +247,7 @@ class _Stat extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 1),
           Text(
             label,

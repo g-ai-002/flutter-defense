@@ -108,8 +108,7 @@ const Map<TowerKind, List<TowerStats>> kTowerStats = {
   ],
 };
 
-TowerStats towerStats(TowerKind kind, int level) =>
-    kTowerStats[kind]![level.clamp(1, 3) - 1];
+TowerStats towerStats(TowerKind kind, int level) => kTowerStats[kind]![level.clamp(1, 3) - 1];
 
 /// 连锁闪电每跳一次的伤害衰减。
 const double kChainFalloff = 0.75;
@@ -146,46 +145,11 @@ class EnemyStats {
 }
 
 const Map<EnemyKind, EnemyStats> kEnemyStats = {
-  EnemyKind.slime: EnemyStats(
-    hp: 95,
-    speed: 44,
-    bounty: 8,
-    damage: 1,
-    radius: 15,
-    armor: 1,
-  ),
-  EnemyKind.runner: EnemyStats(
-    hp: 62,
-    speed: 86,
-    bounty: 8,
-    damage: 1,
-    radius: 13,
-    armor: 1,
-  ),
-  EnemyKind.beetle: EnemyStats(
-    hp: 300,
-    speed: 36,
-    bounty: 16,
-    damage: 2,
-    radius: 19,
-    armor: 0.62,
-  ),
-  EnemyKind.tank: EnemyStats(
-    hp: 780,
-    speed: 27,
-    bounty: 26,
-    damage: 3,
-    radius: 24,
-    armor: 0.78,
-  ),
-  EnemyKind.boss: EnemyStats(
-    hp: 6500,
-    speed: 22,
-    bounty: 120,
-    damage: 10,
-    radius: 33,
-    armor: 0.7,
-  ),
+  EnemyKind.slime: EnemyStats(hp: 95, speed: 44, bounty: 8, damage: 1, radius: 15, armor: 1),
+  EnemyKind.runner: EnemyStats(hp: 62, speed: 86, bounty: 8, damage: 1, radius: 13, armor: 1),
+  EnemyKind.beetle: EnemyStats(hp: 300, speed: 36, bounty: 16, damage: 2, radius: 19, armor: 0.62),
+  EnemyKind.tank: EnemyStats(hp: 780, speed: 27, bounty: 26, damage: 3, radius: 24, armor: 0.78),
+  EnemyKind.boss: EnemyStats(hp: 6500, speed: 22, bounty: 120, damage: 10, radius: 33, armor: 0.7),
   EnemyKind.flyer: EnemyStats(
     hp: 95,
     speed: 52,

@@ -12,10 +12,8 @@ enum LogicRate {
   double get step => 1 / hz;
 
   /// 未设置或未知值时回退到默认 60Hz。
-  static LogicRate byName(String? name) => values.firstWhere(
-    (item) => item.name == name,
-    orElse: () => LogicRate.hz60,
-  );
+  static LogicRate byName(String? name) =>
+      values.firstWhere((item) => item.name == name, orElse: () => LogicRate.hz60);
 }
 
 /// 固定步长累加器：把不稳定的渲染帧间隔折算成固定数量的逻辑步。

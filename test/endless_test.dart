@@ -78,12 +78,7 @@ void main() {
       final storage = await StorageService.instance;
       for (var i = 1; i <= 12; i++) {
         await storage.addEndlessRecord(
-          EndlessRecord(
-            waves: i,
-            kills: i * 2,
-            gold: i * 10,
-            date: '2026-11-08',
-          ),
+          EndlessRecord(waves: i, kills: i * 2, gold: i * 10, date: '2026-11-08'),
         );
       }
       final records = storage.endlessRecords;
