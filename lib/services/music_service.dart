@@ -54,7 +54,11 @@ class MusicService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
-      _source ??= await soloud.loadMem('carrotd-bgm.wav', synthesizeMusicWav());
+      if (_source == null) {
+        // 十几秒的循环曲合成量不小，放到后台 isolate 避免启动卡顿。
+        final bytes = await compute(_synthesizeMusic, null);
+        _source = await soloud.loadMem('carrotd-bgm.wav', bytes);
+      }
     } catch (error) {
       _failed = true;
       debugPrint('[MusicService] 背景音乐加载失败: $error');
@@ -144,3 +148,5 @@ class MusicService {
     _suspended = false;
   }
 }
+
+Uint8List _synthesizeMusic(Object? _) => synthesizeMusicWav();

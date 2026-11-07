@@ -193,11 +193,13 @@ class SoundService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
+      // 合成放到后台 isolate，避免启动瞬间占用 UI 线程。
+      final clips = await compute(_synthesizeClips, null);
       for (final fx in SoundFx.values) {
-        _sources[fx] = await soloud.loadMem(
-          'carrotd-${fx.name}.wav',
-          clipOf(fx),
-        );
+        final bytes = clips[fx.name];
+        if (bytes == null) continue;
+        _clips[fx] = bytes;
+        _sources[fx] = await soloud.loadMem('carrotd-${fx.name}.wav', bytes);
       }
     } catch (error) {
       _loadFailed = true;
@@ -304,3 +306,8 @@ class SoundService {
     hapticsEnabled = true;
   }
 }
+
+Map<String, Uint8List> _synthesizeClips(Object? _) => {
+  for (final fx in SoundFx.values)
+    fx.name: synthesizeWav(SoundService._presets[fx]!),
+};
