@@ -2,209 +2,77 @@ import '../models/defense_models.dart';
 import '../models/level.dart';
 import '../theme/level_theme.dart';
 
-const List<GridPos> _pathA = [
-  GridPos(-1.2, 1),
-  GridPos(4, 1),
-  GridPos(4, 4),
-  GridPos(11, 4),
-  GridPos(11, 7),
-  GridPos(15, 7),
+/// 把关卡坐标压缩成「列,行 列,行 …」的紧凑写法，减少重复样板。
+List<GridPos> _cells(String spec) => [
+  for (final cell in spec.split(' '))
+    GridPos(double.parse(cell.split(',')[0]), double.parse(cell.split(',')[1])),
 ];
 
-const List<GridPos> _slotsA = [
-  GridPos(2, 2),
-  GridPos(6, 2),
-  GridPos(2, 3),
-  GridPos(5, 3),
-  GridPos(8, 3),
-  GridPos(10, 3),
-  GridPos(13, 2),
-  GridPos(3, 5),
-  GridPos(6, 5),
-  GridPos(8, 5),
-  GridPos(10, 5),
-  GridPos(13, 5),
-  GridPos(9, 6),
-  GridPos(12, 6),
-];
+final List<GridPos> _pathA = _cells('-1.2,1 4,1 4,4 11,4 11,7 15,7');
 
-const List<GridPos> _pathB = [
-  GridPos(-1.2, 7),
-  GridPos(3, 7),
-  GridPos(3, 2),
-  GridPos(7, 2),
-  GridPos(7, 6),
-  GridPos(11, 6),
-  GridPos(11, 1),
-  GridPos(14, 1),
-];
+final List<GridPos> _slotsA = _cells(
+  '2,2 6,2 2,3 5,3 8,3 10,3 13,2 3,5 6,5 8,5 10,5 13,5 9,6 12,6',
+);
 
-const List<GridPos> _slotsB = [
-  GridPos(1, 5),
-  GridPos(2, 6),
-  GridPos(4, 6),
-  GridPos(2, 3),
-  GridPos(4, 3),
-  GridPos(5, 1),
-  GridPos(6, 4),
-  GridPos(8, 4),
-  GridPos(8, 2),
-  GridPos(10, 4),
-  GridPos(9, 7),
-  GridPos(12, 3),
-  GridPos(12, 5),
-  GridPos(13, 6),
-  GridPos(14, 4),
-];
+final List<GridPos> _pathB = _cells('-1.2,7 3,7 3,2 7,2 7,6 11,6 11,1 14,1');
 
-const List<GridPos> kPathC = [
-  GridPos(-1.2, 1),
-  GridPos(13, 1),
-  GridPos(13, 3),
-  GridPos(3, 3),
-  GridPos(3, 5),
-  GridPos(13, 5),
-  GridPos(13, 7),
-  GridPos(5, 7),
-];
+final List<GridPos> _slotsB = _cells(
+  '1,5 2,6 4,6 2,3 4,3 5,1 6,4 8,4 8,2 10,4 9,7 12,3 12,5 13,6 14,4',
+);
 
-const List<GridPos> kSlotsC = [
-  GridPos(4, 0),
-  GridPos(9, 0),
-  GridPos(14, 0),
-  GridPos(1, 2),
-  GridPos(6, 2),
-  GridPos(10, 2),
-  GridPos(14, 2),
-  GridPos(1, 4),
-  GridPos(6, 4),
-  GridPos(10, 4),
-  GridPos(14, 4),
-  GridPos(1, 6),
-  GridPos(7, 6),
-  GridPos(10, 6),
-  GridPos(12, 6),
-];
+final List<GridPos> kPathC = _cells('-1.2,1 13,1 13,3 3,3 3,5 13,5 13,7 5,7');
 
-const List<GridPos> _pathD = [
-  GridPos(-1.2, 4),
-  GridPos(3, 4),
-  GridPos(3, 1),
-  GridPos(8, 1),
-  GridPos(8, 6),
-  GridPos(12, 6),
-  GridPos(12, 2),
-  GridPos(15, 2),
-  GridPos(15, 7),
-];
+final List<GridPos> kSlotsC = _cells(
+  '4,0 9,0 14,0 1,2 6,2 10,2 14,2 1,4 6,4 10,4 14,4 1,6 7,6 10,6 12,6',
+);
 
-const List<GridPos> _slotsD = [
-  GridPos(1, 2),
-  GridPos(2, 5),
-  GridPos(4, 2),
-  GridPos(4, 5),
-  GridPos(5, 3),
-  GridPos(6, 0),
-  GridPos(7, 3),
-  GridPos(9, 3),
-  GridPos(9, 7),
-  GridPos(10, 5),
-  GridPos(11, 0),
-  GridPos(13, 4),
-  GridPos(14, 5),
-  GridPos(13, 0),
-];
+final List<GridPos> _pathD = _cells(
+  '-1.2,4 3,4 3,1 8,1 8,6 12,6 12,2 15,2 15,7',
+);
 
-const List<GridPos> _pathE = [
-  GridPos(-1.2, 2),
-  GridPos(5, 2),
-  GridPos(5, 6),
-  GridPos(9, 6),
-  GridPos(9, 2),
-  GridPos(13, 2),
-  GridPos(13, 7),
-];
+final List<GridPos> _slotsD = _cells(
+  '1,2 2,5 4,2 4,5 5,3 6,0 7,3 9,3 9,7 10,5 11,0 13,4 14,5 13,0',
+);
 
-const List<GridPos> _slotsE = [
-  GridPos(2, 0),
-  GridPos(6, 0),
-  GridPos(11, 0),
-  GridPos(3, 3),
-  GridPos(4, 4),
-  GridPos(7, 4),
-  GridPos(10, 4),
-  GridPos(2, 4),
-  GridPos(6, 5),
-  GridPos(11, 5),
-  GridPos(7, 7),
-  GridPos(8, 7),
-  GridPos(14, 4),
-  GridPos(15, 6),
-];
+final List<GridPos> _pathE = _cells('-1.2,2 5,2 5,6 9,6 9,2 13,2 13,7');
 
-const List<GridPos> _pathA2 = [
-  GridPos(-1.2, 7),
-  GridPos(4, 7),
-  GridPos(4, 4),
-  GridPos(10, 4),
-  GridPos(10, 1),
-  GridPos(15, 1),
-];
+final List<GridPos> _slotsE = _cells(
+  '2,0 6,0 11,0 3,3 4,4 7,4 10,4 2,4 6,5 11,5 7,7 8,7 14,4 15,6',
+);
 
-const List<GridPos> _slotsA2 = [
-  GridPos(2, 2),
-  GridPos(6, 2),
-  GridPos(8, 2),
-  GridPos(12, 2),
-  GridPos(13, 2),
-  GridPos(2, 3),
-  GridPos(5, 3),
-  GridPos(3, 5),
-  GridPos(6, 5),
-  GridPos(8, 5),
-  GridPos(12, 5),
-  GridPos(9, 6),
-  GridPos(12, 6),
-  GridPos(14, 3),
-];
+final List<GridPos> _pathA2 = _cells('-1.2,7 4,7 4,4 10,4 10,1 15,1');
 
-const List<GridPos> _pathC2 = [
-  GridPos(-1.2, 7),
-  GridPos(13, 7),
-  GridPos(13, 5),
-  GridPos(3, 5),
-  GridPos(3, 3),
-  GridPos(13, 3),
-  GridPos(13, 1),
-  GridPos(5, 1),
-];
+final List<GridPos> _slotsA2 = _cells(
+  '2,2 6,2 8,2 12,2 13,2 2,3 5,3 3,5 6,5 8,5 12,5 9,6 12,6 14,3',
+);
 
-const List<GridPos> _pathD2 = [
-  GridPos(-1.2, 1),
-  GridPos(3, 1),
-  GridPos(3, 6),
-  GridPos(8, 6),
-  GridPos(8, 2),
-  GridPos(12, 2),
-  GridPos(12, 7),
-  GridPos(15, 7),
-];
+final List<GridPos> _pathC2 = _cells('-1.2,7 13,7 13,5 3,5 3,3 13,3 13,1 5,1');
+
+final List<GridPos> _pathD2 = _cells('-1.2,1 3,1 3,6 8,6 8,2 12,2 12,7 15,7');
+
+final List<GridPos> _pathF = _cells('-1.2,2 4,2 4,6 8,6 8,2 12,2 12,6 15.2,6');
+
+final List<GridPos> _slotsF = _cells(
+  '2,0 6,0 10,0 14,0 2,4 6,4 10,4 14,4 2,8 6,8 10,8 14,8 13,0',
+);
 
 WaveDef _wave(List<SpawnGroup> groups, {int reward = 30, double hp = 1}) =>
     WaveDef(groups, reward: reward, hpScale: hp);
 
+/// 敌人小队简写：数量、出怪间隔与延迟都按位置传入，便于紧凑排版。
 SpawnGroup _g(
   EnemyKind kind,
-  int count, {
+  int count, [
   double gap = 0.9,
   double delay = 0,
-}) => SpawnGroup(kind, count, gap: gap, delay: delay);
+]) => SpawnGroup(kind, count, gap: gap, delay: delay);
 
 const EnemyKind _s = EnemyKind.slime;
 const EnemyKind _r = EnemyKind.runner;
 const EnemyKind _b = EnemyKind.beetle;
 const EnemyKind _t = EnemyKind.tank;
 const EnemyKind _boss = EnemyKind.boss;
+const EnemyKind _f = EnemyKind.flyer;
 
 final List<LevelDef> kLevels = [
   LevelDef(
@@ -219,17 +87,13 @@ final List<LevelDef> kLevels = [
     hpScale: 0.85,
     seed: 101,
     waves: [
-      _wave([_g(_s, 6, gap: 1.1)]),
-      _wave([_g(_s, 8, gap: 0.95), _g(_r, 2, gap: 1.2, delay: 4)]),
-      _wave([_g(_s, 8, gap: 0.9), _g(_b, 2, gap: 1.4, delay: 3)]),
-      _wave([_g(_r, 6, gap: 0.75), _g(_b, 3, gap: 1.5, delay: 2)]),
-      _wave([_g(_s, 10, gap: 0.8), _g(_b, 4, gap: 1.3, delay: 2)], reward: 40),
+      _wave([_g(_s, 6, 1.1)]),
+      _wave([_g(_s, 8, 0.95), _g(_r, 2, 1.2, 4)]),
+      _wave([_g(_s, 8, 0.9), _g(_b, 2, 1.4, 3)]),
+      _wave([_g(_r, 6, 0.75), _g(_b, 3, 1.5, 2)]),
+      _wave([_g(_s, 10, 0.8), _g(_b, 4, 1.3, 2)], reward: 40),
       _wave(
-        [
-          _g(_b, 4, gap: 1.4),
-          _g(_t, 1, delay: 2),
-          _g(_s, 8, gap: 0.7, delay: 4),
-        ],
+        [_g(_b, 4, 1.4), _g(_t, 1, 0.9, 2), _g(_s, 8, 0.7, 4)],
         reward: 70,
         hp: 1.1,
       ),
@@ -247,18 +111,14 @@ final List<LevelDef> kLevels = [
     hpScale: 0.95,
     seed: 202,
     waves: [
-      _wave([_g(_s, 6, gap: 1.0)]),
-      _wave([_g(_s, 8, gap: 0.9), _g(_r, 3, gap: 1.0, delay: 3)]),
-      _wave([_g(_b, 3, gap: 1.3), _g(_s, 6, gap: 0.8)]),
-      _wave([_g(_r, 8, gap: 0.65), _g(_b, 3, gap: 1.4, delay: 2)], reward: 40),
-      _wave([_g(_s, 10, gap: 0.75), _g(_b, 4, gap: 1.2, delay: 2)]),
-      _wave([_g(_b, 5, gap: 1.2), _g(_t, 1, delay: 2), _g(_s, 6, delay: 5)]),
+      _wave([_g(_s, 6, 1.0)]),
+      _wave([_g(_s, 8, 0.9), _g(_r, 3, 1.0, 3)]),
+      _wave([_g(_b, 3, 1.3), _g(_s, 6, 0.8)]),
+      _wave([_g(_r, 8, 0.65), _g(_b, 3, 1.4, 2)], reward: 40),
+      _wave([_g(_s, 10, 0.75), _g(_b, 4, 1.2, 2)]),
+      _wave([_g(_b, 5, 1.2), _g(_t, 1, 0.9, 2), _g(_s, 6, 0.9, 5)]),
       _wave(
-        [
-          _g(_s, 10, gap: 0.6),
-          _g(_b, 4, gap: 1.1, delay: 3),
-          _g(_t, 2, gap: 2, delay: 6),
-        ],
+        [_g(_s, 10, 0.6), _g(_b, 4, 1.1, 3), _g(_t, 2, 2, 6)],
         reward: 80,
         hp: 1.1,
       ),
@@ -276,19 +136,15 @@ final List<LevelDef> kLevels = [
     hpScale: 1.1,
     seed: 303,
     waves: [
-      _wave([_g(_s, 7, gap: 0.95)]),
-      _wave([_g(_r, 6, gap: 0.7), _g(_s, 6, gap: 0.9, delay: 2)]),
-      _wave([_g(_b, 4, gap: 1.2), _g(_s, 8, gap: 0.8)]),
-      _wave([_g(_r, 8, gap: 0.6), _g(_b, 4, gap: 1.2, delay: 2)], reward: 40),
-      _wave([_g(_s, 12, gap: 0.65), _g(_b, 4, gap: 1.1, delay: 3)]),
-      _wave([_g(_t, 2, gap: 2.0), _g(_r, 8, gap: 0.55, delay: 1)]),
-      _wave([_g(_b, 6, gap: 1.0), _g(_s, 10, gap: 0.6)], reward: 55),
+      _wave([_g(_s, 7, 0.95)]),
+      _wave([_g(_r, 6, 0.7), _g(_s, 6, 0.9, 2)]),
+      _wave([_g(_b, 4, 1.2), _g(_s, 8, 0.8)]),
+      _wave([_g(_r, 8, 0.6), _g(_b, 4, 1.2, 2)], reward: 40),
+      _wave([_g(_s, 12, 0.65), _g(_b, 4, 1.1, 3)]),
+      _wave([_g(_t, 2, 2.0), _g(_r, 8, 0.55, 1)]),
+      _wave([_g(_b, 6, 1.0), _g(_s, 10, 0.6)], reward: 55),
       _wave(
-        [
-          _g(_t, 3, gap: 1.8),
-          _g(_b, 5, gap: 1.0, delay: 3),
-          _g(_r, 8, gap: 0.5, delay: 6),
-        ],
+        [_g(_t, 3, 1.8), _g(_b, 5, 1.0, 3), _g(_r, 8, 0.5, 6)],
         reward: 95,
         hp: 1.15,
       ),
@@ -306,19 +162,15 @@ final List<LevelDef> kLevels = [
     hpScale: 1.2,
     seed: 404,
     waves: [
-      _wave([_g(_s, 8, gap: 0.9)]),
-      _wave([_g(_r, 8, gap: 0.65), _g(_s, 6, gap: 0.8, delay: 3)]),
-      _wave([_g(_b, 4, gap: 1.2), _g(_r, 6, gap: 0.7, delay: 2)]),
-      _wave([_g(_s, 12, gap: 0.65), _g(_b, 4, gap: 1.1)], reward: 40),
-      _wave([_g(_t, 2, gap: 2.2), _g(_b, 4, gap: 1.2, delay: 2)]),
-      _wave([_g(_r, 10, gap: 0.55), _g(_b, 5, gap: 1.0, delay: 3)], reward: 55),
-      _wave([_g(_s, 14, gap: 0.55), _g(_t, 2, gap: 2.0, delay: 4)]),
+      _wave([_g(_s, 8, 0.9)]),
+      _wave([_g(_r, 8, 0.65), _g(_s, 6, 0.8, 3)]),
+      _wave([_g(_b, 4, 1.2), _g(_r, 6, 0.7, 2)]),
+      _wave([_g(_s, 12, 0.65), _g(_b, 4, 1.1)], reward: 40),
+      _wave([_g(_t, 2, 2.2), _g(_b, 4, 1.2, 2)]),
+      _wave([_g(_r, 10, 0.55), _g(_b, 5, 1.0, 3)], reward: 55),
+      _wave([_g(_s, 14, 0.55), _g(_t, 2, 2.0, 4)]),
       _wave(
-        [
-          _g(_b, 6, gap: 1.0),
-          _g(_t, 3, gap: 1.8, delay: 2),
-          _g(_r, 10, gap: 0.5, delay: 5),
-        ],
+        [_g(_b, 6, 1.0), _g(_t, 3, 1.8, 2), _g(_r, 10, 0.5, 5)],
         reward: 100,
         hp: 1.15,
       ),
@@ -336,20 +188,20 @@ final List<LevelDef> kLevels = [
     hpScale: 1.4,
     seed: 505,
     waves: [
-      _wave([_g(_s, 8, gap: 0.85)]),
-      _wave([_g(_r, 8, gap: 0.6), _g(_b, 3, gap: 1.2, delay: 2)]),
-      _wave([_g(_b, 5, gap: 1.1), _g(_s, 8, gap: 0.8)]),
-      _wave([_g(_t, 2, gap: 2.2), _g(_r, 8, gap: 0.6, delay: 2)], reward: 45),
-      _wave([_g(_s, 14, gap: 0.6), _g(_b, 5, gap: 1.0, delay: 2)]),
-      _wave([_g(_r, 12, gap: 0.5), _g(_t, 2, gap: 2.0, delay: 4)], reward: 60),
-      _wave([_g(_b, 7, gap: 0.9), _g(_s, 10, gap: 0.6, delay: 3)]),
-      _wave([_g(_t, 3, gap: 1.8), _g(_r, 10, gap: 0.55, delay: 2)], reward: 70),
+      _wave([_g(_s, 8, 0.85)]),
+      _wave([_g(_r, 8, 0.6), _g(_b, 3, 1.2, 2)]),
+      _wave([_g(_b, 5, 1.1), _g(_s, 8, 0.8)]),
+      _wave([_g(_t, 2, 2.2), _g(_r, 8, 0.6, 2)], reward: 45),
+      _wave([_g(_s, 14, 0.6), _g(_b, 5, 1.0, 2)]),
+      _wave([_g(_r, 12, 0.5), _g(_t, 2, 2.0, 4)], reward: 60),
+      _wave([_g(_b, 7, 0.9), _g(_s, 10, 0.6, 3)]),
+      _wave([
+        _g(_t, 3, 1.8),
+        _g(_r, 10, 0.55, 2),
+        _g(_f, 2, 1.8, 5),
+      ], reward: 70),
       _wave(
-        [
-          _g(_b, 8, gap: 0.8),
-          _g(_t, 3, gap: 1.7, delay: 4),
-          _g(_boss, 1, delay: 6),
-        ],
+        [_g(_b, 8, 0.8), _g(_t, 3, 1.7, 4), _g(_boss, 1, 0.9, 6)],
         reward: 120,
         hp: 1.1,
       ),
@@ -367,20 +219,20 @@ final List<LevelDef> kLevels = [
     hpScale: 1.55,
     seed: 606,
     waves: [
-      _wave([_g(_s, 9, gap: 0.8)]),
-      _wave([_g(_r, 10, gap: 0.55), _g(_s, 8, gap: 0.8, delay: 2)]),
-      _wave([_g(_b, 6, gap: 1.0), _g(_r, 6, gap: 0.6, delay: 3)]),
-      _wave([_g(_t, 2, gap: 2.0), _g(_b, 5, gap: 1.1, delay: 2)], reward: 50),
-      _wave([_g(_s, 16, gap: 0.55), _g(_b, 5, gap: 1.0, delay: 2)]),
-      _wave([_g(_r, 12, gap: 0.5), _g(_t, 2, gap: 2.0, delay: 3)], reward: 65),
-      _wave([_g(_b, 8, gap: 0.9), _g(_s, 10, gap: 0.55, delay: 4)]),
-      _wave([_g(_t, 4, gap: 1.6), _g(_r, 12, gap: 0.45, delay: 2)], reward: 80),
+      _wave([_g(_s, 9, 0.8)]),
+      _wave([_g(_r, 10, 0.55), _g(_s, 8, 0.8, 2)]),
+      _wave([_g(_b, 6, 1.0), _g(_r, 6, 0.6, 3)]),
+      _wave([_g(_t, 2, 2.0), _g(_b, 5, 1.1, 2)], reward: 50),
+      _wave([_g(_s, 16, 0.55), _g(_b, 5, 1.0, 2)]),
+      _wave([_g(_r, 12, 0.5), _g(_t, 2, 2.0, 3)], reward: 65),
+      _wave([_g(_b, 8, 0.9), _g(_s, 10, 0.55, 4)]),
+      _wave([
+        _g(_t, 4, 1.6),
+        _g(_r, 12, 0.45, 2),
+        _g(_f, 2, 1.5, 4),
+      ], reward: 80),
       _wave(
-        [
-          _g(_b, 8, gap: 0.8),
-          _g(_boss, 1, delay: 3),
-          _g(_t, 3, gap: 1.6, delay: 6),
-        ],
+        [_g(_b, 8, 0.8), _g(_boss, 1, 0.9, 3), _g(_t, 3, 1.6, 6)],
         reward: 140,
         hp: 1.1,
       ),
@@ -389,7 +241,7 @@ final List<LevelDef> kLevels = [
   LevelDef(
     id: 7,
     name: '幽影林地',
-    subtitle: '怪物学会了抱团冲锋',
+    subtitle: '毒雾弥漫，怪物抱团冲锋',
     theme: LevelTheme.forest,
     path: _pathB,
     slots: _slotsB,
@@ -397,21 +249,26 @@ final List<LevelDef> kLevels = [
     carrotHp: 20,
     hpScale: 1.9,
     seed: 707,
+    fog: const [
+      FogZone(GridPos(5, 2), radius: 112),
+      FogZone(GridPos(9, 6), radius: 112),
+    ],
     waves: [
-      _wave([_g(_s, 10, gap: 0.75)]),
-      _wave([_g(_r, 10, gap: 0.55), _g(_b, 4, gap: 1.1, delay: 2)]),
-      _wave([_g(_b, 6, gap: 1.0), _g(_s, 10, gap: 0.7)]),
-      _wave([_g(_t, 3, gap: 1.8), _g(_r, 8, gap: 0.55, delay: 3)], reward: 50),
-      _wave([_g(_s, 16, gap: 0.55), _g(_b, 6, gap: 1.0, delay: 2)]),
-      _wave([_g(_r, 14, gap: 0.45), _g(_t, 2, gap: 2.0, delay: 4)], reward: 65),
-      _wave([_g(_b, 8, gap: 0.9), _g(_s, 12, gap: 0.55, delay: 3)]),
-      _wave([_g(_t, 4, gap: 1.6), _g(_b, 6, gap: 1.0, delay: 2)], reward: 75),
-      _wave([_g(_r, 16, gap: 0.4), _g(_s, 12, gap: 0.5, delay: 4)]),
+      _wave([_g(_s, 10, 0.75)]),
+      _wave([_g(_r, 10, 0.55), _g(_b, 4, 1.1, 2)]),
+      _wave([_g(_b, 6, 1.0), _g(_s, 10, 0.7)]),
+      _wave([_g(_t, 3, 1.8), _g(_r, 8, 0.55, 3)], reward: 50),
+      _wave([_g(_s, 16, 0.55), _g(_b, 6, 1.0, 2), _g(_f, 2, 1.8, 5)]),
+      _wave([_g(_r, 14, 0.45), _g(_t, 2, 2.0, 4)], reward: 65),
+      _wave([_g(_b, 8, 0.9), _g(_s, 12, 0.55, 3)]),
+      _wave([_g(_t, 4, 1.6), _g(_b, 6, 1.0, 2), _g(_f, 3, 1.6, 4)], reward: 75),
+      _wave([_g(_r, 16, 0.4), _g(_s, 12, 0.5, 4)]),
       _wave(
         [
-          _g(_b, 10, gap: 0.7),
-          _g(_t, 4, gap: 1.6, delay: 3),
-          _g(_boss, 1, delay: 8),
+          _g(_b, 10, 0.7),
+          _g(_t, 4, 1.6, 3),
+          _g(_f, 3, 1.5, 5),
+          _g(_boss, 1, 0.9, 8),
         ],
         reward: 150,
         hp: 1.15,
@@ -430,21 +287,21 @@ final List<LevelDef> kLevels = [
     hpScale: 2.15,
     seed: 808,
     waves: [
-      _wave([_g(_s, 10, gap: 0.75)]),
-      _wave([_g(_r, 12, gap: 0.5), _g(_s, 8, gap: 0.8, delay: 2)]),
-      _wave([_g(_b, 6, gap: 1.0), _g(_r, 8, gap: 0.6, delay: 2)]),
-      _wave([_g(_t, 3, gap: 1.8), _g(_b, 5, gap: 1.1, delay: 2)], reward: 55),
-      _wave([_g(_s, 18, gap: 0.5), _g(_b, 6, gap: 1.0, delay: 2)]),
-      _wave([_g(_r, 14, gap: 0.45), _g(_t, 3, gap: 1.8, delay: 3)], reward: 70),
-      _wave([_g(_b, 9, gap: 0.85), _g(_s, 12, gap: 0.5, delay: 3)]),
-      _wave([_g(_t, 5, gap: 1.5), _g(_r, 12, gap: 0.45, delay: 2)], reward: 85),
-      _wave([_g(_b, 10, gap: 0.75), _g(_s, 14, gap: 0.5, delay: 4)]),
+      _wave([_g(_s, 10, 0.75)]),
+      _wave([_g(_r, 12, 0.5), _g(_s, 8, 0.8, 2)]),
+      _wave([_g(_b, 6, 1.0), _g(_r, 8, 0.6, 2)]),
+      _wave([_g(_t, 3, 1.8), _g(_b, 5, 1.1, 2)], reward: 55),
+      _wave([_g(_s, 18, 0.5), _g(_b, 6, 1.0, 2)]),
+      _wave([
+        _g(_r, 14, 0.45),
+        _g(_t, 3, 1.8, 3),
+        _g(_f, 3, 1.6, 5),
+      ], reward: 70),
+      _wave([_g(_b, 9, 0.85), _g(_s, 12, 0.5, 3)]),
+      _wave([_g(_t, 5, 1.5), _g(_r, 12, 0.45, 2)], reward: 85),
+      _wave([_g(_b, 10, 0.75), _g(_s, 14, 0.5, 4), _g(_f, 4, 1.4, 6)]),
       _wave(
-        [
-          _g(_t, 4, gap: 1.6),
-          _g(_boss, 1, delay: 3),
-          _g(_b, 8, gap: 0.8, delay: 6),
-        ],
+        [_g(_t, 4, 1.6), _g(_boss, 1, 0.9, 3), _g(_b, 8, 0.8, 6)],
         reward: 160,
         hp: 1.15,
       ),
@@ -462,22 +319,22 @@ final List<LevelDef> kLevels = [
     hpScale: 2.2,
     seed: 909,
     waves: [
-      _wave([_g(_s, 12, gap: 0.7)]),
-      _wave([_g(_r, 12, gap: 0.5), _g(_b, 5, gap: 1.0, delay: 2)]),
-      _wave([_g(_b, 7, gap: 0.95), _g(_s, 12, gap: 0.6)]),
-      _wave([_g(_t, 3, gap: 1.8), _g(_r, 10, gap: 0.5, delay: 3)], reward: 60),
-      _wave([_g(_s, 18, gap: 0.5), _g(_b, 7, gap: 0.95, delay: 2)]),
-      _wave([_g(_r, 16, gap: 0.42), _g(_t, 3, gap: 1.8, delay: 4)], reward: 75),
-      _wave([_g(_b, 10, gap: 0.8), _g(_s, 14, gap: 0.5, delay: 3)]),
-      _wave([_g(_t, 5, gap: 1.5), _g(_b, 7, gap: 0.9, delay: 2)], reward: 90),
-      _wave([_g(_r, 18, gap: 0.4), _g(_s, 16, gap: 0.45, delay: 4)]),
-      _wave([_g(_b, 12, gap: 0.7), _g(_t, 5, gap: 1.5, delay: 3)], reward: 110),
+      _wave([_g(_s, 12, 0.7)]),
+      _wave([_g(_r, 12, 0.5), _g(_b, 5, 1.0, 2)]),
+      _wave([_g(_b, 7, 0.95), _g(_s, 12, 0.6)]),
+      _wave([_g(_t, 3, 1.8), _g(_r, 10, 0.5, 3)], reward: 60),
+      _wave([_g(_s, 18, 0.5), _g(_b, 7, 0.95, 2), _g(_f, 3, 1.5, 5)]),
+      _wave([_g(_r, 16, 0.42), _g(_t, 3, 1.8, 4)], reward: 75),
+      _wave([_g(_b, 10, 0.8), _g(_s, 14, 0.5, 3)]),
+      _wave([_g(_t, 5, 1.5), _g(_b, 7, 0.9, 2), _g(_f, 4, 1.4, 5)], reward: 90),
+      _wave([_g(_r, 18, 0.4), _g(_s, 16, 0.45, 4)]),
+      _wave([
+        _g(_b, 12, 0.7),
+        _g(_t, 5, 1.5, 3),
+        _g(_f, 5, 1.3, 6),
+      ], reward: 110),
       _wave(
-        [
-          _g(_boss, 1),
-          _g(_b, 10, gap: 0.75, delay: 3),
-          _g(_t, 5, gap: 1.4, delay: 6),
-        ],
+        [_g(_boss, 1), _g(_b, 10, 0.75, 3), _g(_t, 5, 1.4, 6)],
         reward: 200,
         hp: 1.2,
       ),
@@ -495,33 +352,82 @@ final List<LevelDef> kLevels = [
     hpScale: 2.9,
     seed: 1010,
     waves: [
-      _wave([_g(_s, 12, gap: 0.65)]),
-      _wave([_g(_r, 14, gap: 0.45), _g(_b, 6, gap: 0.9, delay: 2)]),
-      _wave([_g(_b, 8, gap: 0.9), _g(_s, 14, gap: 0.55)]),
-      _wave([_g(_t, 4, gap: 1.6), _g(_r, 12, gap: 0.45, delay: 3)], reward: 65),
-      _wave([_g(_s, 20, gap: 0.45), _g(_b, 8, gap: 0.9, delay: 2)]),
-      _wave([_g(_r, 18, gap: 0.4), _g(_t, 4, gap: 1.6, delay: 3)], reward: 80),
-      _wave([_g(_b, 12, gap: 0.7), _g(_s, 16, gap: 0.45, delay: 3)]),
-      _wave([_g(_t, 6, gap: 1.4), _g(_b, 8, gap: 0.85, delay: 2)], reward: 100),
-      _wave([_g(_r, 20, gap: 0.38), _g(_b, 10, gap: 0.8, delay: 4)]),
+      _wave([_g(_s, 12, 0.65)]),
+      _wave([_g(_r, 14, 0.45), _g(_b, 6, 0.9, 2)]),
+      _wave([_g(_b, 8, 0.9), _g(_s, 14, 0.55)]),
+      _wave([_g(_t, 4, 1.6), _g(_r, 12, 0.45, 3)], reward: 65),
+      _wave([_g(_s, 20, 0.45), _g(_b, 8, 0.9, 2)]),
       _wave([
-        _g(_b, 14, gap: 0.65),
-        _g(_t, 6, gap: 1.4, delay: 3),
-      ], reward: 120),
-      _wave(
-        [_g(_boss, 1), _g(_r, 16, gap: 0.4, delay: 2)],
-        reward: 160,
-        hp: 1.1,
-      ),
+        _g(_r, 18, 0.4),
+        _g(_t, 4, 1.6, 3),
+        _g(_f, 4, 1.4, 5),
+      ], reward: 80),
+      _wave([_g(_b, 12, 0.7), _g(_s, 16, 0.45, 3)]),
+      _wave([_g(_t, 6, 1.4), _g(_b, 8, 0.85, 2)], reward: 100),
+      _wave([_g(_r, 20, 0.38), _g(_b, 10, 0.8, 4), _g(_f, 5, 1.3, 6)]),
+      _wave([_g(_b, 14, 0.65), _g(_t, 6, 1.4, 3)], reward: 120),
+      _wave([_g(_boss, 1), _g(_r, 16, 0.4, 2)], reward: 160, hp: 1.1),
       _wave(
         [
-          _g(_boss, 2, gap: 6),
-          _g(_b, 12, gap: 0.7, delay: 4),
-          _g(_t, 6, gap: 1.4, delay: 8),
-          _g(_r, 20, gap: 0.35, delay: 12),
+          _g(_boss, 2, 6),
+          _g(_b, 12, 0.7, 4),
+          _g(_t, 6, 1.4, 8),
+          _g(_r, 20, 0.35, 12),
         ],
         reward: 300,
         hp: 1.25,
+      ),
+    ],
+  ),
+  LevelDef(
+    id: 11,
+    name: '毒沼秘境',
+    subtitle: '毒雾与蝠群的双重试炼',
+    theme: LevelTheme.night,
+    path: _pathF,
+    slots: _slotsF,
+    startGold: 460,
+    carrotHp: 25,
+    hpScale: 2.95,
+    seed: 1111,
+    fog: const [
+      FogZone(GridPos(2, 2), radius: 108),
+      FogZone(GridPos(6, 2), radius: 118),
+      FogZone(GridPos(10, 6), radius: 118),
+    ],
+    waves: [
+      _wave([_g(_s, 12, 0.7)], hp: 0.62),
+      _wave([_g(_s, 12, 0.65), _g(_r, 10, 0.5, 2)], hp: 0.66),
+      _wave([_g(_b, 8, 0.9), _g(_s, 12, 0.6, 2)], hp: 0.7),
+      _wave([_g(_t, 3, 1.8), _g(_r, 10, 0.5, 3)], reward: 60, hp: 0.76),
+      _wave([_g(_s, 18, 0.5), _g(_f, 3, 1.6, 4)], hp: 0.82),
+      _wave(
+        [_g(_b, 10, 0.8), _g(_r, 14, 0.45, 2), _g(_f, 3, 1.5, 5)],
+        reward: 75,
+        hp: 0.88,
+      ),
+      _wave([_g(_t, 4, 1.6), _g(_b, 8, 0.9, 2), _g(_f, 4, 1.4, 5)], hp: 0.92),
+      _wave([
+        _g(_s, 16, 0.45),
+        _g(_b, 10, 0.8, 3),
+        _g(_f, 4, 1.4, 6),
+      ], reward: 90),
+      _wave([_g(_r, 18, 0.4), _g(_t, 4, 1.6, 3)], reward: 95),
+      _wave(
+        [_g(_b, 10, 0.7), _g(_t, 4, 1.5, 3), _g(_f, 5, 1.3, 6)],
+        reward: 110,
+        hp: 1.05,
+      ),
+      _wave([_g(_s, 18, 0.4), _g(_boss, 1, 0.9, 4)], reward: 160, hp: 1.05),
+      _wave(
+        [
+          _g(_boss, 2, 6),
+          _g(_b, 10, 0.65, 4),
+          _g(_t, 4, 1.4, 7),
+          _g(_f, 5, 1.2, 10),
+        ],
+        reward: 320,
+        hp: 1.15,
       ),
     ],
   ),

@@ -87,6 +87,13 @@ class _ThumbPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.18),
     );
+    for (final zone in level.fog) {
+      canvas.drawCircle(
+        origin + zone.design * scale,
+        zone.radius * scale,
+        Paint()..color = const Color(0xFF6FBF4A).withValues(alpha: 0.4),
+      );
+    }
     for (final slot in level.slots) {
       final point = map(slot.col, slot.row);
       canvas.drawCircle(

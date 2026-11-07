@@ -23,7 +23,9 @@ Future<void> showRulesDialog(BuildContext context) {
               children: [
                 Text(
                   '怪物会沿着土路冲向终点萝卜。点击空地建造防御塔，'
-                  '点击已建的塔可以升级或出售。撑过全部波次即可通关。',
+                  '点击已建的塔可以升级或出售。撑过全部波次即可通关。'
+                  '蝠妖会直线飞越土路，且免疫减速与中毒；'
+                  '绿色毒雾区会持续腐蚀经过的地面怪物，可以用来削弱强敌。',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
                     color: colors.onSurfaceVariant,
