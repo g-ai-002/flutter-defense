@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -27,6 +28,7 @@ class DefenseEngine {
     carrotHp = level.carrotHp;
     towers = List<Tower?>.filled(level.slots.length, null);
     prepTimer = _firstPrepSeconds;
+    _lastHudKey = _hudKey();
   }
 
   final LevelDef level;
@@ -38,6 +40,13 @@ class DefenseEngine {
   final List<Projectile> projectiles = [];
   final List<Effect> effects = [];
   final List<Floater> floaters = [];
+
+  /// 已建造的塔，建造/出售时增量维护，渲染与索敌不再逐帧过滤。
+  final List<Tower> _activeTowers = [];
+  late final List<Tower> _activeTowersView = UnmodifiableListView(_activeTowers);
+
+  /// 敌人 id 索引，弹道命中查询从 O(n) 降为 O(1)。
+  final Map<int, Enemy> _enemyIndex = {};
 
   /// 待渲染层消费的玩法事件（播放音效）。
   final List<GameEvent> events = [];
@@ -68,6 +77,7 @@ class DefenseEngine {
   double _hudTimer = 0;
   double _carrotPulse = 0;
   bool _resultAnnounced = false;
+  int _lastHudKey = 0;
 
   /// 首波准备时间；之后每波固定 10 秒。
   static const double _firstPrepSeconds = 18;
@@ -82,11 +92,15 @@ class DefenseEngine {
   }
 
   Offset enemyPosition(Enemy enemy, {double alpha = 1}) {
-    final distance =
-        enemy.prevDistance + (enemy.distance - enemy.prevDistance) * alpha;
-    final base = track.pointAt(distance);
-    final tangent = track.tangentAt(distance);
-    return base + Offset(-tangent.dy, tangent.dx) * enemy.lateral;
+    if (alpha >= 1) return enemy.position;
+    return Offset.lerp(enemy.prevPosition, enemy.position, alpha)!;
+  }
+
+  /// 路径上的落点：中心线加横向错位，仅在敌人移动或生成时计算一次。
+  Offset _trackPosition(double distance, double lateral) {
+    final sample = track.sampleAt(distance);
+    return sample.position +
+        Offset(-sample.tangent.dy, sample.tangent.dx) * lateral;
   }
 
   int get remainingEnemies {
@@ -108,8 +122,7 @@ class DefenseEngine {
   bool get isFinished =>
       status == GameStatus.victory || status == GameStatus.defeat;
 
-  List<Tower> get activeTowers =>
-      towers.whereType<Tower>().toList(growable: false);
+  List<Tower> get activeTowers => _activeTowersView;
 
   void selectSlot(int? slot) {
     if (slot != null && (slot < 0 || slot >= towers.length)) return;
@@ -147,6 +160,7 @@ class DefenseEngine {
       position: slotPositions[slot],
     )..totalSpent = cost;
     towers[slot] = tower;
+    _activeTowers.add(tower);
     selectedSlot = slot;
     effects.add(
       Effect(
@@ -187,6 +201,7 @@ class DefenseEngine {
     if (tower == null || isFinished) return false;
     gold += tower.sellValue;
     towers[slot] = null;
+    _activeTowers.remove(tower);
     selectedSlot = null;
     effects.add(
       Effect(
@@ -290,19 +305,23 @@ class DefenseEngine {
     final base = kEnemyStats[item.kind]!;
     final id = _nextEnemyId++;
     final lateral = item.kind == EnemyKind.boss ? 0.0 : ((id % 5) - 2) * 4.5;
-    enemies.add(
-      Enemy(
-        id: id,
-        kind: item.kind,
-        maxHp: base.hp * item.hpScale,
-        speed: base.speed,
-        bounty: bountyFor(item.kind, item.hpScale),
-        damage: base.damage,
-        radius: base.radius,
-        armor: base.armor,
-        lateral: lateral,
-      ),
+    final enemy = Enemy(
+      id: id,
+      kind: item.kind,
+      maxHp: base.hp * item.hpScale,
+      speed: base.speed,
+      bounty: bountyFor(item.kind, item.hpScale),
+      damage: base.damage,
+      radius: base.radius,
+      armor: base.armor,
+      lateral: lateral,
     );
+    final position = _trackPosition(0, lateral);
+    enemy
+      ..position = position
+      ..prevPosition = position;
+    enemies.add(enemy);
+    _enemyIndex[id] = enemy;
   }
 
   void _moveEnemies(double dt) {
@@ -310,11 +329,12 @@ class DefenseEngine {
     var dead = false;
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
-      enemy.prevDistance = enemy.distance;
+      enemy.prevPosition = enemy.position;
       if (enemy.slowTimer > 0) {
         enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
       }
       enemy.distance += enemy.currentSpeed * dt;
+      enemy.position = _trackPosition(enemy.distance, enemy.lateral);
       if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
       if (enemy.distance >= reach) {
         enemy.alive = false;
@@ -353,11 +373,24 @@ class DefenseEngine {
         if (enemy.distance >= reach) enemy.alive = false;
       }
     }
-    enemies.removeWhere((enemy) => !enemy.alive);
+    _removeDeadEnemies();
+  }
+
+  void _removeDeadEnemies() {
+    var write = 0;
+    for (var read = 0; read < enemies.length; read++) {
+      final enemy = enemies[read];
+      if (enemy.alive) {
+        enemies[write++] = enemy;
+      } else {
+        _enemyIndex.remove(enemy.id);
+      }
+    }
+    if (write != enemies.length) enemies.length = write;
   }
 
   void _updateTowers(double dt) {
-    for (final tower in activeTowers) {
+    for (final tower in _activeTowers) {
       if (tower.cooldown > 0) tower.cooldown -= dt;
       if (tower.recoil > 0) tower.recoil = math.max(0, tower.recoil - dt * 4);
       if (tower.cooldown > 0) continue;
@@ -367,9 +400,10 @@ class DefenseEngine {
         tower.cooldown = 0;
         continue;
       }
+      final targetPosition = enemyPosition(target);
       tower.angle = math.atan2(
-        enemyPosition(target).dy - tower.position.dy,
-        enemyPosition(target).dx - tower.position.dx,
+        targetPosition.dy - tower.position.dy,
+        targetPosition.dx - tower.position.dx,
       );
       _fire(tower, target);
       tower.cooldown = tower.stats.interval;
@@ -381,9 +415,11 @@ class DefenseEngine {
     var bestDistance = -1.0;
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
-      final position = enemyPosition(enemy);
-      if ((position - tower.position).distance >
-          tower.stats.range + enemy.radius) {
+      final position = enemy.position;
+      final dx = position.dx - tower.position.dx;
+      final dy = position.dy - tower.position.dy;
+      final range = tower.stats.range + enemy.radius;
+      if (dx * dx + dy * dy > range * range) {
         continue;
       }
       if (enemy.distance > bestDistance) {
@@ -452,13 +488,15 @@ class DefenseEngine {
       _damageEnemy(current, damage);
       damage *= kChainFalloff;
       Enemy? next;
-      var best = kChainRadius;
-      final origin = enemyPosition(current);
+      var best = kChainRadius * kChainRadius;
+      final origin = current.position;
       for (final enemy in enemies) {
         if (!enemy.alive || hit.contains(enemy.id)) continue;
-        final d = (enemyPosition(enemy) - origin).distance;
-        if (d < best) {
-          best = d;
+        final dx = enemy.position.dx - origin.dx;
+        final dy = enemy.position.dy - origin.dy;
+        final squared = dx * dx + dy * dy;
+        if (squared < best) {
+          best = squared;
           next = enemy;
         }
       }
@@ -503,10 +541,13 @@ class DefenseEngine {
     events.add(GameEvent.hit);
 
     if (projectile.splash > 0) {
+      final radius = projectile.splash;
       for (final enemy in enemies) {
         if (!enemy.alive) continue;
-        if ((enemyPosition(enemy) - impact).distance <=
-            projectile.splash + enemy.radius) {
+        final dx = enemy.position.dx - impact.dx;
+        final dy = enemy.position.dy - impact.dy;
+        final reach = radius + enemy.radius;
+        if (dx * dx + dy * dy <= reach * reach) {
           _damageEnemy(enemy, projectile.damage);
           _applySlow(enemy, projectile);
         }
@@ -566,17 +607,18 @@ class DefenseEngine {
     kills++;
     gold += enemy.bounty;
     goldEarned += enemy.bounty;
+    final position = enemy.position;
     floaters.add(
       Floater(
         text: '+${enemy.bounty}',
-        position: enemyPosition(enemy) + const Offset(0, -24),
+        position: position + const Offset(0, -24),
         color: const Color(0xFFFFE08A),
       ),
     );
     effects.add(
       Effect(
         kind: EffectKind.spark,
-        position: enemyPosition(enemy),
+        position: position,
         radius: enemy.radius * 1.6,
         duration: 0.35,
       ),
@@ -586,7 +628,7 @@ class DefenseEngine {
       effects.add(
         Effect(
           kind: EffectKind.explosion,
-          position: enemyPosition(enemy),
+          position: position,
           radius: 120,
           duration: 0.8,
         ),
@@ -595,12 +637,7 @@ class DefenseEngine {
     _bump();
   }
 
-  Enemy? _enemyById(int id) {
-    for (final enemy in enemies) {
-      if (enemy.id == id) return enemy;
-    }
-    return null;
-  }
+  Enemy? _enemyById(int id) => _enemyIndex[id];
 
   void _checkWaveComplete() {
     if (enemies.isNotEmpty) return;
@@ -648,7 +685,29 @@ class DefenseEngine {
     }
   }
 
-  void _bump() => hud.value++;
+  /// HUD 只关心显示内容的整数变化，值没变时不触发组件树重建。
+  void _bump() {
+    final key = _hudKey();
+    if (key == _lastHudKey) return;
+    _lastHudKey = key;
+    hud.value++;
+  }
+
+  int _hudKey() {
+    final slot = selectedSlot ?? -1;
+    final tower = selectedTower;
+    var key = status.index;
+    key = (key * 31 + carrotHp) & 0x7FFFFFFF;
+    key = (key * 31 + carrotMaxHp) & 0x7FFFFFFF;
+    key = (key * 31 + gold) & 0x7FFFFFFF;
+    key = (key * 31 + waveIndex) & 0x7FFFFFFF;
+    key = (key * 31 + prepTimer.ceil()) & 0x7FFFFFFF;
+    key = (key * 31 + remainingEnemies) & 0x7FFFFFFF;
+    key = (key * 31 + slot) & 0x7FFFFFFF;
+    key = (key * 31 + (armedKind?.index ?? -1)) & 0x7FFFFFFF;
+    key = (key * 31 + (tower?.level ?? 0)) & 0x7FFFFFFF;
+    return key;
+  }
 
   double get carrotPulse => _carrotPulse;
 

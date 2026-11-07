@@ -1,47 +1,61 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+/// 路径采样结果：位置与单位切线一次算出，避免同一帧重复扫描折线。
+class PathSample {
+  const PathSample(this.position, this.tangent);
+
+  final Offset position;
+  final Offset tangent;
+}
+
 /// 折线路径：按弧长取样位置与切线，敌人只保存「已走距离」。
+///
+/// 构造函数预先算好每段的长度与单位切线，采样时用二分查找定位分段，
+/// 供每帧高频调用的渲染与索敌逻辑使用。
 class PathTrack {
   PathTrack(this.points)
     : assert(points.length >= 2),
-      _cumulative = List<double>.filled(points.length, 0) {
+      _cumulative = List<double>.filled(points.length, 0),
+      _tangents = List<Offset>.filled(points.length - 1, Offset.zero) {
     var total = 0.0;
     for (var i = 1; i < points.length; i++) {
       total += (points[i] - points[i - 1]).distance;
       _cumulative[i] = total;
+      _tangents[i - 1] = _unitTangent(points[i - 1], points[i]);
     }
     length = total;
   }
 
   final List<Offset> points;
   final List<double> _cumulative;
+  final List<Offset> _tangents;
   late final double length;
 
-  Offset pointAt(double distance) {
-    final clamped = distance.clamp(0.0, length);
-    for (var i = 1; i < points.length; i++) {
-      if (clamped <= _cumulative[i]) {
-        final span = _cumulative[i] - _cumulative[i - 1];
-        final t = span <= 0 ? 0.0 : (clamped - _cumulative[i - 1]) / span;
-        return Offset.lerp(points[i - 1], points[i], t)!;
-      }
-    }
-    return points.last;
-  }
+  Offset pointAt(double distance) => sampleAt(distance).position;
 
-  Offset tangentAt(double distance) {
+  Offset tangentAt(double distance) => sampleAt(distance).tangent;
+
+  /// 按弧长取样：返回位置与该处的单位切线。
+  PathSample sampleAt(double distance) {
     final clamped = distance.clamp(0.0, length);
-    for (var i = 1; i < points.length; i++) {
-      if (clamped <= _cumulative[i]) {
-        final delta = points[i] - points[i - 1];
-        final len = delta.distance;
-        return len <= 0 ? const Offset(1, 0) : delta / len;
+    var low = 1;
+    var high = points.length - 1;
+    while (low < high) {
+      final mid = (low + high) >> 1;
+      if (clamped <= _cumulative[mid]) {
+        high = mid;
+      } else {
+        low = mid + 1;
       }
     }
-    final delta = points.last - points[points.length - 2];
-    final len = delta.distance;
-    return len <= 0 ? const Offset(1, 0) : delta / len;
+    final index = low;
+    final span = _cumulative[index] - _cumulative[index - 1];
+    final t = span <= 0 ? 0.0 : (clamped - _cumulative[index - 1]) / span;
+    return PathSample(
+      Offset.lerp(points[index - 1], points[index], t)!,
+      _tangents[index - 1],
+    );
   }
 
   /// 点到路径的最短距离，用于校验建造点与摆放装饰。
@@ -58,6 +72,12 @@ class PathTrack {
 
   /// 判断点是否落在路径两侧 [margin] 范围内。
   bool isNear(Offset point, double margin) => distanceTo(point) <= margin;
+}
+
+Offset _unitTangent(Offset a, Offset b) {
+  final delta = b - a;
+  final len = delta.distance;
+  return len <= 0 ? const Offset(1, 0) : delta / len;
 }
 
 double _distanceToSegment(Offset p, Offset a, Offset b) {

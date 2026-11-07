@@ -75,7 +75,11 @@ class Enemy {
 
   double hp;
   double distance = 0;
-  double prevDistance = 0;
+
+  /// 每逻辑帧缓存的位置，渲染插值与索敌直接复用，避免重复扫描路径。
+  Offset position = Offset.zero;
+  Offset prevPosition = Offset.zero;
+
   double slowTimer = 0;
   double slowFactor = 1;
   double flash = 0;
