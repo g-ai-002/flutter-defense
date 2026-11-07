@@ -18,6 +18,31 @@ const List<String> kDisplayFontFallback = [
   'Noto Serif CJK SC',
 ];
 
+/// 卡片与弹窗共用的表面装饰：圆角、描边与投影。
+BoxDecoration appPanelDecoration(
+  BuildContext context, {
+  double radius = 16,
+  double surfaceAlpha = 1,
+  double borderAlpha = 0.7,
+  double shadowOpacity = 0.06,
+  double shadowBlur = 12,
+  Offset shadowOffset = const Offset(0, 4),
+}) {
+  final colors = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: colors.surface.withValues(alpha: surfaceAlpha),
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: colors.outline.withValues(alpha: borderAlpha)),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: shadowOpacity),
+        blurRadius: shadowBlur,
+        offset: shadowOffset,
+      ),
+    ],
+  );
+}
+
 ThemeData buildLightTheme({String? fontFamily}) {
   const scheme = ColorScheme.light(
     primary: appOrange,

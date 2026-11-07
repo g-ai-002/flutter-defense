@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 /// HUD 通用装饰与小型控件，供顶栏、底栏共用。
 
 BoxDecoration hudPanelDecoration(
   BuildContext context, {
   required double radius,
 }) {
-  final theme = Theme.of(context);
-  final dark = theme.brightness == Brightness.dark;
-  final colors = theme.colorScheme;
-  return BoxDecoration(
-    color: colors.surface.withValues(alpha: dark ? 0.9 : 0.92),
-    borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: colors.outline.withValues(alpha: 0.75)),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: dark ? 0.3 : 0.12),
-        blurRadius: 12,
-        offset: const Offset(0, 4),
-      ),
-    ],
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  return appPanelDecoration(
+    context,
+    radius: radius,
+    surfaceAlpha: dark ? 0.9 : 0.92,
+    borderAlpha: 0.75,
+    shadowOpacity: dark ? 0.3 : 0.12,
   );
 }
 
