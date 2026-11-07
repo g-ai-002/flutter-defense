@@ -29,7 +29,11 @@ void paintShadow(Canvas canvas, Offset center, double radius, double opacity) {
 /// 精灵缓存按半径缩放 10 倍取整，避免浮点误差产生重复图层。
 int radiusKey(double radius) => (radius * 10).round();
 
+/// 精灵录制总次数，供性能回归测试确认重复绘制全部命中缓存。
+int debugSpriteBuilds = 0;
+
 ui.Picture recordPicture(void Function(Canvas canvas) draw) {
+  debugSpriteBuilds++;
   final recorder = ui.PictureRecorder();
   draw(Canvas(recorder));
   return recorder.endRecording();

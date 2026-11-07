@@ -15,12 +15,14 @@ export 'art_utils.dart' show fill, stroke;
 /// 敌人身体、塔身与炮塔形状固定，按「类型 + 半径」录制为 Picture 后复用，
 /// 每帧只做一次平移/旋转，避免重复创建 Path、Shader 与 Paint。
 
-final Map<int, ui.Picture> _towerBases = {};
+final Map<int, ui.Picture> _towerBodies = {};
 final Map<int, ui.Picture> _padBases = {};
+final Map<int, ui.Picture> _carrots = {};
 
-ui.Picture _towerBaseSprite(double radius) {
-  final key = radiusKey(radius);
-  final cached = _towerBases[key];
+/// 塔身、等级宝石与投影一起录制，升级后按「类型 + 等级 + 半径」取新图层。
+ui.Picture _towerBodySprite(TowerKind kind, int level, double radius) {
+  final key = kind.index * 1000000 + level * 100000 + radiusKey(radius);
+  final cached = _towerBodies[key];
   if (cached != null) return cached;
   final picture = recordPicture((canvas) {
     paintShadow(canvas, Offset.zero, radius, 0.2);
@@ -44,8 +46,19 @@ ui.Picture _towerBaseSprite(double radius) {
       radius * 0.78,
       fill(const Color(0xFFD9B183).withValues(alpha: 0.55)),
     );
+    for (var i = 0; i < 3; i++) {
+      canvas.drawCircle(
+        Offset((i - 1) * radius * 0.36, radius * 0.78),
+        radius * 0.11,
+        fill(
+          i < level
+              ? const Color(0xFFFFD24D)
+              : const Color(0xFF3B2A1C).withValues(alpha: 0.5),
+        ),
+      );
+    }
   });
-  storeSprite(_towerBases, key, picture);
+  storeSprite(_towerBodies, key, picture);
   return picture;
 }
 
@@ -82,6 +95,12 @@ ui.Picture _padBaseSprite(double radius) {
       radius * 0.74,
       fill(const Color(0xFF7F775E).withValues(alpha: 0.18)),
     );
+    final plus = stroke(
+      const Color(0xFF6E654C).withValues(alpha: 0.8),
+      radius * 0.12,
+    );
+    canvas.drawLine(Offset(-radius * 0.26, 0), Offset(radius * 0.26, 0), plus);
+    canvas.drawLine(Offset(0, -radius * 0.26), Offset(0, radius * 0.26), plus);
   });
   storeSprite(_padBases, key, picture);
   return picture;
@@ -97,6 +116,22 @@ void paintCarrot(
   final wobble = math.sin(pulse * 22) * 3 * pulse;
   canvas.save();
   canvas.translate(center.dx + wobble, center.dy);
+  canvas.drawPicture(_carrotSprite(radius));
+  canvas.restore();
+}
+
+ui.Picture _carrotSprite(double radius) {
+  final key = radiusKey(radius);
+  final cached = _carrots[key];
+  if (cached != null) return cached;
+  final picture = recordPicture((canvas) {
+    _paintCarrotBody(canvas, radius);
+  });
+  storeSprite(_carrots, key, picture);
+  return picture;
+}
+
+void _paintCarrotBody(Canvas canvas, double radius) {
   paintShadow(canvas, Offset.zero, radius, 0.22);
 
   // 土堆
@@ -210,7 +245,6 @@ void paintCarrot(
     false,
     stroke(const Color(0xFF8A3B16), radius * 0.05),
   );
-  canvas.restore();
 }
 
 /// 敌人：每种怪物有独立的轮廓与配色。
@@ -318,27 +352,13 @@ void paintTower(
     );
   }
 
-  canvas.drawPicture(_towerBaseSprite(radius));
+  canvas.drawPicture(_towerBodySprite(kind, level, radius));
 
   canvas.save();
   canvas.rotate(angle);
   if (recoil > 0) canvas.translate(-recoil * radius * 0.16, 0);
   canvas.drawPicture(towerTurretSprite(kind, radius));
   canvas.restore();
-
-  // 等级宝石
-  for (var i = 0; i < 3; i++) {
-    final active = i < level;
-    canvas.drawCircle(
-      Offset((i - 1) * radius * 0.36, radius * 0.78),
-      radius * 0.11,
-      fill(
-        active
-            ? const Color(0xFFFFD24D)
-            : const Color(0xFF3B2A1C).withValues(alpha: 0.5),
-      ),
-    );
-  }
   canvas.restore();
 }
 
@@ -369,12 +389,6 @@ void paintPad(
       stroke(glow.withValues(alpha: 0.25), radius * 0.16),
     );
   }
-  final plus = stroke(
-    const Color(0xFF6E654C).withValues(alpha: 0.8),
-    radius * 0.12,
-  );
-  canvas.drawLine(Offset(-radius * 0.26, 0), Offset(radius * 0.26, 0), plus);
-  canvas.drawLine(Offset(0, -radius * 0.26), Offset(0, radius * 0.26), plus);
   canvas.restore();
 }
 

@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import '../game/balance.dart';
 import '../game/engine/defense_engine.dart';
 import '../game/engine/entities.dart';
-import '../models/defense_models.dart';
 import 'painters.dart';
+import 'projectile_art.dart';
 
 /// 战场动态层：萝卜、建造位、射程、塔、敌人、弹道、特效与飘字。
 class BoardActorLayer {
@@ -114,90 +114,7 @@ class BoardActorLayer {
 
   void paintProjectiles(Canvas canvas) {
     for (final projectile in engine.projectiles) {
-      final direction = projectile.lastTarget - projectile.position;
-      final angle = math.atan2(direction.dy, direction.dx);
-      switch (projectile.kind) {
-        case TowerKind.arrow:
-          canvas.save();
-          canvas.translate(projectile.position.dx, projectile.position.dy);
-          canvas.rotate(angle);
-          canvas.drawLine(
-            const Offset(-16, 0),
-            const Offset(6, 0),
-            stroke(const Color(0xFFF6E7C6), 3),
-          );
-          final head = Path()
-            ..moveTo(12, 0)
-            ..lineTo(4, -4)
-            ..lineTo(4, 4)
-            ..close();
-          canvas.drawPath(head, fill(const Color(0xFFD7DEE3)));
-          canvas.restore();
-          break;
-        case TowerKind.cannon:
-          final arc = math.sin(projectile.progress * math.pi) * 26;
-          canvas.drawOval(
-            Rect.fromCenter(
-              center: projectile.position + const Offset(0, 6),
-              width: 16,
-              height: 6,
-            ),
-            fill(Colors.black.withValues(alpha: 0.22)),
-          );
-          canvas.drawCircle(
-            projectile.position - Offset(0, arc),
-            7,
-            fill(const Color(0xFF2A2A30)),
-          );
-          canvas.drawCircle(
-            projectile.position - Offset(2, arc + 2),
-            2.5,
-            fill(const Color(0xFF8E8E99)),
-          );
-          break;
-        case TowerKind.frost:
-          canvas.save();
-          canvas.translate(projectile.position.dx, projectile.position.dy);
-          canvas.rotate(angle);
-          final shard = Path()
-            ..moveTo(8, 0)
-            ..lineTo(0, -5)
-            ..lineTo(-8, 0)
-            ..lineTo(0, 5)
-            ..close();
-          canvas.drawPath(shard, fill(const Color(0xFFCFF4FF)));
-          canvas.drawPath(shard, stroke(const Color(0xFF6EC6EC), 1.5));
-          canvas.drawCircle(
-            Offset.zero,
-            10,
-            Paint()
-              ..color = const Color(0xFF9FE6FF).withValues(alpha: 0.28)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
-          );
-          canvas.restore();
-          break;
-        case TowerKind.poison:
-          final arc = math.sin(projectile.progress * math.pi) * 12;
-          final center = projectile.position - Offset(0, arc);
-          canvas.drawCircle(
-            center,
-            9,
-            fill(const Color(0xFF6FBF4A).withValues(alpha: 0.9)),
-          );
-          canvas.drawCircle(
-            center + const Offset(-3, 2),
-            7,
-            stroke(const Color(0xFFCBEF9A), 1.4),
-          );
-          canvas.drawCircle(
-            center + const Offset(3, -3),
-            2.4,
-            fill(const Color(0xFFE7FFCB)),
-          );
-          break;
-        case TowerKind.lightning:
-          break;
-      }
+      paintProjectile(canvas, projectile);
     }
   }
 
