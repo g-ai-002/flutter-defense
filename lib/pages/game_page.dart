@@ -99,15 +99,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     // 先让胜利特效播完，再停住战场并弹出结算。
     _resultTimer = Timer(const Duration(milliseconds: 750), () {
       if (!mounted) return;
-      setState(() => _paused = true);
-      _game.pausedNotifier.value = true;
+      _setPaused(true);
     });
   }
 
   void _setPaused(bool value) {
     if (_paused == value || !mounted) return;
     setState(() => _paused = value);
-    _game.pausedNotifier.value = value || _resultShown;
+    final paused = value || _resultShown;
+    _game.pausedNotifier.value = paused;
+    // 暂停时停掉 Flame 的渲染循环，避免后台或暂停面板下继续逐帧绘制。
+    if (paused) {
+      _game.pauseEngine();
+    } else {
+      _game.resumeEngine();
+    }
   }
 
   void _cycleSpeed() {
