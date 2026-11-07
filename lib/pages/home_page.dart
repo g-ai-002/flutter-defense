@@ -306,7 +306,8 @@ class _HeroCopy extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '已解锁 ${math.min(progress.unlockedLevel, 10)} / ${progress.maxStars ~/ 3} 关',
+                  '已解锁 ${math.min(progress.unlockedLevel, kLevels.length)} '
+                  '/ ${kLevels.length} 关',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
                     fontSize: 12,
