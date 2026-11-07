@@ -23,13 +23,13 @@
 
 ## 下载
 
-v0.3.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.3.0)
+v0.3.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-defense/releases/tag/v0.3.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-defense-0.3.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-defense-0.3.0-windows-x86_64.zip` |
-| Web | `flutter-defense-0.3.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-defense-0.3.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-defense-0.3.1-windows-x86_64.zip` |
+| Web | `flutter-defense-0.3.1-web.zip`（解压后起静态服务器） |
 
 ## 玩法
 
@@ -76,15 +76,16 @@ lib/
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.3.1 | 重构毒雾与飞行逻辑：毒雾绘制集中到 `fog_art`，`PathTrack` 统一航线端点，玩法数值不变 |
 | v0.3.0 | 新增蝠妖（直线飞行、免疫减速与中毒）、毒雾地形与第 11 关「毒沼秘境」 |
 | v0.2.2 | 性能与流畅度专项：塔身/萝卜/弹道精灵缓存、路径单调游标、免实时模糊投影，数值与界面不变 |
 | v0.2.1 | 重构战场、HUD 与结算面板分层，抽出波次时间表与特效工厂，玩法数值不变 |
 | v0.2.0 | 新增无尽挑战与本地排行榜、毒液塔，扩展可重复游玩内容 |
-| v0.1.2 | 性能与流畅度优化：静态图层与单位精灵缓存、路径二分采样、HUD 按需刷新、暂停停帧、音频后台合成 |
 
 更早版本：
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.1.2 | 性能与流畅度优化：静态图层与单位精灵缓存、路径二分采样、HUD 按需刷新、暂停停帧、音频后台合成 |
 | v0.1.1 | 修复窄屏竖屏布局溢出，塔栏改为横向滚动，收敛卡片与配置重复 |
 | v0.1.0 | 首个可玩版本：10 关、4 塔、5 类敌人、星级进度、程序化美术与音频、三端发布 |
