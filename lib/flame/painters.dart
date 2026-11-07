@@ -8,7 +8,7 @@ import 'art_utils.dart';
 import 'enemy_art.dart';
 import 'tower_art.dart';
 
-export 'art_utils.dart' show fill, stroke;
+export 'art_utils.dart' show dynFill, dynStroke, fill, recordPicture, stroke;
 
 /// 塔防美术入口：萝卜、敌人、塔与建造台全部用 Canvas 程序化绘制。
 ///
@@ -268,15 +268,14 @@ void paintEnemy(
     canvas.drawCircle(
       Offset.zero,
       radius * 1.02,
-      fill(const Color(0xFF7FD05A).withValues(alpha: 0.2)),
+      dynFill(const Color(0xFF7FD05A).withValues(alpha: 0.2)),
     );
-    final bubble = fill(const Color(0xFFC9F79B).withValues(alpha: 0.8));
     for (var i = 0; i < 3; i++) {
       final angle = i * 2.1 + 0.4;
       canvas.drawCircle(
         Offset(math.cos(angle), math.sin(angle)) * radius * 0.72,
         radius * 0.11,
-        bubble,
+        dynFill(const Color(0xFFC9F79B).withValues(alpha: 0.8)),
       );
     }
   }
@@ -284,15 +283,14 @@ void paintEnemy(
     canvas.drawCircle(
       Offset.zero,
       radius * 1.05,
-      fill(const Color(0xFF7FD4FF).withValues(alpha: 0.28)),
+      dynFill(const Color(0xFF7FD4FF).withValues(alpha: 0.28)),
     );
-    final snow = stroke(const Color(0xFFE8FAFF), radius * 0.08);
     for (var i = 0; i < 3; i++) {
       final angle = i * math.pi / 3;
       canvas.drawLine(
         Offset(math.cos(angle), math.sin(angle)) * radius * 0.4,
         Offset(-math.cos(angle), -math.sin(angle)) * radius * 0.4,
-        snow,
+        dynStroke(const Color(0xFFE8FAFF), radius * 0.08),
       );
     }
   }
@@ -300,7 +298,7 @@ void paintEnemy(
     canvas.drawCircle(
       Offset.zero,
       radius * 1.02,
-      fill(Colors.white.withValues(alpha: flash.clamp(0.0, 0.7))),
+      dynFill(Colors.white.withValues(alpha: flash.clamp(0.0, 0.7))),
     );
   }
   canvas.restore();
@@ -313,7 +311,7 @@ void paintEnemy(
         Rect.fromLTWH(center.dx - width / 2, top, width, 5),
         const Radius.circular(3),
       ),
-      fill(Colors.black.withValues(alpha: 0.45)),
+      dynFill(Colors.black.withValues(alpha: 0.45)),
     );
     final color = hpRatio > 0.5
         ? const Color(0xFF7ED957)
@@ -325,7 +323,7 @@ void paintEnemy(
         Rect.fromLTWH(center.dx - width / 2, top, width * hpRatio, 5),
         const Radius.circular(3),
       ),
-      fill(color),
+      dynFill(color),
     );
   }
 }
@@ -348,7 +346,7 @@ void paintTower(
     canvas.drawCircle(
       Offset.zero,
       radius * 1.18,
-      stroke(const Color(0xFFFFE08A), radius * 0.09),
+      dynStroke(const Color(0xFFFFE08A), radius * 0.09),
     );
   }
 
@@ -381,12 +379,12 @@ void paintPad(
     canvas.drawCircle(
       Offset.zero,
       spread,
-      stroke(glow.withValues(alpha: 0.85), radius * 0.1),
+      dynStroke(glow.withValues(alpha: 0.85), radius * 0.1),
     );
     canvas.drawCircle(
       Offset.zero,
       spread + radius * 0.08,
-      stroke(glow.withValues(alpha: 0.25), radius * 0.16),
+      dynStroke(glow.withValues(alpha: 0.25), radius * 0.16),
     );
   }
   canvas.restore();

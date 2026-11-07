@@ -4,11 +4,31 @@ import 'package:flutter/material.dart';
 
 /// 程序化美术共用的画笔与精灵缓存工具。
 
-Paint fill(Color color) => Paint()
+/// 新建 Paint 的次数，供性能回归测试确认动态层复用画笔。
+int debugPaintBuilds = 0;
+
+Paint fill(Color color) => _newPaint()..color = color;
+
+Paint stroke(Color color, double width) => _newPaint()
+  ..color = color
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = width
+  ..strokeCap = StrokeCap.round
+  ..strokeJoin = StrokeJoin.round;
+
+Paint _newPaint() {
+  debugPaintBuilds++;
+  return Paint();
+}
+
+/// 动态层复用画笔：逐帧的特效、状态叠加与血条只改颜色线宽，不再新建 Paint。
+final Paint _dynPaint = Paint();
+
+Paint dynFill(Color color) => _dynPaint
   ..color = color
   ..style = PaintingStyle.fill;
 
-Paint stroke(Color color, double width) => Paint()
+Paint dynStroke(Color color, double width) => _dynPaint
   ..color = color
   ..style = PaintingStyle.stroke
   ..strokeWidth = width

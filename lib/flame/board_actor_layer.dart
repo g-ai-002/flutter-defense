@@ -26,7 +26,7 @@ class BoardActorLayer {
       canvas.drawCircle(
         end,
         56,
-        fill(const Color(0xFF3A0D0D).withValues(alpha: 0.35)),
+        dynFill(const Color(0xFF3A0D0D).withValues(alpha: 0.35)),
       );
     }
   }
@@ -64,7 +64,7 @@ class BoardActorLayer {
     final canUpgrade = tower.canUpgrade && engine.gold >= tower.upgradeCost;
     if (canUpgrade) {
       final marker = tower.position + const Offset(0, -42);
-      canvas.drawCircle(marker, 11, fill(const Color(0xFF2E7D32)));
+      canvas.drawCircle(marker, 11, dynFill(const Color(0xFF2E7D32)));
       final arrow = Path()
         ..moveTo(marker.dx, marker.dy - 6)
         ..lineTo(marker.dx + 5, marker.dy + 1)
@@ -74,7 +74,7 @@ class BoardActorLayer {
         ..lineTo(marker.dx - 2, marker.dy + 1)
         ..lineTo(marker.dx - 5, marker.dy + 1)
         ..close();
-      canvas.drawPath(arrow, fill(Colors.white));
+      canvas.drawPath(arrow, dynFill(Colors.white));
     }
   }
 
@@ -128,117 +128,110 @@ class BoardActorLayer {
   void paintEffects(Canvas canvas, double visualTime) {
     for (final effect in engine.effects) {
       final t = effect.progress;
+      final fade = 1 - t;
+      final at = effect.position;
       switch (effect.kind) {
         case EffectKind.explosion:
           final radius = effect.radius * (0.35 + 0.85 * t);
-          canvas.drawCircle(
-            effect.position,
+          _dot(
+            canvas,
+            at,
             radius,
-            fill(const Color(0xFFFF9A3D).withValues(alpha: (1 - t) * 0.55)),
+            const Color(0xFFFF9A3D).withValues(alpha: fade * 0.55),
           );
-          canvas.drawCircle(
-            effect.position,
+          _ring(
+            canvas,
+            at,
             radius * 1.05,
-            stroke(
-              const Color(0xFFFFE1A8).withValues(alpha: (1 - t) * 0.85),
-              4,
-            ),
+            const Color(0xFFFFE1A8).withValues(alpha: fade * 0.85),
+            4,
           );
           for (var i = 0; i < 6; i++) {
-            final angle = i * math.pi / 3 + 0.4;
-            canvas.drawCircle(
-              effect.position +
-                  Offset(math.cos(angle), math.sin(angle)) * radius * 0.7,
-              effect.radius * 0.16 * (1 - t),
-              fill(const Color(0xFF6E5B45).withValues(alpha: (1 - t) * 0.45)),
+            _dot(
+              canvas,
+              _polar(at, i * math.pi / 3 + 0.4, radius * 0.7),
+              effect.radius * 0.16 * fade,
+              const Color(0xFF6E5B45).withValues(alpha: fade * 0.45),
             );
           }
-          break;
         case EffectKind.spark:
-          final paint = stroke(
-            const Color(0xFFFFF0B8).withValues(alpha: 1 - t),
-            2.4,
-          );
           for (var i = 0; i < 6; i++) {
             final angle = i * math.pi / 3;
-            final inner = effect.radius * 0.25;
-            final outer = effect.radius * (0.45 + 0.75 * t);
             canvas.drawLine(
-              effect.position +
-                  Offset(math.cos(angle), math.sin(angle)) * inner,
-              effect.position +
-                  Offset(math.cos(angle), math.sin(angle)) * outer,
-              paint,
+              _polar(at, angle, effect.radius * 0.25),
+              _polar(at, angle, effect.radius * (0.45 + 0.75 * t)),
+              dynStroke(const Color(0xFFFFF0B8).withValues(alpha: fade), 2.4),
             );
           }
-          break;
         case EffectKind.frostRing:
-          canvas.drawCircle(
-            effect.position,
+          _ring(
+            canvas,
+            at,
             effect.radius * (0.45 + 0.75 * t),
-            stroke(const Color(0xFFBFF1FF).withValues(alpha: 1 - t), 3),
+            const Color(0xFFBFF1FF).withValues(alpha: fade),
+            3,
           );
-          canvas.drawCircle(
-            effect.position,
+          _dot(
+            canvas,
+            at,
             effect.radius * (0.3 + 0.55 * t),
-            fill(const Color(0xFF9FE6FF).withValues(alpha: (1 - t) * 0.22)),
+            const Color(0xFF9FE6FF).withValues(alpha: fade * 0.22),
           );
-          break;
         case EffectKind.lightning:
           _paintLightning(canvas, effect, t, visualTime);
-          break;
         case EffectKind.poison:
           final spread = effect.radius * (0.35 + 0.75 * t);
-          canvas.drawCircle(
-            effect.position,
+          _dot(
+            canvas,
+            at,
             spread,
-            fill(const Color(0xFF6FBF4A).withValues(alpha: (1 - t) * 0.2)),
+            const Color(0xFF6FBF4A).withValues(alpha: fade * 0.2),
           );
-          canvas.drawCircle(
-            effect.position,
+          _ring(
+            canvas,
+            at,
             spread,
-            stroke(const Color(0xFFA8E36B).withValues(alpha: 1 - t), 2.6),
+            const Color(0xFFA8E36B).withValues(alpha: fade),
+            2.6,
           );
           for (var i = 0; i < 5; i++) {
-            final angle = i * math.pi * 2 / 5 + 0.5;
-            canvas.drawCircle(
-              effect.position +
-                  Offset(math.cos(angle), math.sin(angle)) * spread * 0.7,
-              effect.radius * 0.12 * (1 - t),
-              fill(const Color(0xFFD9FFAF).withValues(alpha: 1 - t)),
+            _dot(
+              canvas,
+              _polar(at, i * math.pi * 2 / 5 + 0.5, spread * 0.7),
+              effect.radius * 0.12 * fade,
+              const Color(0xFFD9FFAF).withValues(alpha: fade),
             );
           }
-          break;
         case EffectKind.buildDust:
-          canvas.drawCircle(
-            effect.position,
+          _ring(
+            canvas,
+            at,
             effect.radius * (0.4 + 0.8 * t),
-            stroke(const Color(0xFFE8D9B0).withValues(alpha: 1 - t), 3),
+            const Color(0xFFE8D9B0).withValues(alpha: fade),
+            3,
           );
           for (var i = 0; i < 5; i++) {
-            final angle = i * math.pi * 2 / 5;
-            canvas.drawCircle(
-              effect.position +
-                  Offset(math.cos(angle), math.sin(angle)) *
-                      effect.radius *
-                      (0.3 + t),
-              3 * (1 - t),
-              fill(const Color(0xFFD9C9A3).withValues(alpha: 1 - t)),
+            _dot(
+              canvas,
+              _polar(at, i * math.pi * 2 / 5, effect.radius * (0.3 + t)),
+              3 * fade,
+              const Color(0xFFD9C9A3).withValues(alpha: fade),
             );
           }
-          break;
         case EffectKind.leak:
-          canvas.drawCircle(
-            effect.position,
+          _ring(
+            canvas,
+            at,
             effect.radius * (0.5 + 0.8 * t),
-            stroke(const Color(0xFFFF6B5A).withValues(alpha: 1 - t), 4),
+            const Color(0xFFFF6B5A).withValues(alpha: fade),
+            4,
           );
-          canvas.drawCircle(
-            effect.position,
+          _dot(
+            canvas,
+            at,
             effect.radius * (0.3 + 0.5 * t),
-            fill(const Color(0xFFFF4D3D).withValues(alpha: (1 - t) * 0.25)),
+            const Color(0xFFFF4D3D).withValues(alpha: fade * 0.25),
           );
-          break;
       }
     }
   }
@@ -263,6 +256,9 @@ class BoardActorLayer {
       layer.dispose();
     }
     _rangeLayers.clear();
+    for (final painter in _textCache.values) {
+      painter.dispose();
+    }
     _textCache.clear();
   }
 
@@ -271,19 +267,18 @@ class BoardActorLayer {
     final key = (radius * 2).round();
     final cached = _rangeLayers[key];
     if (cached != null) return cached;
-    final recorder = ui.PictureRecorder();
-    final rangeCanvas = Canvas(recorder);
-    rangeCanvas.drawCircle(
-      Offset.zero,
-      radius,
-      fill(const Color(0xFFFFF3C4).withValues(alpha: 0.09)),
-    );
-    final paint = stroke(const Color(0xFFFFE08A).withValues(alpha: 0.8), 2);
-    final rect = Rect.fromCircle(center: Offset.zero, radius: radius);
-    for (var angle = 0.0; angle < math.pi * 2; angle += math.pi / 18) {
-      rangeCanvas.drawArc(rect, angle, math.pi / 26, false, paint);
-    }
-    final picture = recorder.endRecording();
+    final picture = recordPicture((rangeCanvas) {
+      rangeCanvas.drawCircle(
+        Offset.zero,
+        radius,
+        fill(const Color(0xFFFFF3C4).withValues(alpha: 0.09)),
+      );
+      final paint = stroke(const Color(0xFFFFE08A).withValues(alpha: 0.8), 2);
+      final rect = Rect.fromCircle(center: Offset.zero, radius: radius);
+      for (var angle = 0.0; angle < math.pi * 2; angle += math.pi / 18) {
+        rangeCanvas.drawArc(rect, angle, math.pi / 26, false, paint);
+      }
+    });
     _rangeLayers[key] = picture;
     return picture;
   }
@@ -294,11 +289,6 @@ class BoardActorLayer {
     double t,
     double visualTime,
   ) {
-    final paint = stroke(Colors.white.withValues(alpha: 1 - t), 2.2);
-    final glow = stroke(
-      const Color(0xFFB98CFF).withValues(alpha: (1 - t) * 0.6),
-      7,
-    );
     final path = Path();
     for (var i = 0; i < effect.points.length; i++) {
       final point = effect.points[i];
@@ -315,8 +305,14 @@ class BoardActorLayer {
         path.lineTo(p.dx, p.dy);
       }
     }
-    canvas.drawPath(path, glow);
-    canvas.drawPath(path, paint);
+    canvas.drawPath(
+      path,
+      dynStroke(const Color(0xFFB98CFF).withValues(alpha: (1 - t) * 0.6), 7),
+    );
+    canvas.drawPath(
+      path,
+      dynStroke(Colors.white.withValues(alpha: 1 - t), 2.2),
+    );
   }
 
   TextPainter _textPainter(
@@ -330,7 +326,12 @@ class BoardActorLayer {
     final key = '$text|$fontSize|$alpha|$bold';
     final cached = _textCache[key];
     if (cached != null) return cached;
-    if (_textCache.length > 160) _textCache.clear();
+    if (_textCache.length > 160) {
+      final stale = _textCache.keys.take(32).toList();
+      for (final item in stale) {
+        _textCache.remove(item)?.dispose();
+      }
+    }
     final painter = TextPainter(
       text: TextSpan(
         text: text,
@@ -355,3 +356,12 @@ class BoardActorLayer {
 }
 
 int _byProgress(Enemy a, Enemy b) => a.progress.compareTo(b.progress);
+
+void _dot(Canvas canvas, Offset at, double radius, Color color) =>
+    canvas.drawCircle(at, radius, dynFill(color));
+
+void _ring(Canvas canvas, Offset at, double r, Color c, double w) =>
+    canvas.drawCircle(at, r, dynStroke(c, w));
+
+Offset _polar(Offset center, double angle, double radius) =>
+    center + Offset(math.cos(angle) * radius, math.sin(angle) * radius);

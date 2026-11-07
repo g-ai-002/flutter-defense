@@ -7,6 +7,7 @@ import '../game/logic_rate.dart';
 import '../services/sound_service.dart';
 import '../theme/level_theme.dart';
 import '../utils/constants.dart';
+import 'art_utils.dart';
 import 'board_actor_layer.dart';
 import 'board_event_feedback.dart';
 import 'board_ground.dart';
@@ -129,17 +130,11 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     final palette = paletteOf(engine.level.theme);
     canvas.drawRRect(
       _frame,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..color = palette.frame.withValues(alpha: 0.55),
+      dynStroke(palette.frame.withValues(alpha: 0.55), 3),
     );
     canvas.drawRRect(
       _frameInner,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = Colors.white.withValues(alpha: 0.18),
+      dynStroke(Colors.white.withValues(alpha: 0.18), 1.2),
     );
   }
 

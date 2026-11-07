@@ -51,7 +51,7 @@ void paintFogMist(Canvas canvas, LevelDef level, double visualTime) {
       canvas.drawCircle(
         center + Offset(math.cos(angle), math.sin(angle)) * drift,
         radius * (0.3 + 0.05 * math.sin(visualTime + i)),
-        fill(kFogRim.withValues(alpha: 0.09)),
+        dynFill(kFogRim.withValues(alpha: 0.09)),
       );
     }
   }
