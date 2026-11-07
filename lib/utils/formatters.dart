@@ -19,10 +19,3 @@ String formatLogTimestamp(DateTime time) =>
 
 String formatLogLine(DateTime time, String level, String message) =>
     '[${formatLogTimestamp(time)}][$level] $message';
-
-/// 大数字缩写：12345 → 1.2万。
-String formatCompact(int value) {
-  if (value < 10000) return '$value';
-  final wan = value / 10000;
-  return '${wan.toStringAsFixed(wan >= 10 ? 0 : 1)}万';
-}

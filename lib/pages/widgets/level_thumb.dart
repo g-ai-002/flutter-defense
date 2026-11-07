@@ -48,7 +48,10 @@ class _ThumbPainter extends CustomPainter {
         ).createShader(rect),
     );
 
-    final scale = math.min(size.width / kDesignWidth, size.height / kDesignHeight);
+    final scale = math.min(
+      size.width / kDesignWidth,
+      size.height / kDesignHeight,
+    );
     final origin = Offset(
       (size.width - kDesignWidth * scale) / 2,
       (size.height - kDesignHeight * scale) / 2,

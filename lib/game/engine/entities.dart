@@ -24,11 +24,8 @@ enum GameEvent {
 }
 
 class Tower {
-  Tower({
-    required this.slotIndex,
-    required this.kind,
-    required this.position,
-  }) : stats = towerStats(kind, 1);
+  Tower({required this.slotIndex, required this.kind, required this.position})
+    : stats = towerStats(kind, 1);
 
   final int slotIndex;
   final TowerKind kind;

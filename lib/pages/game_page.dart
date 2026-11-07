@@ -13,6 +13,7 @@ import '../providers/progress_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../services/sound_service.dart';
+import '../utils/constants.dart';
 import '../utils/display_mode.dart';
 import 'level_select_page.dart';
 import 'widgets/game_hud.dart';
@@ -110,7 +111,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   void _cycleSpeed() {
-    final values = [1.0, 2.0, 3.0];
+    final values = AppConstants.battleSpeeds;
     final index = values.indexOf(_speed);
     final next = values[(index + 1) % values.length];
     setState(() => _speed = next);

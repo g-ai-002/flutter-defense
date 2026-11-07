@@ -82,7 +82,8 @@ class DefenseEngine {
   }
 
   Offset enemyPosition(Enemy enemy, {double alpha = 1}) {
-    final distance = enemy.prevDistance + (enemy.distance - enemy.prevDistance) * alpha;
+    final distance =
+        enemy.prevDistance + (enemy.distance - enemy.prevDistance) * alpha;
     final base = track.pointAt(distance);
     final tangent = track.tangentAt(distance);
     return base + Offset(-tangent.dy, tangent.dx) * enemy.lateral;
@@ -239,9 +240,7 @@ class DefenseEngine {
     final list = <_Spawn>[];
     for (final group in wave.groups) {
       for (var i = 0; i < group.count; i++) {
-        list.add(
-          _Spawn(group.delay + i * group.gap, group.kind, hpScale),
-        );
+        list.add(_Spawn(group.delay + i * group.gap, group.kind, hpScale));
       }
     }
     list.sort((a, b) => a.time.compareTo(b.time));
@@ -290,9 +289,7 @@ class DefenseEngine {
   void _spawnEnemy(_Spawn item) {
     final base = kEnemyStats[item.kind]!;
     final id = _nextEnemyId++;
-    final lateral = item.kind == EnemyKind.boss
-        ? 0.0
-        : ((id % 5) - 2) * 4.5;
+    final lateral = item.kind == EnemyKind.boss ? 0.0 : ((id % 5) - 2) * 4.5;
     enemies.add(
       Enemy(
         id: id,
@@ -314,7 +311,9 @@ class DefenseEngine {
     for (final enemy in enemies) {
       if (!enemy.alive) continue;
       enemy.prevDistance = enemy.distance;
-      if (enemy.slowTimer > 0) enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
+      if (enemy.slowTimer > 0) {
+        enemy.slowTimer = math.max(0, enemy.slowTimer - dt);
+      }
       enemy.distance += enemy.currentSpeed * dt;
       if (enemy.flash > 0) enemy.flash = math.max(0, enemy.flash - dt);
       if (enemy.distance >= reach) {
@@ -613,10 +612,7 @@ class DefenseEngine {
     _schedule.clear();
     if (waveIndex >= level.waveCount) {
       status = GameStatus.victory;
-      stars = starRating(
-        carrotHp: carrotHp,
-        carrotMaxHp: carrotMaxHp,
-      );
+      stars = starRating(carrotHp: carrotHp, carrotMaxHp: carrotMaxHp);
       events.add(GameEvent.victory);
       _announceResult();
     } else {

@@ -129,8 +129,20 @@ const List<_PluckNote> _musicNotes = [
   // 轻巧的打击垫，让循环更有推进感。
   _PluckNote(start: 2.0, frequency: 196.00, duration: 0.2, gain: 0.16, damp: 4),
   _PluckNote(start: 6.0, frequency: 196.00, duration: 0.2, gain: 0.16, damp: 4),
-  _PluckNote(start: 10.0, frequency: 220.00, duration: 0.2, gain: 0.16, damp: 4),
-  _PluckNote(start: 14.0, frequency: 174.61, duration: 0.2, gain: 0.16, damp: 4),
+  _PluckNote(
+    start: 10.0,
+    frequency: 220.00,
+    duration: 0.2,
+    gain: 0.16,
+    damp: 4,
+  ),
+  _PluckNote(
+    start: 14.0,
+    frequency: 174.61,
+    duration: 0.2,
+    gain: 0.16,
+    damp: 4,
+  ),
 ];
 
 /// 合成背景音乐：拨弦叠加低音，首尾淡入淡出后无缝循环。

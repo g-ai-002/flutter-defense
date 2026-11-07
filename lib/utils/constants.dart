@@ -30,7 +30,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.1.0';
+  static const String version = '0.1.1';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';
@@ -42,7 +42,4 @@ class AppConstants {
 
   /// 战斗倍速档位。
   static const List<double> battleSpeeds = [1, 2, 3];
-
-  /// 星级评价：满血三星，损失不超过 40% 两星，其余一星。
-  static const double twoStarHpRatio = 0.5;
 }

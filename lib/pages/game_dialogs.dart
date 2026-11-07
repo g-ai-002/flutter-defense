@@ -107,9 +107,7 @@ Future<bool> confirmLeaveGame(BuildContext context, {required bool playing}) {
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: const Text('离开关卡？'),
-      content: Text(
-        playing ? '本局进度不会保留，确定要离开吗？' : '确定要离开当前关卡吗？',
-      ),
+      content: Text(playing ? '本局进度不会保留，确定要离开吗？' : '确定要离开当前关卡吗？'),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),

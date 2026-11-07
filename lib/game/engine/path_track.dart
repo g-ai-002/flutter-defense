@@ -48,7 +48,10 @@ class PathTrack {
   double distanceTo(Offset point) {
     var best = double.infinity;
     for (var i = 1; i < points.length; i++) {
-      best = math.min(best, _distanceToSegment(point, points[i - 1], points[i]));
+      best = math.min(
+        best,
+        _distanceToSegment(point, points[i - 1], points[i]),
+      );
     }
     return best;
   }

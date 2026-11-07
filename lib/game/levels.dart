@@ -190,11 +190,8 @@ const List<GridPos> _pathD2 = [
   GridPos(15, 7),
 ];
 
-WaveDef _wave(
-  List<SpawnGroup> groups, {
-  int reward = 30,
-  double hp = 1,
-}) => WaveDef(groups, reward: reward, hpScale: hp);
+WaveDef _wave(List<SpawnGroup> groups, {int reward = 30, double hp = 1}) =>
+    WaveDef(groups, reward: reward, hpScale: hp);
 
 SpawnGroup _g(
   EnemyKind kind,
@@ -227,11 +224,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_s, 8, gap: 0.9), _g(_b, 2, gap: 1.4, delay: 3)]),
       _wave([_g(_r, 6, gap: 0.75), _g(_b, 3, gap: 1.5, delay: 2)]),
       _wave([_g(_s, 10, gap: 0.8), _g(_b, 4, gap: 1.3, delay: 2)], reward: 40),
-      _wave([
-        _g(_b, 4, gap: 1.4),
-        _g(_t, 1, delay: 2),
-        _g(_s, 8, gap: 0.7, delay: 4),
-      ], reward: 70, hp: 1.1),
+      _wave(
+        [
+          _g(_b, 4, gap: 1.4),
+          _g(_t, 1, delay: 2),
+          _g(_s, 8, gap: 0.7, delay: 4),
+        ],
+        reward: 70,
+        hp: 1.1,
+      ),
     ],
   ),
   LevelDef(
@@ -252,11 +253,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_r, 8, gap: 0.65), _g(_b, 3, gap: 1.4, delay: 2)], reward: 40),
       _wave([_g(_s, 10, gap: 0.75), _g(_b, 4, gap: 1.2, delay: 2)]),
       _wave([_g(_b, 5, gap: 1.2), _g(_t, 1, delay: 2), _g(_s, 6, delay: 5)]),
-      _wave([
-        _g(_s, 10, gap: 0.6),
-        _g(_b, 4, gap: 1.1, delay: 3),
-        _g(_t, 2, gap: 2, delay: 6),
-      ], reward: 80, hp: 1.1),
+      _wave(
+        [
+          _g(_s, 10, gap: 0.6),
+          _g(_b, 4, gap: 1.1, delay: 3),
+          _g(_t, 2, gap: 2, delay: 6),
+        ],
+        reward: 80,
+        hp: 1.1,
+      ),
     ],
   ),
   LevelDef(
@@ -278,11 +283,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_s, 12, gap: 0.65), _g(_b, 4, gap: 1.1, delay: 3)]),
       _wave([_g(_t, 2, gap: 2.0), _g(_r, 8, gap: 0.55, delay: 1)]),
       _wave([_g(_b, 6, gap: 1.0), _g(_s, 10, gap: 0.6)], reward: 55),
-      _wave([
-        _g(_t, 3, gap: 1.8),
-        _g(_b, 5, gap: 1.0, delay: 3),
-        _g(_r, 8, gap: 0.5, delay: 6),
-      ], reward: 95, hp: 1.15),
+      _wave(
+        [
+          _g(_t, 3, gap: 1.8),
+          _g(_b, 5, gap: 1.0, delay: 3),
+          _g(_r, 8, gap: 0.5, delay: 6),
+        ],
+        reward: 95,
+        hp: 1.15,
+      ),
     ],
   ),
   LevelDef(
@@ -304,11 +313,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_t, 2, gap: 2.2), _g(_b, 4, gap: 1.2, delay: 2)]),
       _wave([_g(_r, 10, gap: 0.55), _g(_b, 5, gap: 1.0, delay: 3)], reward: 55),
       _wave([_g(_s, 14, gap: 0.55), _g(_t, 2, gap: 2.0, delay: 4)]),
-      _wave([
-        _g(_b, 6, gap: 1.0),
-        _g(_t, 3, gap: 1.8, delay: 2),
-        _g(_r, 10, gap: 0.5, delay: 5),
-      ], reward: 100, hp: 1.15),
+      _wave(
+        [
+          _g(_b, 6, gap: 1.0),
+          _g(_t, 3, gap: 1.8, delay: 2),
+          _g(_r, 10, gap: 0.5, delay: 5),
+        ],
+        reward: 100,
+        hp: 1.15,
+      ),
     ],
   ),
   LevelDef(
@@ -331,11 +344,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_r, 12, gap: 0.5), _g(_t, 2, gap: 2.0, delay: 4)], reward: 60),
       _wave([_g(_b, 7, gap: 0.9), _g(_s, 10, gap: 0.6, delay: 3)]),
       _wave([_g(_t, 3, gap: 1.8), _g(_r, 10, gap: 0.55, delay: 2)], reward: 70),
-      _wave([
-        _g(_b, 8, gap: 0.8),
-        _g(_t, 3, gap: 1.7, delay: 4),
-        _g(_boss, 1, delay: 6),
-      ], reward: 120, hp: 1.1),
+      _wave(
+        [
+          _g(_b, 8, gap: 0.8),
+          _g(_t, 3, gap: 1.7, delay: 4),
+          _g(_boss, 1, delay: 6),
+        ],
+        reward: 120,
+        hp: 1.1,
+      ),
     ],
   ),
   LevelDef(
@@ -358,11 +375,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_r, 12, gap: 0.5), _g(_t, 2, gap: 2.0, delay: 3)], reward: 65),
       _wave([_g(_b, 8, gap: 0.9), _g(_s, 10, gap: 0.55, delay: 4)]),
       _wave([_g(_t, 4, gap: 1.6), _g(_r, 12, gap: 0.45, delay: 2)], reward: 80),
-      _wave([
-        _g(_b, 8, gap: 0.8),
-        _g(_boss, 1, delay: 3),
-        _g(_t, 3, gap: 1.6, delay: 6),
-      ], reward: 140, hp: 1.1),
+      _wave(
+        [
+          _g(_b, 8, gap: 0.8),
+          _g(_boss, 1, delay: 3),
+          _g(_t, 3, gap: 1.6, delay: 6),
+        ],
+        reward: 140,
+        hp: 1.1,
+      ),
     ],
   ),
   LevelDef(
@@ -386,11 +407,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_b, 8, gap: 0.9), _g(_s, 12, gap: 0.55, delay: 3)]),
       _wave([_g(_t, 4, gap: 1.6), _g(_b, 6, gap: 1.0, delay: 2)], reward: 75),
       _wave([_g(_r, 16, gap: 0.4), _g(_s, 12, gap: 0.5, delay: 4)]),
-      _wave([
-        _g(_b, 10, gap: 0.7),
-        _g(_t, 4, gap: 1.6, delay: 3),
-        _g(_boss, 1, delay: 8),
-      ], reward: 150, hp: 1.15),
+      _wave(
+        [
+          _g(_b, 10, gap: 0.7),
+          _g(_t, 4, gap: 1.6, delay: 3),
+          _g(_boss, 1, delay: 8),
+        ],
+        reward: 150,
+        hp: 1.15,
+      ),
     ],
   ),
   LevelDef(
@@ -414,11 +439,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_b, 9, gap: 0.85), _g(_s, 12, gap: 0.5, delay: 3)]),
       _wave([_g(_t, 5, gap: 1.5), _g(_r, 12, gap: 0.45, delay: 2)], reward: 85),
       _wave([_g(_b, 10, gap: 0.75), _g(_s, 14, gap: 0.5, delay: 4)]),
-      _wave([
-        _g(_t, 4, gap: 1.6),
-        _g(_boss, 1, delay: 3),
-        _g(_b, 8, gap: 0.8, delay: 6),
-      ], reward: 160, hp: 1.15),
+      _wave(
+        [
+          _g(_t, 4, gap: 1.6),
+          _g(_boss, 1, delay: 3),
+          _g(_b, 8, gap: 0.8, delay: 6),
+        ],
+        reward: 160,
+        hp: 1.15,
+      ),
     ],
   ),
   LevelDef(
@@ -443,11 +472,15 @@ final List<LevelDef> kLevels = [
       _wave([_g(_t, 5, gap: 1.5), _g(_b, 7, gap: 0.9, delay: 2)], reward: 90),
       _wave([_g(_r, 18, gap: 0.4), _g(_s, 16, gap: 0.45, delay: 4)]),
       _wave([_g(_b, 12, gap: 0.7), _g(_t, 5, gap: 1.5, delay: 3)], reward: 110),
-      _wave([
-        _g(_boss, 1),
-        _g(_b, 10, gap: 0.75, delay: 3),
-        _g(_t, 5, gap: 1.4, delay: 6),
-      ], reward: 200, hp: 1.2),
+      _wave(
+        [
+          _g(_boss, 1),
+          _g(_b, 10, gap: 0.75, delay: 3),
+          _g(_t, 5, gap: 1.4, delay: 6),
+        ],
+        reward: 200,
+        hp: 1.2,
+      ),
     ],
   ),
   LevelDef(
@@ -471,14 +504,25 @@ final List<LevelDef> kLevels = [
       _wave([_g(_b, 12, gap: 0.7), _g(_s, 16, gap: 0.45, delay: 3)]),
       _wave([_g(_t, 6, gap: 1.4), _g(_b, 8, gap: 0.85, delay: 2)], reward: 100),
       _wave([_g(_r, 20, gap: 0.38), _g(_b, 10, gap: 0.8, delay: 4)]),
-      _wave([_g(_b, 14, gap: 0.65), _g(_t, 6, gap: 1.4, delay: 3)], reward: 120),
-      _wave([_g(_boss, 1), _g(_r, 16, gap: 0.4, delay: 2)], reward: 160, hp: 1.1),
       _wave([
-        _g(_boss, 2, gap: 6),
-        _g(_b, 12, gap: 0.7, delay: 4),
-        _g(_t, 6, gap: 1.4, delay: 8),
-        _g(_r, 20, gap: 0.35, delay: 12),
-      ], reward: 300, hp: 1.25),
+        _g(_b, 14, gap: 0.65),
+        _g(_t, 6, gap: 1.4, delay: 3),
+      ], reward: 120),
+      _wave(
+        [_g(_boss, 1), _g(_r, 16, gap: 0.4, delay: 2)],
+        reward: 160,
+        hp: 1.1,
+      ),
+      _wave(
+        [
+          _g(_boss, 2, gap: 6),
+          _g(_b, 12, gap: 0.7, delay: 4),
+          _g(_t, 6, gap: 1.4, delay: 8),
+          _g(_r, 20, gap: 0.35, delay: 12),
+        ],
+        reward: 300,
+        hp: 1.25,
+      ),
     ],
   ),
 ];

@@ -777,8 +777,8 @@ class BoardComponent extends PositionComponent with TapCallbacks {
         paint,
       );
     }
-    final kind = tower.canUpgrade && engine.gold >= tower.upgradeCost;
-    if (kind) {
+    final canUpgrade = tower.canUpgrade && engine.gold >= tower.upgradeCost;
+    if (canUpgrade) {
       final marker = tower.position + const Offset(0, -42);
       canvas.drawCircle(marker, 11, fill(const Color(0xFF2E7D32)));
       final arrow = Path()

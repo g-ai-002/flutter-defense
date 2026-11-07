@@ -61,9 +61,7 @@ class _CarrotDefenseAppState extends State<CarrotDefenseApp>
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider(widget.storage)),
-        ChangeNotifierProvider(
-          create: (_) => ProgressProvider(widget.storage),
-        ),
+        ChangeNotifierProvider(create: (_) => ProgressProvider(widget.storage)),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {

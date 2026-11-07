@@ -62,7 +62,13 @@ class SoundService {
       SynthNote(frequency: 980, start: 0, duration: 0.04, gain: 0.4),
     ],
     SoundFx.build: [
-      SynthNote(frequency: 330, start: 0, duration: 0.09, gain: 0.6, noise: 0.3),
+      SynthNote(
+        frequency: 330,
+        start: 0,
+        duration: 0.09,
+        gain: 0.6,
+        noise: 0.3,
+      ),
       SynthNote(frequency: 494, start: 0.07, duration: 0.12, gain: 0.5),
       SynthNote(frequency: 659, start: 0.14, duration: 0.14, gain: 0.4),
     ],
@@ -86,9 +92,21 @@ class SoundService {
       ),
     ],
     SoundFx.cannon: [
-      SynthNote(frequency: 170, start: 0, duration: 0.16, gain: 0.7, noise: 0.4),
+      SynthNote(
+        frequency: 170,
+        start: 0,
+        duration: 0.16,
+        gain: 0.7,
+        noise: 0.4,
+      ),
       SynthNote(frequency: 90, start: 0, duration: 0.22, gain: 0.6, noise: 0.2),
-      SynthNote(frequency: 420, start: 0.02, duration: 0.09, gain: 0.3, noise: 0.5),
+      SynthNote(
+        frequency: 420,
+        start: 0.02,
+        duration: 0.09,
+        gain: 0.3,
+        noise: 0.5,
+      ),
     ],
     SoundFx.frost: [
       SynthNote(frequency: 1250, start: 0, duration: 0.07, gain: 0.35),
@@ -96,12 +114,36 @@ class SoundService {
       SynthNote(frequency: 980, start: 0.05, duration: 0.12, gain: 0.3),
     ],
     SoundFx.lightning: [
-      SynthNote(frequency: 760, start: 0, duration: 0.14, gain: 0.5, noise: 0.75),
-      SynthNote(frequency: 1520, start: 0.03, duration: 0.1, gain: 0.35, noise: 0.5),
-      SynthNote(frequency: 380, start: 0.08, duration: 0.16, gain: 0.4, noise: 0.6),
+      SynthNote(
+        frequency: 760,
+        start: 0,
+        duration: 0.14,
+        gain: 0.5,
+        noise: 0.75,
+      ),
+      SynthNote(
+        frequency: 1520,
+        start: 0.03,
+        duration: 0.1,
+        gain: 0.35,
+        noise: 0.5,
+      ),
+      SynthNote(
+        frequency: 380,
+        start: 0.08,
+        duration: 0.16,
+        gain: 0.4,
+        noise: 0.6,
+      ),
     ],
     SoundFx.hit: [
-      SynthNote(frequency: 320, start: 0, duration: 0.06, gain: 0.3, noise: 0.55),
+      SynthNote(
+        frequency: 320,
+        start: 0,
+        duration: 0.06,
+        gain: 0.3,
+        noise: 0.55,
+      ),
     ],
     SoundFx.leak: [
       SynthNote(frequency: 300, start: 0, duration: 0.14, gain: 0.55),

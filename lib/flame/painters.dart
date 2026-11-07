@@ -238,7 +238,11 @@ void paintEnemy(
   }
 }
 
-void _eyes(Canvas canvas, double radius, {Color color = const Color(0xFF2A2118)}) {
+void _eyes(
+  Canvas canvas,
+  double radius, {
+  Color color = const Color(0xFF2A2118),
+}) {
   final eye = fill(color);
   canvas.drawCircle(Offset(-radius * 0.3, -radius * 0.08), radius * 0.13, eye);
   canvas.drawCircle(Offset(radius * 0.3, -radius * 0.08), radius * 0.13, eye);
@@ -276,10 +280,7 @@ void _paintSlime(Canvas canvas, double radius) {
         colors: [Color(0xFF9BE36C), Color(0xFF5BAE3E)],
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
   );
-  canvas.drawPath(
-    body,
-    stroke(const Color(0xFF3E7F2D), radius * 0.07),
-  );
+  canvas.drawPath(body, stroke(const Color(0xFF3E7F2D), radius * 0.07));
   canvas.drawOval(
     Rect.fromCenter(
       center: Offset(0, radius * 0.3),
@@ -453,10 +454,7 @@ void _paintTank(Canvas canvas, double radius) {
         colors: [Color(0xFFB98A5E), Color(0xFF7A5232)],
       ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius)),
   );
-  canvas.drawRRect(
-    body,
-    stroke(const Color(0xFF5A3A22), radius * 0.08),
-  );
+  canvas.drawRRect(body, stroke(const Color(0xFF5A3A22), radius * 0.08));
   // 岩甲
   for (final side in [-1.0, 1.0]) {
     canvas.drawCircle(
@@ -734,7 +732,11 @@ void _paintCannonTower(Canvas canvas, double r) {
     r * 0.28,
     stroke(const Color(0xFF6E7681), r * 0.06),
   );
-  canvas.drawCircle(Offset(-r * 0.34, 0), r * 0.22, fill(const Color(0xFF3B414B)));
+  canvas.drawCircle(
+    Offset(-r * 0.34, 0),
+    r * 0.22,
+    fill(const Color(0xFF3B414B)),
+  );
 }
 
 void _paintFrostTower(Canvas canvas, double r) {
@@ -795,11 +797,14 @@ void _paintLightningTower(Canvas canvas, double r) {
     Offset(r * 0.68, -r * 0.02),
     r * 0.22,
     Paint()
-      ..shader = const RadialGradient(
-        colors: [Color(0xFFFFF6C2), Color(0xFFF2B21C)],
-      ).createShader(
-        Rect.fromCircle(center: Offset(r * 0.68, -r * 0.02), radius: r * 0.24),
-      ),
+      ..shader =
+          const RadialGradient(colors: [Color(0xFFFFF6C2), Color(0xFFF2B21C)])
+              .createShader(
+                Rect.fromCircle(
+                  center: Offset(r * 0.68, -r * 0.02),
+                  radius: r * 0.24,
+                ),
+              ),
   );
   final bolt = Path()
     ..moveTo(r * 0.86, -r * 0.44)
@@ -861,7 +866,10 @@ void paintPad(
       stroke(glow.withValues(alpha: 0.25), radius * 0.16),
     );
   }
-  final plus = stroke(const Color(0xFF6E654C).withValues(alpha: 0.8), radius * 0.12);
+  final plus = stroke(
+    const Color(0xFF6E654C).withValues(alpha: 0.8),
+    radius * 0.12,
+  );
   canvas.drawLine(
     center + Offset(-radius * 0.26, 0),
     center + Offset(radius * 0.26, 0),

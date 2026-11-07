@@ -3,12 +3,7 @@ import 'defense_models.dart';
 
 /// 一个敌人小队：从波次开始后 [delay] 秒起，每 [gap] 秒放出一只。
 class SpawnGroup {
-  const SpawnGroup(
-    this.kind,
-    this.count, {
-    this.gap = 0.9,
-    this.delay = 0,
-  });
+  const SpawnGroup(this.kind, this.count, {this.gap = 0.9, this.delay = 0});
 
   final EnemyKind kind;
   final int count;
@@ -24,8 +19,7 @@ class WaveDef {
   final int reward;
   final double hpScale;
 
-  int get totalEnemies =>
-      groups.fold(0, (sum, group) => sum + group.count);
+  int get totalEnemies => groups.fold(0, (sum, group) => sum + group.count);
 
   bool get hasBoss => groups.any((group) => group.kind == EnemyKind.boss);
 }

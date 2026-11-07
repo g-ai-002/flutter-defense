@@ -125,9 +125,7 @@ class SettingsPage extends StatelessWidget {
                       builder: (context, snapshot) {
                         final path = snapshot.data ?? '';
                         return SelectableText(
-                          path.isEmpty
-                              ? '日志仅保存在内存中，可在下方查看最近记录'
-                              : path,
+                          path.isEmpty ? '日志仅保存在内存中，可在下方查看最近记录' : path,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                             fontSize: 11,
@@ -155,7 +153,10 @@ class SettingsPage extends StatelessWidget {
                                 path,
                               );
                             },
-                            icon: const Icon(Icons.folder_open_rounded, size: 17),
+                            icon: const Icon(
+                              Icons.folder_open_rounded,
+                              size: 17,
+                            ),
                             label: const Text('打开日志目录'),
                           ),
                       ],

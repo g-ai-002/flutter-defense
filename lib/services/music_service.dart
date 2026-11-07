@@ -54,10 +54,7 @@ class MusicService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
-      _source ??= await soloud.loadMem(
-        'carrotd-bgm.wav',
-        synthesizeMusicWav(),
-      );
+      _source ??= await soloud.loadMem('carrotd-bgm.wav', synthesizeMusicWav());
     } catch (error) {
       _failed = true;
       debugPrint('[MusicService] 背景音乐加载失败: $error');

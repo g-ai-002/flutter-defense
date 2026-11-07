@@ -33,6 +33,21 @@ void main() {
     expect(find.text('开始冒险'), findsOneWidget);
   });
 
+  testWidgets('窄屏竖屏首页与对局均不溢出', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: '首页竖屏');
+    await tester.tap(find.text('开始冒险'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.takeException(), isNull, reason: '对局竖屏');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
   testWidgets('关卡选择页展示十个关卡与解锁状态', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1100, 760));
     addTearDown(() => tester.binding.setSurfaceSize(null));

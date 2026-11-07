@@ -412,35 +412,12 @@ class _ShopPanel extends StatelessWidget {
               ),
             ),
           ),
-        for (final kind in TowerKind.values)
-          Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: _TowerCard(
-              kind: kind,
-              cost: towerStats(kind, 1).cost,
-              enabled: engine.gold >= towerStats(kind, 1).cost,
-              selected: engine.armedKind == kind,
-              compact: compact,
-              onTap: () => engine.toggleArmed(kind),
-            ),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: _TowerCardStrip(engine: engine, compact: compact),
           ),
-        if (!compact)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 3),
-              child: Text(
-                engine.armedKind == null
-                    ? '选择塔后点击空地建造'
-                    : '点击高亮空地放下${engine.armedKind!.label}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-          ),
+        ),
       ],
     );
   }
@@ -477,25 +454,60 @@ class _BuildPanel extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        for (final kind in TowerKind.values)
-          Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: _TowerCard(
-              kind: kind,
-              cost: towerStats(kind, 1).cost,
-              enabled: engine.canBuild(kind, slot),
-              selected: false,
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: _TowerCardStrip(
+              engine: engine,
               compact: compact,
-              onTap: () => engine.build(slot, kind),
+              slot: slot,
             ),
           ),
-        if (!compact) const Spacer(),
+        ),
         _HudIconButton(
           icon: Icons.close_rounded,
           tooltip: '取消',
           compact: compact,
           onPressed: engine.clearSelection,
         ),
+      ],
+    );
+  }
+}
+
+/// 塔栏卡片条：默认点击进入布塔模式，指定空地时直接建造。
+class _TowerCardStrip extends StatelessWidget {
+  const _TowerCardStrip({
+    required this.engine,
+    required this.compact,
+    this.slot,
+  });
+
+  final DefenseEngine engine;
+  final bool compact;
+  final int? slot;
+
+  @override
+  Widget build(BuildContext context) {
+    final buildSlot = slot;
+    return Row(
+      children: [
+        for (final kind in TowerKind.values)
+          Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: _TowerCard(
+              kind: kind,
+              cost: towerStats(kind, 1).cost,
+              enabled: buildSlot != null
+                  ? engine.canBuild(kind, buildSlot)
+                  : engine.gold >= towerStats(kind, 1).cost,
+              selected: buildSlot == null && engine.armedKind == kind,
+              compact: compact,
+              onTap: () => buildSlot != null
+                  ? engine.build(buildSlot, kind)
+                  : engine.toggleArmed(kind),
+            ),
+          ),
       ],
     );
   }

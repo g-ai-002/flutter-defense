@@ -67,6 +67,7 @@ class HomePage extends StatelessWidget {
                                 child: _Hero(
                                   progress: progress,
                                   compact: false,
+                                  narrow: false,
                                 ),
                               ),
                               const SizedBox(width: 26),
@@ -80,7 +81,11 @@ class HomePage extends StatelessWidget {
                             ],
                           )
                         else ...[
-                          _Hero(progress: progress, compact: true),
+                          _Hero(
+                            progress: progress,
+                            compact: true,
+                            narrow: constraints.maxWidth < 520,
+                          ),
                           const SizedBox(height: 18),
                           _Entries(progress: progress, compact: true),
                         ],
@@ -124,11 +129,7 @@ class _TopBar extends StatelessWidget {
             color: appOrange.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(
-            Icons.eco_rounded,
-            size: 20,
-            color: appOrange,
-          ),
+          child: const Icon(Icons.eco_rounded, size: 20, color: appOrange),
         ),
         const SizedBox(width: 9),
         Text(
@@ -160,10 +161,15 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.progress, required this.compact});
+  const _Hero({
+    required this.progress,
+    required this.compact,
+    required this.narrow,
+  });
 
   final ProgressProvider progress;
   final bool compact;
+  final bool narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +179,7 @@ class _Hero extends StatelessWidget {
     final ratio = progress.maxStars == 0
         ? 0.0
         : progress.totalStars / progress.maxStars;
-    final carrotSize = compact ? 150.0 : 240.0;
+    final carrotSize = compact ? (narrow ? 120.0 : 150.0) : 240.0;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -203,13 +209,20 @@ class _Hero extends StatelessWidget {
       child: compact
           ? Column(
               children: [
-                Row(
-                  children: [
-                    CarrotArt(size: carrotSize),
-                    const SizedBox(width: 8),
-                    Expanded(child: _HeroCopy(progress: progress)),
-                  ],
-                ),
+                if (narrow) ...[
+                  CarrotArt(size: carrotSize),
+                  const SizedBox(height: 6),
+                  _HeroCopy(progress: progress, narrow: narrow),
+                ] else
+                  Row(
+                    children: [
+                      CarrotArt(size: carrotSize),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _HeroCopy(progress: progress, narrow: narrow),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 12),
                 _ProgressBar(ratio: ratio, progress: progress),
               ],
@@ -219,7 +232,7 @@ class _Hero extends StatelessWidget {
               children: [
                 Center(child: CarrotArt(size: carrotSize)),
                 const SizedBox(height: 10),
-                _HeroCopy(progress: progress),
+                _HeroCopy(progress: progress, narrow: narrow),
                 const SizedBox(height: 16),
                 _ProgressBar(ratio: ratio, progress: progress),
               ],
@@ -229,9 +242,10 @@ class _Hero extends StatelessWidget {
 }
 
 class _HeroCopy extends StatelessWidget {
-  const _HeroCopy({required this.progress});
+  const _HeroCopy({required this.progress, required this.narrow});
 
   final ProgressProvider progress;
+  final bool narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +258,7 @@ class _HeroCopy extends StatelessWidget {
         Text(
           '守住最后一根萝卜',
           style: theme.textTheme.headlineMedium?.copyWith(
-            fontSize: 28,
+            fontSize: narrow ? 24 : 28,
             height: 1.15,
             fontWeight: FontWeight.w800,
             color: colors.primary,
@@ -260,31 +274,43 @@ class _HeroCopy extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 14,
+          runSpacing: 5,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            const Icon(
-              Icons.star_rounded,
-              size: 18,
-              color: Color(0xFFF2B21C),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.star_rounded,
+                  size: 18,
+                  color: Color(0xFFF2B21C),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${progress.totalStars} / ${progress.maxStars} 星',
+                  style: theme.textTheme.titleSmall?.copyWith(fontSize: 13),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              '${progress.totalStars} / ${progress.maxStars} 星',
-              style: theme.textTheme.titleSmall?.copyWith(fontSize: 13),
-            ),
-            const SizedBox(width: 14),
-            Icon(
-              Icons.flag_rounded,
-              size: 16,
-              color: colors.onSurfaceVariant,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '已解锁 ${math.min(progress.unlockedLevel, 10)} / ${progress.maxStars ~/ 3} 关',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontSize: 12,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.flag_rounded,
+                  size: 16,
+                  color: colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '已解锁 ${math.min(progress.unlockedLevel, 10)} / ${progress.maxStars ~/ 3} 关',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -391,19 +417,16 @@ class _Entries extends StatelessWidget {
 }
 
 void _openLevel(BuildContext context, LevelDef level) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => GamePage(level: level)),
-  );
+  Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => GamePage(level: level)));
 }
 
 void _openLevels(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()),
-  );
+  Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => const LevelSelectPage()));
 }
 
 void _openSettings(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
-  );
+  Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => const SettingsPage()));
 }
