@@ -169,6 +169,33 @@ void main() {
       expect(engine.status, GameStatus.victory);
       expect(notifications, greaterThan(0));
     });
+
+    test('最后一只敌人被击杀的同一逻辑步即结算波次', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          startGold: 500,
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 1)], reward: 0),
+          ],
+        ),
+      );
+      expect(engine.build(0, TowerKind.arrow), isTrue);
+      engine.startNextWave();
+      var killedAt = -1;
+      for (var i = 0; i < 60 * 30 && !engine.isFinished; i++) {
+        engine.update(1 / 60);
+        if (killedAt < 0 && engine.kills == 1) {
+          killedAt = i;
+          expect(
+            engine.status,
+            GameStatus.victory,
+            reason: '存活计数归零后应立刻结算，不再等待下一帧压缩列表',
+          );
+        }
+      }
+      expect(killedAt, greaterThanOrEqualTo(0));
+      expect(engine.status, GameStatus.victory);
+    });
   });
 
   group('渲染缓存', () {
@@ -246,6 +273,78 @@ void main() {
 
       _renderOnce(board);
       expect(debugSpriteBuilds, builds, reason: '状态未变时不应重新录制精灵');
+
+      board.onRemove();
+      engine.dispose();
+      paused.dispose();
+      speed.dispose();
+    });
+
+    test('动态层复用画笔，重复渲染不再新建 Paint', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          startGold: 900,
+          fog: [const FogZone(GridPos(7, 4), radius: 90)],
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 3, gap: 0.4)], reward: 0),
+          ],
+        ),
+      );
+      expect(engine.build(0, TowerKind.arrow), isTrue);
+      expect(engine.build(1, TowerKind.frost), isTrue);
+      expect(engine.build(2, TowerKind.poison), isTrue);
+      engine.selectSlot(0);
+      engine.startNextWave();
+      advance(engine, 3);
+
+      final enemy = engine.enemies.firstWhere((enemy) => enemy.alive);
+      enemy
+        ..hp = enemy.maxHp * 0.4
+        ..slowTimer = 1
+        ..poisonTimer = 1
+        ..flash = 0.1;
+      engine.carrotHp = 0;
+      engine.armedKind = TowerKind.cannon;
+      engine.effects.addAll([
+        Effect.explosion(const Offset(300, 300), radius: 40),
+        Effect.spark(const Offset(320, 300)),
+        Effect.frostRing(const Offset(340, 300), radius: 50),
+        Effect.poisonCloud(const Offset(360, 300), radius: 44),
+        Effect.buildDust(const Offset(380, 300)),
+        Effect.leak(const Offset(400, 300)),
+        Effect.lightning(const [Offset(420, 300), Offset(460, 320)]),
+      ]);
+      engine.floaters.add(Floater.gold(8, const Offset(440, 300)));
+      engine.projectiles.add(
+        Projectile(
+          kind: TowerKind.arrow,
+          targetId: enemy.id,
+          position: const Offset(300, 300),
+          targetPosition: const Offset(500, 300),
+          speed: 900,
+          damage: 1,
+          splash: 0,
+          slowFactor: 1,
+          slowDuration: 0,
+          flightTime: 1,
+        ),
+      );
+
+      final paused = ValueNotifier<bool>(false);
+      final speed = ValueNotifier<double>(1);
+      final board = BoardComponent(
+        engine: engine,
+        logicRate: LogicRate.hz60,
+        pausedNotifier: paused,
+        speed: speed,
+      )..size = Vector2(900, 540);
+
+      _renderOnce(board);
+      final builds = debugPaintBuilds;
+      expect(builds, greaterThan(0), reason: '首次渲染应录制静态与单位精灵');
+
+      _renderOnce(board);
+      expect(debugPaintBuilds, builds, reason: '动态层应复用画笔，不再新建 Paint');
 
       board.onRemove();
       engine.dispose();
