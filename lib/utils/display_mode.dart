@@ -2,11 +2,25 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 手机与折叠屏折叠态等窄屏设备：进入游戏页时横屏全屏，把屏幕让给战场。
+import 'constants.dart';
+
+/// 网格在横屏下是否明显比竖屏更舒展。
 ///
-/// 平板、桌面与 Web 不改变方向与系统栏，避免突然旋转。
+/// 分别按横竖两个方向计算战场缩放，只有横向能实际放大网格时才值得旋转屏幕，
+/// 网格偏高或接近正方形时保持当前方向。
+bool prefersLandscapeGrid(Size size) {
+  final portrait = boardScaleFor(Size(size.shortestSide, size.longestSide));
+  final landscape = boardScaleFor(Size(size.longestSide, size.shortestSide));
+  return landscape > portrait * 1.02;
+}
+
+/// 手机与折叠屏折叠态等窄屏设备：网格横向更舒展时自动横屏全屏，
+/// 否则保持竖屏；平板、桌面与 Web 不改变方向与系统栏，避免突然旋转。
 bool shouldImmersiveLandscape(Size size) =>
-    !kIsWeb && defaultTargetPlatform == TargetPlatform.android && size.shortestSide < 600;
+    !kIsWeb &&
+    defaultTargetPlatform == TargetPlatform.android &&
+    size.shortestSide < 600 &&
+    prefersLandscapeGrid(size);
 
 /// 游戏页显示模式：满足 [shouldImmersiveLandscape] 时切到横屏并隐藏系统栏，
 /// 离开后恢复系统栏与自动旋转。多个游戏页叠放时按引用计数只在最后一个退出时恢复。

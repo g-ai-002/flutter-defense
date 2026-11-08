@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 /// 游戏统一设计尺寸：所有关卡坐标与绘制都基于这个画布。
@@ -18,17 +19,22 @@ Offset gridToDesign(double col, double row) =>
 /// 屏幕较矮时 HUD 使用紧凑高度，棋盘区域据此预留空间。
 bool compactHudFor(Size size) => size.height < 600 || size.width < 760;
 
-/// 顶部信息条占用的高度（含外边距）。
-double hudTopInset(Size size) => compactHudFor(size) ? 48 : 62;
+/// 网格上下对称预留的高度：顶部信息簇与底部控制条都悬浮在这条带子里，
+/// 上下留同样的间距，战场网格因此在任何视口中都精确居中。
+double hudReserveFor(Size size) => compactHudFor(size) ? 64 : 96;
 
-/// 底部塔栏占用的高度（含外边距）。
-double hudBottomInset(Size size) => compactHudFor(size) ? 76 : 112;
+/// 战场设计画布在视口中的等比缩放，横竖屏取舍与战场布局共用同一份计算。
+double boardScaleFor(Size view) {
+  final availableHeight = math.max(1.0, view.height - hudReserveFor(view) * 2);
+  final scale = math.min((view.width - 24) / kDesignWidth, availableHeight / kDesignHeight);
+  return scale.clamp(0.15, 1.6);
+}
 
 class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.4.1';
+  static const String version = '0.4.2';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';

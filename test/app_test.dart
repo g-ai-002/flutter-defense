@@ -1,5 +1,10 @@
 import 'package:carrot_defense/app.dart';
+import 'package:carrot_defense/flame/board_layout.dart';
+import 'package:carrot_defense/flame/defense_game.dart';
 import 'package:carrot_defense/models/endless.dart';
+import 'package:carrot_defense/pages/widgets/game_hud.dart';
+import 'package:carrot_defense/pages/widgets/hud_bottom_dock.dart';
+import 'package:carrot_defense/pages/widgets/hud_info_bars.dart';
 import 'package:carrot_defense/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -144,8 +149,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // 第 1 关 1 号空地位于设计坐标 (288, 232)，换算到 1200×700 视口。
-    await tester.tapAt(const Offset(343, 232));
+    // 第 1 关 1 号空地位于设计坐标 (288, 232)，按战场布局换算到 1200×700 视口。
+    final layout = BoardLayout.resolve(const Size(1200, 700));
+    await tester.tapAt(layout.origin + const Offset(288, 232) * layout.scale);
     await tester.pump();
     expect(find.text('空地建造'), findsOneWidget);
     await tester.tap(find.text('弓弩'));
@@ -182,6 +188,55 @@ void main() {
     await tester.tap(find.text('继续游戏'));
     await tester.pump();
     expect(find.text('游戏暂停'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('信息簇悬浮在网格上方左右，控制条悬浮在网格下方', (tester) async {
+    const view = Size(1200, 700);
+    await tester.binding.setSurfaceSize(view);
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+    await tester.tap(find.text('开始冒险'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final grid = GameHud.gridRectFor(view);
+    final status = tester.getRect(find.byType(HudStatusPanel));
+    final resource = tester.getRect(find.byType(HudResourcePanel));
+    final dock = tester.getRect(find.byType(HudBottomDock));
+
+    expect(status.bottom, lessThanOrEqualTo(grid.top), reason: '关卡信息应在网格上方');
+    expect(resource.bottom, lessThanOrEqualTo(grid.top), reason: '资源信息应在网格上方');
+    expect(status.left, closeTo(grid.left, 1), reason: '左侧信息贴住网格左边');
+    expect(resource.right, closeTo(grid.right, 1), reason: '右侧信息贴住网格右边');
+    expect(resource.left, greaterThan(status.right), reason: '左右两组信息不应重叠');
+    expect(dock.top, greaterThanOrEqualTo(grid.bottom), reason: '控制条应在网格下方');
+    expect(dock.left, lessThan(grid.left), reason: '控制条横向铺满，不被网格宽度限制');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
+  testWidgets('退出对局后不残留游戏实例与后台任务', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+    await tester.tap(find.text('无尽挑战'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(DefenseGame.activeGames, 1);
+
+    await tester.tap(find.byTooltip('返回'));
+    await tester.pump();
+    await tester.tap(find.text('返回首页'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('开始冒险'), findsOneWidget);
+    expect(DefenseGame.activeGames, 0, reason: '对局页关闭后不应残留战场实例');
     expect(tester.takeException(), isNull);
   });
 }

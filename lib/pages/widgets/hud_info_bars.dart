@@ -4,25 +4,22 @@ import '../../game/engine/defense_engine.dart';
 import '../../game/engine/entities.dart';
 import 'hud_chrome.dart';
 
-/// HUD 顶栏：关卡状态、萝卜血量、金币、波次与倍速/暂停。
-class HudTopBar extends StatelessWidget {
-  const HudTopBar({
+/// 顶部信息条的高度，战场布局据此在网格上方留出悬浮空间。
+double hudInfoHeight(bool compact) => compact ? 38 : 46;
+
+/// 网格上方左侧的关卡信息：返回、关卡名与状态、萝卜血量。
+class HudStatusPanel extends StatelessWidget {
+  const HudStatusPanel({
     super.key,
     required this.engine,
     required this.compact,
     required this.width,
-    required this.speed,
-    required this.onSpeed,
-    required this.onPause,
     required this.onBack,
   });
 
   final DefenseEngine engine;
   final bool compact;
   final double width;
-  final double speed;
-  final VoidCallback onSpeed;
-  final VoidCallback onPause;
   final VoidCallback onBack;
 
   @override
@@ -30,13 +27,13 @@ class HudTopBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final showTitle = !compact && width >= 780;
-    final showWaveText = width >= 700;
     final hpRatio = engine.carrotMaxHp == 0 ? 0.0 : engine.carrotHp / engine.carrotMaxHp;
     return Container(
-      height: compact ? 38 : 46,
+      height: hudInfoHeight(compact),
       padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6),
       decoration: hudPanelDecoration(context, radius: compact ? 13 : 15),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           HudIconButton(
             icon: Icons.arrow_back_rounded,
@@ -64,6 +61,7 @@ class HudTopBar extends StatelessWidget {
                   Text(
                     _statusLabel(),
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 10,
                       color: colors.onSurfaceVariant,
@@ -81,40 +79,10 @@ class HudTopBar extends StatelessWidget {
             compact: compact,
             trailing: compact ? null : HudMiniBar(ratio: hpRatio, color: const Color(0xFFE4572E)),
           ),
-          const SizedBox(width: 5),
-          HudInfoPill(
-            icon: Icons.monetization_on_rounded,
-            iconColor: const Color(0xFFD99B1D),
-            label: '${engine.gold}',
-            compact: compact,
-          ),
-          if (showWaveText) ...[
-            const SizedBox(width: 5),
-            HudInfoPill(
-              icon: Icons.flag_rounded,
-              iconColor: const Color(0xFF3F7D46),
-              label: engine.scored
-                  ? '第 ${_displayWave()} 波'
-                  : '${_displayWave()}/${engine.level.waveCount} 波',
-              compact: compact,
-            ),
-          ],
-          const Spacer(),
-          HudSpeedButton(speed: speed, compact: compact, onPressed: onSpeed),
-          const SizedBox(width: 2),
-          HudIconButton(
-            icon: Icons.pause_rounded,
-            tooltip: '暂停',
-            compact: compact,
-            onPressed: onPause,
-          ),
         ],
       ),
     );
   }
-
-  int _displayWave() =>
-      engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex;
 
   String _statusLabel() {
     return switch (engine.status) {
@@ -134,4 +102,53 @@ class HudTopBar extends StatelessWidget {
             : '防线失守',
     };
   }
+}
+
+/// 网格上方右侧的资源信息：金币与波次进度。
+class HudResourcePanel extends StatelessWidget {
+  const HudResourcePanel({
+    super.key,
+    required this.engine,
+    required this.compact,
+    required this.width,
+  });
+
+  final DefenseEngine engine;
+  final bool compact;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final showWaveText = width >= 700;
+    return Container(
+      height: hudInfoHeight(compact),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6),
+      decoration: hudPanelDecoration(context, radius: compact ? 13 : 15),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HudInfoPill(
+            icon: Icons.monetization_on_rounded,
+            iconColor: const Color(0xFFD99B1D),
+            label: '${engine.gold}',
+            compact: compact,
+          ),
+          if (showWaveText) ...[
+            const SizedBox(width: 5),
+            HudInfoPill(
+              icon: Icons.flag_rounded,
+              iconColor: const Color(0xFF3F7D46),
+              label: engine.scored
+                  ? '第 ${_displayWave()} 波'
+                  : '${_displayWave()}/${engine.level.waveCount} 波',
+              compact: compact,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  int _displayWave() =>
+      engine.status == GameStatus.preparing ? engine.waveIndex + 1 : engine.waveIndex;
 }

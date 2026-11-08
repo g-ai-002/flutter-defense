@@ -93,11 +93,17 @@ class HudSpeedButton extends StatelessWidget {
     required this.speed,
     required this.compact,
     required this.onPressed,
+    this.width,
+    this.height,
   });
 
   final double speed;
   final bool compact;
   final VoidCallback onPressed;
+
+  /// 控制条可指定更紧凑的尺寸，默认沿用信息条尺寸。
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -108,8 +114,8 @@ class HudSpeedButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          width: compact ? 34 : 40,
-          height: compact ? 28 : 32,
+          width: width ?? (compact ? 34 : 40),
+          height: height ?? (compact ? 28 : 32),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: theme.colorScheme.primary.withValues(alpha: 0.12),
@@ -152,6 +158,42 @@ class HudIconButton extends StatelessWidget {
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
       constraints: BoxConstraints.tightFor(width: compact ? 28 : 32, height: compact ? 28 : 32),
+    );
+  }
+}
+
+/// 控制条上的小图标按钮：尺寸完全受控，便于与倍速按钮竖直排布。
+class HudGlyphButton extends StatelessWidget {
+  const HudGlyphButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.width,
+    required this.height,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final double width;
+  final double height;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: width,
+          height: height,
+          alignment: Alignment.center,
+          child: Icon(icon, size: height * 0.62, color: theme.colorScheme.onSurfaceVariant),
+        ),
+      ),
     );
   }
 }

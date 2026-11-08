@@ -7,23 +7,43 @@ import '../../models/defense_models.dart';
 import 'hud_chrome.dart';
 import 'tower_icon.dart';
 
-/// HUD 底栏：建造/升级/出售面板与开波按钮。
+/// 底部控制条的高度，战场布局据此在网格下方留出悬浮空间。
+double hudDockHeight(bool compact) => compact ? 56 : 84;
+
+/// HUD 底栏：倍速与暂停、建造/升级/出售面板与开波按钮，悬浮在网格下方。
 class HudBottomDock extends StatelessWidget {
-  const HudBottomDock({super.key, required this.engine, required this.compact});
+  const HudBottomDock({
+    super.key,
+    required this.engine,
+    required this.compact,
+    required this.speed,
+    required this.onSpeed,
+    required this.onPause,
+  });
 
   final DefenseEngine engine;
   final bool compact;
+  final double speed;
+  final VoidCallback onSpeed;
+  final VoidCallback onPause;
 
   @override
   Widget build(BuildContext context) {
     final selected = engine.selectedTower;
     final selectedSlot = engine.selectedSlot;
     return Container(
-      height: compact ? 56 : 84,
-      padding: EdgeInsets.fromLTRB(compact ? 6 : 8, compact ? 6 : 8, 8, 6),
+      height: hudDockHeight(compact),
+      padding: EdgeInsets.fromLTRB(compact ? 6 : 8, compact ? 6 : 8, compact ? 6 : 8, 6),
       decoration: hudPanelDecoration(context, radius: compact ? 14 : 18),
       child: Row(
         children: [
+          _UtilityControls(
+            speed: speed,
+            compact: compact,
+            onSpeed: onSpeed,
+            onPause: onPause,
+          ),
+          SizedBox(width: compact ? 5 : 8),
           Expanded(
             child: selected != null
                 ? _TowerPanel(engine: engine, tower: selected, compact: compact)
@@ -35,6 +55,45 @@ class HudBottomDock extends StatelessWidget {
           _WaveButton(engine: engine, compact: compact),
         ],
       ),
+    );
+  }
+}
+
+/// 控制按钮：倍速与暂停竖排在控制条左侧，窄屏下压缩成小图标。
+class _UtilityControls extends StatelessWidget {
+  const _UtilityControls({
+    required this.speed,
+    required this.compact,
+    required this.onSpeed,
+    required this.onPause,
+  });
+
+  final double speed;
+  final bool compact;
+  final VoidCallback onSpeed;
+  final VoidCallback onPause;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        HudSpeedButton(
+          speed: speed,
+          compact: compact,
+          width: compact ? 30 : 40,
+          height: compact ? 20 : 28,
+          onPressed: onSpeed,
+        ),
+        HudGlyphButton(
+          icon: Icons.pause_rounded,
+          tooltip: '暂停',
+          width: compact ? 30 : 40,
+          height: compact ? 22 : 28,
+          onPressed: onPause,
+        ),
+      ],
     );
   }
 }
@@ -319,7 +378,7 @@ class _WaveButton extends StatelessWidget {
 
     if (preparing) {
       return SizedBox(
-        width: compact ? 108 : 154,
+        width: compact ? 96 : 154,
         height: double.infinity,
         child: FilledButton(
           onPressed: engine.startNextWave,
@@ -355,7 +414,7 @@ class _WaveButton extends StatelessWidget {
 
     final battle = engine.status == GameStatus.battle;
     return Container(
-      width: compact ? 108 : 154,
+      width: compact ? 96 : 154,
       height: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(

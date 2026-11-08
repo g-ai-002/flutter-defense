@@ -64,6 +64,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _resultTimer?.cancel();
     _engine.hud.removeListener(_onEngineTick);
+    // 先停渲染循环再释放引擎与通知器，返回首页后不残留逐帧回调与监听。
+    _game.pauseEngine();
     _engine.dispose();
     _game.disposeNotifiers();
     super.dispose();
@@ -202,14 +204,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 ),
               ),
               Positioned.fill(
-                child: SafeArea(
-                  child: GameHud(
-                    engine: _engine,
-                    speed: _speed,
-                    onSpeed: _cycleSpeed,
-                    onPause: () => _setPaused(true),
-                    onBack: _handleBack,
-                  ),
+                child: GameHud(
+                  engine: _engine,
+                  speed: _speed,
+                  onSpeed: _cycleSpeed,
+                  onPause: () => _setPaused(true),
+                  onBack: _handleBack,
                 ),
               ),
               if (_paused && !_resultShown)
