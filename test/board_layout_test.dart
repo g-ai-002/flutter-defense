@@ -38,9 +38,9 @@ void main() {
     });
 
     test('超小窗口下缩放收敛到下限且仍居中', () {
-      final layout = BoardLayout.resolve(const Size(200, 320));
+      final layout = BoardLayout.resolve(const Size(100, 320));
       expect(layout.scale, 0.15);
-      expect(layout.origin.dx + kDesignWidth * layout.scale / 2, closeTo(100, 1));
+      expect(layout.origin.dx + kDesignWidth * layout.scale / 2, closeTo(50, 1));
     });
 
     test('网格在任意视口中都位于屏幕正中', () {
@@ -66,15 +66,38 @@ void main() {
       }
     });
 
-    test('网格上下留出等高的 HUD 悬浮带', () {
+    test('战场画布至少有一条边撑满窗口，另一方向居中留出等宽黑边', () {
+      const views = [
+        Size(1280, 720),
+        Size(1200, 700),
+        Size(800, 450),
+        Size(360, 640),
+        Size(1600, 900),
+        Size(1024, 1366),
+      ];
+      for (final view in views) {
+        final layout = BoardLayout.resolve(view);
+        final board = layout.rect;
+        final fillsWidth = (board.width - view.width).abs() < 0.01;
+        final fillsHeight = (board.height - view.height).abs() < 0.01;
+        expect(
+          fillsWidth || fillsHeight,
+          isTrue,
+          reason: '$view 至少有一条边应撑满窗口，实际 $board',
+        );
+        expect((view.width - board.width) / 2, closeTo(board.left, 0.001), reason: '$view 横向留白应对称');
+        expect((view.height - board.height) / 2, closeTo(board.top, 0.001), reason: '$view 纵向留白应对称');
+      }
+    });
+
+    test('网格上下留出等高的地貌悬浮带', () {
       const views = [Size(1280, 720), Size(1200, 700), Size(800, 360), Size(360, 640)];
       for (final view in views) {
         final layout = BoardLayout.resolve(view);
-        final gridTop = layout.origin.dy + kGridOriginY * layout.scale;
-        final gridBottom = layout.origin.dy + (kGridOriginY + kGridRows * kCellSize) * layout.scale;
-        expect(gridTop, closeTo(view.height - gridBottom, 0.001), reason: '$view 上下留白应对称');
-        expect(gridTop, greaterThanOrEqualTo(hudReserveFor(view) - 0.001));
-        expect(view.height - gridBottom, greaterThanOrEqualTo(hudReserveFor(view) - 0.001));
+        final grid = layout.gridRect;
+        expect(grid.top, closeTo(view.height - grid.bottom, 0.001), reason: '$view 上下留白应对称');
+        expect(grid.top, greaterThan(0));
+        expect(grid.bottom, lessThan(view.height + 0.001));
       }
     });
   });

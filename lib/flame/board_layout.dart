@@ -12,10 +12,11 @@ class BoardLayout {
   final Offset origin;
   final double scale;
 
-  /// 按可用屏幕空间等比缩放，设计画布在视口中水平与垂直都精确居中。
+  /// 按窗口尺寸等比缩放：画布至少有一条边正好撑满窗口，另一方向留出等宽黑边，
+  /// 战场网格因此始终位于屏幕正中，且尽量放大到窗口能容纳的极限。
   ///
-  /// 上下预留带由 [hudReserveFor] 给出且两侧一致，HUD 悬浮在带内，
-  /// 因此战场网格始终位于屏幕正中，不会被顶部信息或底部控制条挤偏。
+  /// HUD 悬浮在画布自带的上下地貌留白带里，不参与缩放计算，
+  /// 这样改动信息簇尺寸也不会把战场挤小。
   factory BoardLayout.resolve(Size view) {
     final scale = boardScaleFor(view);
     return BoardLayout(
@@ -26,6 +27,22 @@ class BoardLayout {
       scale: scale,
     );
   }
+
+  /// 设计画布在屏幕上的矩形，HUD 依此把信息簇贴到画布的边角。
+  Rect get rect => Rect.fromLTWH(
+    origin.dx,
+    origin.dy,
+    kDesignWidth * scale,
+    kDesignHeight * scale,
+  );
+
+  /// 网格在屏幕上的矩形：信息簇贴在网格上方，控制条贴在网格下方。
+  Rect get gridRect => Rect.fromLTWH(
+    origin.dx + kGridOriginX * scale,
+    origin.dy + kGridOriginY * scale,
+    kGridCols * kCellSize * scale,
+    kGridRows * kCellSize * scale,
+  );
 
   Offset toDesign(Offset local) => (local - origin) / scale;
 

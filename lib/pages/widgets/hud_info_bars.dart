@@ -4,10 +4,13 @@ import '../../game/engine/defense_engine.dart';
 import '../../game/engine/entities.dart';
 import 'hud_chrome.dart';
 
-/// 顶部信息条的高度，战场布局据此在网格上方留出悬浮空间。
-double hudInfoHeight(bool compact) => compact ? 38 : 46;
+/// 顶部信息簇的高度，战场布局据此把信息簇停在网格上方。
+double hudInfoHeight(bool compact) => compact ? 34 : 40;
 
-/// 网格上方左侧的关卡信息：返回、关卡名与状态、萝卜血量。
+/// 画布左上角的关卡信息：返回、关卡名与状态、萝卜血量。
+///
+/// 每个元素都是独立的小卡片，不套外框，悬浮在地貌留白带上时不会形成
+/// 一个压在战场上的空心矩形。
 class HudStatusPanel extends StatelessWidget {
   const HudStatusPanel({
     super.key,
@@ -24,54 +27,28 @@ class HudStatusPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final showTitle = !compact && width >= 780;
     final hpRatio = engine.carrotMaxHp == 0 ? 0.0 : engine.carrotHp / engine.carrotMaxHp;
-    return Container(
+    final showTitle = width >= 560;
+    return SizedBox(
       height: hudInfoHeight(compact),
-      padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6),
-      decoration: hudPanelDecoration(context, radius: compact ? 13 : 15),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          HudIconButton(
+          HudIconChip(
             icon: Icons.arrow_back_rounded,
             tooltip: '返回',
             compact: compact,
             onPressed: onBack,
           ),
+          const SizedBox(width: 6),
           if (showTitle) ...[
-            const SizedBox(width: 2),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 150),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    engine.level.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    _statusLabel(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 10,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            HudTitleChip(
+              title: engine.level.name,
+              subtitle: _statusLabel(),
+              compact: compact,
             ),
+            const SizedBox(width: 6),
           ],
-          const SizedBox(width: 4),
           HudInfoPill(
             icon: Icons.favorite_rounded,
             iconColor: const Color(0xFFE4572E),
@@ -104,7 +81,7 @@ class HudStatusPanel extends StatelessWidget {
   }
 }
 
-/// 网格上方右侧的资源信息：金币与波次进度。
+/// 画布右上角的资源信息：金币与波次进度。
 class HudResourcePanel extends StatelessWidget {
   const HudResourcePanel({
     super.key,
@@ -120,10 +97,8 @@ class HudResourcePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showWaveText = width >= 700;
-    return Container(
+    return SizedBox(
       height: hudInfoHeight(compact),
-      padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6),
-      decoration: hudPanelDecoration(context, radius: compact ? 13 : 15),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -134,7 +109,7 @@ class HudResourcePanel extends StatelessWidget {
             compact: compact,
           ),
           if (showWaveText) ...[
-            const SizedBox(width: 5),
+            const SizedBox(width: 6),
             HudInfoPill(
               icon: Icons.flag_rounded,
               iconColor: const Color(0xFF3F7D46),

@@ -45,3 +45,6 @@ Thumbs.db
 **/gradlew.bat
 
 .qwen
+
+# Golden 测试产物
+test/failures/

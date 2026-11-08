@@ -7,8 +7,11 @@ import '../../models/defense_models.dart';
 import 'hud_chrome.dart';
 import 'tower_icon.dart';
 
-/// 底部控制条的高度，战场布局据此在网格下方留出悬浮空间。
-double hudDockHeight(bool compact) => compact ? 56 : 84;
+/// 底部控制条的高度，战场布局据此把控制条停在网格下方。
+///
+/// 非紧凑高度与设计画布下方的地貌留白带等高（72），
+/// 战场撑满 16:9 窗口时控制条正好贴在网格下方，不会压住最后一排格子。
+double hudDockHeight(bool compact) => compact ? 52 : 72;
 
 /// HUD 底栏：倍速与暂停、建造/升级/出售面板与开波按钮，悬浮在网格下方。
 class HudBottomDock extends StatelessWidget {
@@ -33,7 +36,7 @@ class HudBottomDock extends StatelessWidget {
     final selectedSlot = engine.selectedSlot;
     return Container(
       height: hudDockHeight(compact),
-      padding: EdgeInsets.fromLTRB(compact ? 6 : 8, compact ? 6 : 8, compact ? 6 : 8, 6),
+      padding: EdgeInsets.fromLTRB(compact ? 5 : 8, compact ? 5 : 8, compact ? 5 : 8, compact ? 4 : 6),
       decoration: hudPanelDecoration(context, radius: compact ? 14 : 18),
       child: Row(
         children: [
@@ -83,14 +86,14 @@ class _UtilityControls extends StatelessWidget {
           speed: speed,
           compact: compact,
           width: compact ? 30 : 40,
-          height: compact ? 20 : 28,
+          height: compact ? 18 : 28,
           onPressed: onSpeed,
         ),
         HudGlyphButton(
           icon: Icons.pause_rounded,
           tooltip: '暂停',
           width: compact ? 30 : 40,
-          height: compact ? 22 : 28,
+          height: compact ? 20 : 28,
           onPressed: onPause,
         ),
       ],
@@ -314,7 +317,7 @@ class _TowerCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Container(
             width: compact ? 58 : 88,
-            height: compact ? 44 : 62,
+            height: compact ? 40 : 56,
             padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 7, vertical: 3),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
@@ -326,7 +329,7 @@ class _TowerCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TowerIcon(kind: kind, size: compact ? 22 : 30),
+                TowerIcon(kind: kind, size: compact ? 20 : 24),
                 if (!compact)
                   Text(
                     kind.label.replaceAll('塔', ''),

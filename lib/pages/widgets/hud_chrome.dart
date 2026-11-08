@@ -15,6 +15,25 @@ BoxDecoration hudPanelDecoration(BuildContext context, {required double radius})
   );
 }
 
+/// 信息簇上的小卡片：直接悬浮在战场地貌上，不套大外框，
+/// 每个数值自带半透明底与描边，避免在地图上留下多余的空心方框。
+BoxDecoration hudChipDecoration(BuildContext context, {double radius = 99}) {
+  final theme = Theme.of(context);
+  final dark = theme.brightness == Brightness.dark;
+  return BoxDecoration(
+    color: theme.colorScheme.surface.withValues(alpha: dark ? 0.82 : 0.88),
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.75)),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: dark ? 0.32 : 0.14),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      ),
+    ],
+  );
+}
+
 class HudMiniBar extends StatelessWidget {
   const HudMiniBar({super.key, required this.ratio, required this.color});
 
@@ -62,11 +81,8 @@ class HudInfoPill extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       height: compact ? 26 : 30,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(99),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 9),
+      decoration: hudChipDecoration(context),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -81,6 +97,101 @@ class HudInfoPill extends StatelessWidget {
             ),
           ),
           if (trailing != null) ...[const SizedBox(width: 6), trailing!],
+        ],
+      ),
+    );
+  }
+}
+
+/// 信息簇左上角的圆形图标按钮，与外框分离，看起来就是一枚按钮而不是方框。
+class HudIconChip extends StatelessWidget {
+  const HudIconChip({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.compact,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool compact;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = compact ? 30.0 : 34.0;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(99),
+          child: Container(
+            width: size,
+            height: size,
+            alignment: Alignment.center,
+            decoration: hudChipDecoration(context),
+            child: Icon(
+              icon,
+              size: compact ? 17 : 19,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 关卡名称与当前状态的两行小卡片，替代原先包住整簇信息的大外框。
+class HudTitleChip extends StatelessWidget {
+  const HudTitleChip({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.compact,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: compact ? 30 : 34,
+      constraints: const BoxConstraints(maxWidth: 170),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 9 : 11),
+      decoration: hudChipDecoration(context, radius: 12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontSize: compact ? 12 : 13,
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+            ),
+          ),
+          if (!compact)
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                height: 1.1,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
         ],
       ),
     );
