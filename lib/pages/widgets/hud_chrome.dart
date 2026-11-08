@@ -4,14 +4,20 @@ import '../../theme/app_theme.dart';
 
 /// HUD 通用装饰与小型控件，供顶栏、底栏共用。
 
+/// 上下悬浮层的表面不透明度：50% 透光，让战场地貌从信息簇与控制条下透出来。
+const double kHudGlassAlpha = 0.5;
+
+/// 悬浮层外框：半透明表面配一圈细描边，投影收轻，避免在战场上压出一块暗色。
 BoxDecoration hudPanelDecoration(BuildContext context, {required double radius}) {
   final dark = Theme.of(context).brightness == Brightness.dark;
   return appPanelDecoration(
     context,
     radius: radius,
-    surfaceAlpha: dark ? 0.9 : 0.92,
-    borderAlpha: 0.75,
-    shadowOpacity: dark ? 0.3 : 0.12,
+    surfaceAlpha: kHudGlassAlpha,
+    borderAlpha: 0.6,
+    shadowOpacity: dark ? 0.2 : 0.08,
+    shadowBlur: 8,
+    shadowOffset: const Offset(0, 2),
   );
 }
 
@@ -21,14 +27,14 @@ BoxDecoration hudChipDecoration(BuildContext context, {double radius = 99}) {
   final theme = Theme.of(context);
   final dark = theme.brightness == Brightness.dark;
   return BoxDecoration(
-    color: theme.colorScheme.surface.withValues(alpha: dark ? 0.82 : 0.88),
+    color: theme.colorScheme.surface.withValues(alpha: kHudGlassAlpha),
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.75)),
+    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.6)),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withValues(alpha: dark ? 0.32 : 0.14),
-        blurRadius: 10,
-        offset: const Offset(0, 3),
+        color: Colors.black.withValues(alpha: dark ? 0.2 : 0.08),
+        blurRadius: 8,
+        offset: const Offset(0, 2),
       ),
     ],
   );
@@ -344,10 +350,10 @@ class HudPanelButton extends StatelessWidget {
     );
     return Material(
       color: outlined
-          ? colors.surface
+          ? colors.surface.withValues(alpha: kHudGlassAlpha)
           : enabled
           ? colors.primary
-          : colors.surfaceContainerHighest,
+          : colors.surfaceContainerHighest.withValues(alpha: kHudGlassAlpha),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: enabled ? onTap : null,

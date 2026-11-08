@@ -307,7 +307,7 @@ class _TowerCard extends StatelessWidget {
       child: Material(
         color: selected
             ? colors.primary.withValues(alpha: 0.14)
-            : colors.surfaceContainerHighest.withValues(alpha: 0.55),
+            : colors.surfaceContainerHighest.withValues(alpha: kHudGlassAlpha),
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: enabled || selected ? onTap : null,
@@ -418,7 +418,7 @@ class _WaveButton extends StatelessWidget {
       height: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withValues(alpha: 0.6),
+        color: colors.surfaceContainerHighest.withValues(alpha: kHudGlassAlpha),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.outline.withValues(alpha: 0.6)),
       ),
