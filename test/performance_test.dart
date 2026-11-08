@@ -5,6 +5,7 @@ import 'package:carrot_defense/flame/board_component.dart';
 import 'package:carrot_defense/game/engine/defense_engine.dart';
 import 'package:carrot_defense/game/engine/entities.dart';
 import 'package:carrot_defense/game/engine/path_track.dart';
+import 'package:carrot_defense/game/engine/route_plan.dart';
 import 'package:carrot_defense/game/levels.dart';
 import 'package:carrot_defense/game/logic_rate.dart';
 import 'package:carrot_defense/models/defense_models.dart';
@@ -173,6 +174,48 @@ void main() {
       }
       expect(killedAt, greaterThanOrEqualTo(0));
       expect(engine.status, GameStatus.victory);
+    });
+
+    test('帧内敌人顺序按进度升序复用同一份列表', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          startGold: 0,
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 4, gap: 0.3)], reward: 0),
+          ],
+        ),
+      );
+      engine.startNextWave();
+      advance(engine, 6);
+      final order = engine.frameOrder;
+      expect(order, isNotEmpty);
+      expect(identical(engine.frameOrder, order), isTrue, reason: '同帧多次查询不应重建列表');
+      expect(order.length, engine.enemies.where((enemy) => enemy.alive).length);
+      for (var i = 1; i < order.length; i++) {
+        expect(
+          order[i - 1].progress,
+          lessThanOrEqualTo(order[i].progress),
+          reason: '索敌倒序扫描依赖进度升序',
+        );
+      }
+    });
+
+    test('无传送门的路线共用空跳跃表，传送门关卡按路线缓存', () {
+      final plain = DefenseEngine(level: kLevels.first);
+      plain.startNextWave();
+      advance(plain, 1);
+      expect(plain.enemies, isNotEmpty);
+      expect(plain.enemies.every((enemy) => identical(enemy.jumps, RoutePlan.noJumps)), isTrue);
+
+      final portalLevel = kLevels.firstWhere((level) => level.portals.isNotEmpty);
+      final engine = DefenseEngine(level: portalLevel);
+      engine.startNextWave();
+      advance(engine, 2);
+      expect(
+        engine.enemies.any((enemy) => identical(enemy.jumps, engine.plan.jumpsOn(enemy.route))),
+        isTrue,
+        reason: '敌人直接持有本路线的跳跃表，逐帧判定不再查表',
+      );
     });
   });
 

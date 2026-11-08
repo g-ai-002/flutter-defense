@@ -3,6 +3,7 @@ import 'dart:ui';
 import '../../models/defense_models.dart';
 import '../balance.dart';
 import 'path_track.dart';
+import 'route_plan.dart';
 
 enum GameStatus { preparing, battle, victory, defeat }
 
@@ -65,6 +66,7 @@ class Enemy {
     required this.track,
     required this.route,
     required this.routeLength,
+    this.jumps = const <PortalJump>[],
     this.flying = false,
   }) : hp = maxHp;
 
@@ -86,6 +88,9 @@ class Enemy {
   /// 敌人选择的路线与本路线的采样轨道。
   final PathTrack track;
   final int route;
+
+  /// 本路线的传送门跳跃表，无传送门时是共享的空表，逐帧判定直接跳过。
+  final List<PortalJump> jumps;
 
   /// 本局行进路线的总长度，用于统一进度比较。
   final double routeLength;

@@ -51,6 +51,11 @@ class DefenseEngine {
   final List<Tower> _activeTowers = [];
   late final List<Tower> _activeTowersView = UnmodifiableListView(_activeTowers);
 
+  /// 存活敌人按行进进度升序排列，索敌、连锁与绘制共用同一份顺序。
+  final List<Enemy> _frameOrder = [];
+  late final List<Enemy> _frameOrderView = UnmodifiableListView(_frameOrder);
+  bool _orderDirty = true;
+
   /// 敌人 id 索引，弹道命中查询从 O(n) 降为 O(1)。
   final Map<int, Enemy> _enemyIndex = {};
 
@@ -127,6 +132,22 @@ class DefenseEngine {
   int get clearedWaves => status == GameStatus.battle ? math.max(0, waveIndex - 1) : waveIndex;
 
   List<Tower> get activeTowers => _activeTowersView;
+
+  /// 存活敌人的绘制顺序（进度升序，近处的敌人后画），首次访问时重建。
+  ///
+  /// 索敌需要「射程内进度最大」的敌人，倒序扫描即可命中即止，
+  /// 不必像过去那样为每座塔完整遍历一遍敌人。
+  List<Enemy> get frameOrder {
+    if (_orderDirty) {
+      final order = _frameOrder..clear();
+      for (final enemy in enemies) {
+        if (enemy.alive) order.add(enemy);
+      }
+      order.sort(_byProgress);
+      _orderDirty = false;
+    }
+    return _frameOrderView;
+  }
 
   void selectSlot(int? slot) {
     if (slot != null && (slot < 0 || slot >= towers.length)) return;
@@ -282,8 +303,9 @@ class DefenseEngine {
       lateral: lateral,
       track: track,
       route: route,
-      flying: flying,
       routeLength: plan.routeLength(route, flying: flying),
+      jumps: plan.jumpsOn(route),
+      flying: flying,
     );
     final position = _routePosition(enemy);
     enemy
@@ -292,6 +314,7 @@ class DefenseEngine {
     enemies.add(enemy);
     _aliveCount++;
     _enemyIndex[id] = enemy;
+    _orderDirty = true;
   }
 
   /// 地面敌人沿土路前进，飞行敌人走入口到萝卜的直线。
@@ -318,6 +341,7 @@ class DefenseEngine {
       }
     }
     _removeDeadEnemies();
+    _orderDirty = true;
   }
 
   /// 推进单个敌人：先结算移动与状态倒计时，再判定毒雾伤害。
@@ -339,7 +363,9 @@ class DefenseEngine {
   /// 越过入口弧长时瞬移到前方出口，同一敌人每道门只结算一次。
   bool _usePortal(Enemy enemy, double before) {
     if (enemy.flying) return false;
-    for (final jump in plan.jumpsOn(enemy.route)) {
+    final jumps = enemy.jumps;
+    if (jumps.isEmpty) return false;
+    for (final jump in jumps) {
       if (before >= jump.entry || enemy.distance < jump.entry) continue;
       if (jump.exit <= enemy.distance) continue;
       enemy.distance = jump.exit;
@@ -420,23 +446,19 @@ class DefenseEngine {
   }
 
   Enemy? _findTarget(Tower tower) {
-    Enemy? best;
-    var bestProgress = -1.0;
-    for (final enemy in enemies) {
+    final order = frameOrder;
+    final base = tower.stats.range;
+    // 顺序按进度升序，倒序扫描：第一个进入射程的敌人就是进度最大的目标。
+    for (var i = order.length - 1; i >= 0; i--) {
+      final enemy = order[i];
       if (!enemy.alive) continue;
       final position = enemy.position;
       final dx = position.dx - tower.position.dx;
       final dy = position.dy - tower.position.dy;
-      final range = tower.stats.range + enemy.radius;
-      if (dx * dx + dy * dy > range * range) {
-        continue;
-      }
-      if (enemy.progress > bestProgress) {
-        bestProgress = enemy.progress;
-        best = enemy;
-      }
+      final range = base + enemy.radius;
+      if (dx * dx + dy * dy <= range * range) return enemy;
     }
-    return best;
+    return null;
   }
 
   void _fire(Tower tower, Enemy target) {
@@ -493,7 +515,7 @@ class DefenseEngine {
       Enemy? next;
       var best = kChainRadius * kChainRadius;
       final origin = current.position;
-      for (final enemy in enemies) {
+      for (final enemy in frameOrder) {
         if (!enemy.alive || hit.contains(enemy.id)) continue;
         final dx = enemy.position.dx - origin.dx;
         final dy = enemy.position.dy - origin.dy;
@@ -693,4 +715,6 @@ class DefenseEngine {
   void dispose() => hud.dispose();
 
   static Offset _direction(double angle) => Offset(math.cos(angle), math.sin(angle));
+
+  static int _byProgress(Enemy a, Enemy b) => a.progress.compareTo(b.progress);
 }

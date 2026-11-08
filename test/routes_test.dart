@@ -202,6 +202,8 @@ void main() {
     final b = dailyLevel(DateTime(2026, 11, 8));
     final c = dailyLevel(DateTime(2026, 11, 9));
 
+    expect(identical(a, b), isTrue, reason: '同一天反复取用应复用同一份关卡');
+    expect(identical(a, c), isFalse, reason: '换日必须重新生成');
     expect(a.seed, dailySeed(DateTime(2026, 11, 8)));
     expect(a.daily, isTrue);
     expect(a.seed, b.seed);

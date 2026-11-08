@@ -17,7 +17,6 @@ class BoardActorLayer {
   final DefenseEngine engine;
   final Map<String, TextPainter> _textCache = {};
   final Map<int, ui.Picture> _rangeLayers = {};
-  final List<Enemy> _enemyOrder = [];
 
   void paintCarrotTarget(Canvas canvas) {
     final end = engine.track.end;
@@ -90,12 +89,9 @@ class BoardActorLayer {
   }
 
   void paintEnemies(Canvas canvas, double visualTime, double alpha) {
-    final order = _enemyOrder..clear();
-    for (final enemy in engine.enemies) {
-      if (enemy.alive) order.add(enemy);
-    }
-    order.sort(_byProgress);
-    for (final enemy in order) {
+    // 引擎已按进度升序维护存活敌人顺序，绘制层不再逐帧排序。
+    for (final enemy in engine.frameOrder) {
+      if (!enemy.alive) continue;
       final position = engine.enemyPosition(enemy, alpha: alpha);
       final bob = enemy.flying
           ? math.sin(visualTime * 6 + enemy.id) * 3 - 12
@@ -327,8 +323,6 @@ class BoardActorLayer {
     return painter;
   }
 }
-
-int _byProgress(Enemy a, Enemy b) => a.progress.compareTo(b.progress);
 
 void _dot(Canvas canvas, Offset at, double radius, Color color) =>
     canvas.drawCircle(at, radius, dynFill(color));

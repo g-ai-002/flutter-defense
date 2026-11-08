@@ -29,7 +29,14 @@ class RoutePlan {
         if (jump != null) _jumps[route].add(jump);
       }
     }
+    // 没有传送门的路线共用同一份空表，出怪时为每只敌人省下一次列表分配。
+    for (var route = 0; route < _jumps.length; route++) {
+      if (_jumps[route].isEmpty) _jumps[route] = noJumps;
+    }
   }
+
+  /// 没有传送门的路线共用的空跳跃表。
+  static const List<PortalJump> noJumps = <PortalJump>[];
 
   /// 全部可行路线，主路固定在第 0 条。
   final List<PathTrack> tracks;

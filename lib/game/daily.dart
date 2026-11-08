@@ -13,13 +13,18 @@ String dailyKey(DateTime date) =>
     '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
 /// 按日期种子生成当天关卡：路线、分流与出怪节奏都由种子决定，同一天重玩完全一致。
+///
+/// 同一天的关卡只解析一次，首页与每日挑战入口反复取用时不再重算十五波配置。
 LevelDef dailyLevel([DateTime? now]) {
   final date = now ?? DateTime.now();
   final seed = dailySeed(date);
+  final cached = _cachedLevel;
+  if (cached != null && _cachedSeed == seed) return cached;
   final random = math.Random(seed);
   final base = kLevels[random.nextInt(kLevels.length)];
   final lanes = base.routes.length;
-  return LevelDef(
+  _cachedSeed = seed;
+  return _cachedLevel = LevelDef(
     id: 900,
     name: '每日挑战',
     subtitle: '${dailyKey(date)} · 种子 $seed',
@@ -37,6 +42,9 @@ LevelDef dailyLevel([DateTime? now]) {
     waves: [for (var index = 0; index < kDailyWaves; index++) _dailyWave(random, index + 1, lanes)],
   );
 }
+
+LevelDef? _cachedLevel;
+int _cachedSeed = 0;
 
 /// 每日波次：数量随波次线性增长并设上限，分岔关卡按种子把主队分到支路。
 WaveDef _dailyWave(math.Random random, int wave, int lanes) {
