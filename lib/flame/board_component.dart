@@ -5,9 +5,6 @@ import 'package:flutter/material.dart' hide Gradient;
 import '../game/engine/defense_engine.dart';
 import '../game/logic_rate.dart';
 import '../services/sound_service.dart';
-import '../theme/level_theme.dart';
-import '../utils/constants.dart';
-import 'art_utils.dart';
 import 'board_actor_layer.dart';
 import 'board_event_feedback.dart';
 import 'board_ground.dart';
@@ -39,13 +36,6 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
   BoardLayout? _layout;
   Size _layoutSize = Size.zero;
-  RRect _frame = _boardClip.shift(Offset.zero);
-  RRect _frameInner = _boardClip.shift(Offset.zero).deflate(4);
-
-  static final RRect _boardClip = RRect.fromRectAndRadius(
-    const Rect.fromLTWH(0, 0, kDesignWidth, kDesignHeight),
-    const Radius.circular(28),
-  );
 
   /// 布局只与视口尺寸有关，渲染与点击共用同一份结果。
   BoardLayout _layoutFor() {
@@ -53,8 +43,6 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     if (_layout == null || _layoutSize != view) {
       _layout = BoardLayout.resolve(view);
       _layoutSize = view;
-      _frame = _boardClip.shift(_layout!.origin);
-      _frameInner = _frame.deflate(4);
     }
     return _layout!;
   }
@@ -62,10 +50,6 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   /// 静态图层被录制的次数，供性能回归测试确认缓存生效。
   @visibleForTesting
   int get staticLayerBuilds => _ground.staticLayerBuilds;
-
-  /// 屏幕背景图层被录制的次数，尺寸不变时应保持为 1。
-  @visibleForTesting
-  int get backdropBuilds => _ground.backdropBuilds;
 
   @override
   void update(double dt) {
@@ -105,12 +89,10 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   void render(Canvas canvas) {
     if (size.x <= 0 || size.y <= 0) return;
     final layout = _layoutFor();
-    _ground.paintBackdrop(canvas, Size(size.x, size.y), layout);
 
     canvas.save();
     canvas.translate(layout.origin.dx, layout.origin.dy);
     canvas.scale(layout.scale);
-    canvas.clipRRect(_boardClip);
 
     _ground.paintStatic(canvas);
     _ground.paintStartGlow(canvas, _visualTime);
@@ -124,10 +106,6 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     _actors.paintEffects(canvas, _visualTime);
     _actors.paintFloaters(canvas);
     canvas.restore();
-
-    final palette = paletteOf(engine.level.theme);
-    canvas.drawRRect(_frame, dynStroke(palette.frame.withValues(alpha: 0.55), 3));
-    canvas.drawRRect(_frameInner, dynStroke(Colors.white.withValues(alpha: 0.18), 1.2));
   }
 
   @override

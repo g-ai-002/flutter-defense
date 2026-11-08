@@ -192,11 +192,7 @@ void main() {
       expect(identical(engine.frameOrder, order), isTrue, reason: '同帧多次查询不应重建列表');
       expect(order.length, engine.enemies.where((enemy) => enemy.alive).length);
       for (var i = 1; i < order.length; i++) {
-        expect(
-          order[i - 1].progress,
-          lessThanOrEqualTo(order[i].progress),
-          reason: '索敌倒序扫描依赖进度升序',
-        );
+        expect(order[i - 1].progress, lessThanOrEqualTo(order[i].progress), reason: '索敌倒序扫描依赖进度升序');
       }
     });
 
@@ -220,7 +216,7 @@ void main() {
   });
 
   group('渲染缓存', () {
-    test('静态图层与背景只录制一次，尺寸变化才重建背景', () {
+    test('静态图层只录制一次，尺寸变化不重建', () {
       final engine = DefenseEngine(level: kLevels.first);
       final paused = ValueNotifier<bool>(false);
       final speed = ValueNotifier<double>(1);
@@ -239,16 +235,13 @@ void main() {
 
       _renderOnce(board);
       expect(board.staticLayerBuilds, 1);
-      expect(board.backdropBuilds, 1);
 
       _renderOnce(board);
       expect(board.staticLayerBuilds, 1);
-      expect(board.backdropBuilds, 1);
 
       board.size = Vector2(1024, 600);
       _renderOnce(board);
-      expect(board.staticLayerBuilds, 1, reason: '静态图层与尺寸无关');
-      expect(board.backdropBuilds, 2, reason: '尺寸变化后背景需要重录');
+      expect(board.staticLayerBuilds, 1, reason: '延伸地貌与尺寸无关，换窗口尺寸无需重录');
 
       board.onRemove();
       engine.dispose();

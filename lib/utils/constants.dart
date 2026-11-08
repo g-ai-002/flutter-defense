@@ -16,6 +16,19 @@ const double kGridOriginY = (kDesignHeight - kGridRows * kCellSize) / 2;
 Offset gridToDesign(double col, double row) =>
     Offset(kGridOriginX + (col + 0.5) * kCellSize, kGridOriginY + (row + 0.5) * kCellSize);
 
+/// 地面向设计画布外延伸的尺寸：窗口不是 16:9 时用延伸地貌铺满，避免留下黑边。
+/// 覆盖到约 6:1 的横向窗口与 1:2.4 的竖向窗口，超出部分才会露出底色。
+const double kGroundOverscanX = 1600;
+const double kGroundOverscanY = 1200;
+
+/// 静态地貌绘制的范围，始终一次性录制后复用。
+const Rect kGroundRect = Rect.fromLTRB(
+  -kGroundOverscanX,
+  -kGroundOverscanY,
+  kDesignWidth + kGroundOverscanX,
+  kDesignHeight + kGroundOverscanY,
+);
+
 /// 屏幕较矮时 HUD 使用紧凑尺寸，信息簇与控制条据此收缩。
 bool compactHudFor(Size size) => size.height < 600 || size.width < 760;
 
@@ -34,7 +47,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.4.3';
+  static const String version = '0.4.4';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';

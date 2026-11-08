@@ -7,13 +7,10 @@ import '../../models/defense_models.dart';
 import 'hud_chrome.dart';
 import 'tower_icon.dart';
 
-/// 底部控制条的高度，战场布局据此把控制条停在网格下方。
-///
-/// 非紧凑高度与设计画布下方的地貌留白带等高（72），
-/// 战场撑满 16:9 窗口时控制条正好贴在网格下方，不会压住最后一排格子。
+/// 底部控制条的高度，贴近屏幕最下方时按窗口高度决定是否收缩。
 double hudDockHeight(bool compact) => compact ? 52 : 72;
 
-/// HUD 底栏：倍速与暂停、建造/升级/出售面板与开波按钮，悬浮在网格下方。
+/// HUD 底栏：倍速与暂停、建造/升级/出售面板与开波按钮，贴住屏幕底部悬浮。
 class HudBottomDock extends StatelessWidget {
   const HudBottomDock({
     super.key,
@@ -36,16 +33,16 @@ class HudBottomDock extends StatelessWidget {
     final selectedSlot = engine.selectedSlot;
     return Container(
       height: hudDockHeight(compact),
-      padding: EdgeInsets.fromLTRB(compact ? 5 : 8, compact ? 5 : 8, compact ? 5 : 8, compact ? 4 : 6),
+      padding: EdgeInsets.fromLTRB(
+        compact ? 5 : 8,
+        compact ? 5 : 8,
+        compact ? 5 : 8,
+        compact ? 4 : 6,
+      ),
       decoration: hudPanelDecoration(context, radius: compact ? 14 : 18),
       child: Row(
         children: [
-          _UtilityControls(
-            speed: speed,
-            compact: compact,
-            onSpeed: onSpeed,
-            onPause: onPause,
-          ),
+          _UtilityControls(speed: speed, compact: compact, onSpeed: onSpeed, onPause: onPause),
           SizedBox(width: compact ? 5 : 8),
           Expanded(
             child: selected != null

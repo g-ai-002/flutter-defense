@@ -57,16 +57,16 @@ void main() {
         final center =
             layout.origin +
             Offset(
-              kGridOriginX + kGridCols * kCellSize / 2,
-              kGridOriginY + kGridRows * kCellSize / 2,
-            ) *
+                  kGridOriginX + kGridCols * kCellSize / 2,
+                  kGridOriginY + kGridRows * kCellSize / 2,
+                ) *
                 layout.scale;
         expect(center.dx, closeTo(view.width / 2, 0.001), reason: '$view 横向应居中');
         expect(center.dy, closeTo(view.height / 2, 0.001), reason: '$view 纵向应居中');
       }
     });
 
-    test('战场画布至少有一条边撑满窗口，另一方向居中留出等宽黑边', () {
+    test('地面延伸范围覆盖任意比例窗口，非 16:9 也不会露出黑边', () {
       const views = [
         Size(1280, 720),
         Size(1200, 700),
@@ -74,19 +74,19 @@ void main() {
         Size(360, 640),
         Size(1600, 900),
         Size(1024, 1366),
+        Size(2560, 1080),
+        Size(1080, 2400),
+        Size(3840, 1080),
       ];
       for (final view in views) {
         final layout = BoardLayout.resolve(view);
-        final board = layout.rect;
-        final fillsWidth = (board.width - view.width).abs() < 0.01;
-        final fillsHeight = (board.height - view.height).abs() < 0.01;
-        expect(
-          fillsWidth || fillsHeight,
-          isTrue,
-          reason: '$view 至少有一条边应撑满窗口，实际 $board',
-        );
-        expect((view.width - board.width) / 2, closeTo(board.left, 0.001), reason: '$view 横向留白应对称');
-        expect((view.height - board.height) / 2, closeTo(board.top, 0.001), reason: '$view 纵向留白应对称');
+        final visible = layout.visibleDesign;
+        expect(kGroundRect.left, lessThanOrEqualTo(visible.left), reason: '$view 左侧应被地面覆盖');
+        expect(kGroundRect.top, lessThanOrEqualTo(visible.top), reason: '$view 上方应被地面覆盖');
+        expect(kGroundRect.right, greaterThanOrEqualTo(visible.right), reason: '$view 右侧应被地面覆盖');
+        expect(kGroundRect.bottom, greaterThanOrEqualTo(visible.bottom), reason: '$view 下方应被地面覆盖');
+        expect((view.width - layout.rect.width) / 2, closeTo(layout.rect.left, 0.001));
+        expect((view.height - layout.rect.height) / 2, closeTo(layout.rect.top, 0.001));
       }
     });
 

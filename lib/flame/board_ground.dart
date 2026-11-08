@@ -8,10 +8,9 @@ import '../game/engine/path_track.dart';
 import '../theme/level_theme.dart';
 import '../utils/constants.dart';
 import 'art_utils.dart';
-import 'board_layout.dart';
 import 'fog_art.dart' as fog;
 
-/// 战场静态层：地貌、装饰、土路、起点底座与屏幕背景，录制后复用。
+/// 战场静态层：延伸到窗口外的地貌、装饰、土路与起点底座，录制后复用。
 class BoardGround {
   BoardGround({required this.engine}) {
     _decorations = _buildDecorations(engine);
@@ -23,32 +22,14 @@ class BoardGround {
   late final List<_Blob> _blobs;
 
   ui.Picture? _staticLayer;
-  ui.Picture? _backdropLayer;
   ui.Picture? _startGlow;
-  Size _backdropSize = Size.zero;
   int _staticLayerBuilds = 0;
-  int _backdropBuilds = 0;
 
   LevelPalette get _palette => paletteOf(engine.level.theme);
   PathTrack get _track => engine.track;
 
   /// 静态图层被录制的次数，供性能回归测试确认缓存生效。
   int get staticLayerBuilds => _staticLayerBuilds;
-
-  /// 屏幕背景图层被录制的次数，尺寸不变时应保持为 1。
-  int get backdropBuilds => _backdropBuilds;
-
-  void paintBackdrop(Canvas canvas, Size view, BoardLayout layout) {
-    if (_backdropLayer == null || _backdropSize != view) {
-      _backdropLayer?.dispose();
-      final recorder = ui.PictureRecorder();
-      _recordBackdrop(Canvas(recorder), view, layout);
-      _backdropLayer = recorder.endRecording();
-      _backdropSize = view;
-      _backdropBuilds++;
-    }
-    canvas.drawPicture(_backdropLayer!);
-  }
 
   /// 地貌、装饰、土路与起点底座都是静态内容，只录制一次。
   void paintStatic(Canvas canvas) {
@@ -69,10 +50,8 @@ class BoardGround {
 
   void dispose() {
     _staticLayer?.dispose();
-    _backdropLayer?.dispose();
     _startGlow?.dispose();
     _staticLayer = null;
-    _backdropLayer = null;
     _startGlow = null;
   }
 
@@ -106,60 +85,19 @@ class BoardGround {
     _staticLayerBuilds++;
   }
 
-  void _recordBackdrop(Canvas canvas, Size view, BoardLayout layout) {
-    final rect = Offset.zero & view;
-    final palette = _palette;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.lerp(palette.frame, Colors.black, 0.55)!,
-            Color.lerp(palette.frame, Colors.black, 0.78)!,
-          ],
-        ).createShader(rect),
-    );
-    final glow = Rect.fromCenter(
-      center: rect.center,
-      width: rect.width * 0.75,
-      height: rect.height * 0.8,
-    );
-    canvas.drawOval(
-      glow,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [palette.accent.withValues(alpha: 0.18), palette.accent.withValues(alpha: 0)],
-        ).createShader(glow),
-    );
-    final shadowRect = Rect.fromLTWH(
-      layout.origin.dx,
-      layout.origin.dy,
-      kDesignWidth * layout.scale,
-      kDesignHeight * layout.scale,
-    );
-    final shadow = RRect.fromRectAndRadius(shadowRect, const Radius.circular(28));
-    // 用三层同心圆角矩形代替实时高斯模糊，静态背景重放时更省 GPU。
-    for (var i = 3; i >= 1; i--) {
-      canvas.drawRRect(
-        shadow.inflate(i * 7.0),
-        Paint()..color = Colors.black.withValues(alpha: 0.09),
-      );
-    }
-  }
-
   void _paintGround(Canvas canvas) {
     final palette = _palette;
-    const rect = Rect.fromLTWH(0, 0, kDesignWidth, kDesignHeight);
+    // 渐变只按设计高度铺开，超出部分由 shader 的边缘色自然接续，
+    // 这样地面可以一直延伸到窗口边缘，不会出现分层或黑边。
+    final gradientRect = Rect.fromLTWH(kGroundRect.left, 0, kGroundRect.width, kDesignHeight);
     canvas.drawRect(
-      rect,
+      kGroundRect,
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [palette.groundTop, palette.groundBottom],
-        ).createShader(rect),
+        ).createShader(gradientRect),
     );
     for (final blob in _blobs) {
       canvas.drawOval(
@@ -168,28 +106,18 @@ class BoardGround {
           ..color = (blob.light ? Colors.white : palette.groundDeep).withValues(alpha: blob.alpha),
       );
     }
-    // 细微草纹，增加地面层次。
+    // 细微草纹，增加地面层次；延伸区域也铺上草纹，缩放后不会显得空旷。
     final random = math.Random(engine.level.seed + 77);
     final linePaint = Paint()
       ..color = palette.groundDeep.withValues(alpha: 0.28)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 90; i++) {
-      final x = random.nextDouble() * kDesignWidth;
-      final y = random.nextDouble() * kDesignHeight;
+    for (var i = 0; i < 220; i++) {
+      final x = kGroundRect.left + random.nextDouble() * kGroundRect.width;
+      final y = kGroundRect.top + random.nextDouble() * kGroundRect.height;
       final length = 4 + random.nextDouble() * 7;
       canvas.drawLine(Offset(x, y), Offset(x + length, y - 2), linePaint);
     }
-    // 内阴影
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = RadialGradient(
-          radius: 0.9,
-          colors: [Colors.transparent, palette.groundDeep.withValues(alpha: 0.35)],
-          stops: const [0.6, 1],
-        ).createShader(rect),
-    );
   }
 
   void _paintDecorations(Canvas canvas) {
@@ -504,12 +432,12 @@ typedef _Blob = ({Offset position, double radius, double alpha, bool light});
 
 List<_Blob> _buildBlobs(int seed) {
   final random = math.Random(seed + 5);
-  return List.generate(9, (_) {
+  return List.generate(120, (_) {
     final light = random.nextBool();
     return (
       position: Offset(
-        80 + random.nextDouble() * (kDesignWidth - 160),
-        50 + random.nextDouble() * (kDesignHeight - 100),
+        kGroundRect.left + random.nextDouble() * kGroundRect.width,
+        kGroundRect.top + random.nextDouble() * kGroundRect.height,
       ),
       radius: 90 + random.nextDouble() * 150,
       alpha: 0.04 + random.nextDouble() * 0.05,
@@ -520,16 +448,19 @@ List<_Blob> _buildBlobs(int seed) {
 
 typedef _Decor = ({Offset position, int kind, double scale, bool flip});
 
+/// 装饰略微超出设计画布，宽屏或更高的窗口在画布外也能看到草木，而不是空白地面。
+const Rect _decorRect = Rect.fromLTRB(-600, -300, kDesignWidth + 600, kDesignHeight + 300);
+
 List<_Decor> _buildDecorations(DefenseEngine engine) {
   final random = math.Random(engine.level.seed);
   final result = <_Decor>[];
   final track = engine.track;
   final carrot = track.end;
   final portals = engine.level.portalEnds;
-  for (var attempt = 0; attempt < 420 && result.length < 34; attempt++) {
+  for (var attempt = 0; attempt < 620 && result.length < 46; attempt++) {
     final position = Offset(
-      40 + random.nextDouble() * (kDesignWidth - 80),
-      36 + random.nextDouble() * (kDesignHeight - 72),
+      _decorRect.left + 40 + random.nextDouble() * (_decorRect.width - 80),
+      _decorRect.top + 36 + random.nextDouble() * (_decorRect.height - 72),
     );
     if (engine.plan.nearRoute(position, 52)) continue;
     if ((position - carrot).distance < 96) continue;

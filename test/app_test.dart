@@ -192,7 +192,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('信息簇贴在画布上角，控制条贴在网格下方', (tester) async {
+  testWidgets('信息簇贴窗口上角，控制条贴住屏幕最下方', (tester) async {
     const view = Size(1200, 700);
     await tester.binding.setSurfaceSize(view);
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -203,7 +203,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    final board = BoardLayout.resolve(view).rect;
     final grid = GameHud.gridRectFor(view);
     final status = tester.getRect(find.byType(HudStatusPanel));
     final resource = tester.getRect(find.byType(HudResourcePanel));
@@ -211,12 +210,14 @@ void main() {
 
     expect(status.bottom, lessThanOrEqualTo(grid.top), reason: '关卡信息应在网格上方');
     expect(resource.bottom, lessThanOrEqualTo(grid.top), reason: '资源信息应在网格上方');
-    expect(status.left, closeTo(board.left + 10, 1), reason: '左侧信息贴在画布左上角');
-    expect(resource.right, closeTo(board.right - 10, 1), reason: '右侧信息贴在画布右上角');
+    expect(status.left, closeTo(8, 1), reason: '左侧信息贴在窗口左上角');
+    expect(status.top, closeTo(6, 1), reason: '信息簇应贴住窗口上边缘');
+    expect(resource.right, closeTo(view.width - 8, 1), reason: '右侧信息贴在窗口右上角');
     expect(resource.left, greaterThan(status.right), reason: '左右两组信息不应重叠');
     expect(dock.top, greaterThanOrEqualTo(grid.bottom - 8), reason: '控制条应在网格下方');
     expect(dock.left, lessThan(grid.left), reason: '控制条横向铺满，不被网格宽度限制');
-    expect(dock.bottom, lessThanOrEqualTo(view.height), reason: '控制条不应超出窗口');
+    expect(dock.bottom, closeTo(view.height, 0.5), reason: '控制条应贴住屏幕最下方');
+    expect(dock.left, closeTo(8, 0.5), reason: '控制条与窗口左右边缘保持间距');
 
     // 信息簇由彼此分离的小卡片组成，不再套一层压在战场上的大外框。
     final back = tester.getRect(find.byType(HudIconChip));

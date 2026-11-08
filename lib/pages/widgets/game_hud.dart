@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../flame/board_layout.dart';
@@ -9,10 +7,10 @@ import '../../utils/constants.dart';
 import 'hud_bottom_dock.dart';
 import 'hud_info_bars.dart';
 
-/// 战场悬浮 HUD：战场画布撑满窗口，信息簇悬浮在画布左上/右上角，控制条悬浮在下方。
+/// 战场悬浮 HUD：地面铺满窗口，信息簇贴在窗口左上/右上安全区，控制条贴住屏幕底部。
 ///
-/// HUD 只按画布与网格的位置摆放，不参与战场缩放，因此窗口变大时战场能一直放大到
-/// 窗口容得下的极限，改变信息密度也不会让战场发生移位。
+/// HUD 不参与战场缩放：窗口变大时战场能一直放大到窗口容得下的极限，
+/// 改变信息密度或窗口比例也不会让战场发生移位。
 class GameHud extends StatelessWidget {
   const GameHud({
     super.key,
@@ -29,7 +27,7 @@ class GameHud extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onBack;
 
-  /// 网格在视口中的矩形，信息簇与控制条都贴在它上下。
+  /// 网格在视口中的矩形，供布局测试确认 HUD 不遮挡网格。
   static Rect gridRectFor(Size view) => BoardLayout.resolve(view).gridRect;
 
   @override
@@ -39,25 +37,11 @@ class GameHud extends StatelessWidget {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         final padding = MediaQuery.paddingOf(context);
         final compact = compactHudFor(size);
-        final layout = BoardLayout.resolve(size);
-        final board = layout.rect;
-        final grid = layout.gridRect;
-        final infoHeight = hudInfoHeight(compact);
-        final dockHeight = hudDockHeight(compact);
-        final topSafe = padding.top + 4;
-        final bottomSafe = padding.bottom + 4;
-        // 信息簇贴住画布上边缘与左右边缘，形成一个明确的 HUD 角标，
-        // 不会像贴在战场中央的小方框；空间不够时退回安全区并停在网格上方。
-        final top = math.max(topSafe, math.min(board.top + 8, grid.top - infoHeight - 6));
-        final left = math.max(8 + padding.left, board.left + 10);
-        final right = math.max(8 + padding.right, size.width - board.right + 10);
-        // 控制条优先落在网格下方的地貌留白带里，窗口过矮时贴住窗口底部，
-        // 但始终排在信息簇下方，避免两者叠在一起。
-        final dockTop = math.max(
-          top + infoHeight + 4,
-          math.min(grid.bottom + 6, size.height - bottomSafe - dockHeight),
-        );
-        final dockBottom = math.max(bottomSafe, size.height - dockTop - dockHeight);
+        final top = padding.top + (compact ? 4 : 6);
+        final left = 8 + padding.left;
+        final right = 8 + padding.right;
+        // 控制条直接贴住屏幕最下方（含手势条等安全区），不再随窗口比例上浮。
+        final dockBottom = padding.bottom;
         return AnimatedBuilder(
           animation: engine.hud,
           builder: (context, _) {
