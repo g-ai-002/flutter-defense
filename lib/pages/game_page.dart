@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../flame/defense_game.dart';
@@ -17,6 +18,7 @@ import '../services/log_service.dart';
 import '../services/sound_service.dart';
 import '../utils/constants.dart';
 import '../utils/display_mode.dart';
+import '../utils/system_ui.dart';
 import 'level_select_page.dart';
 import 'widgets/game_hud.dart';
 import 'widgets/game_overlays.dart';
@@ -188,7 +190,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final daily = widget.level.daily;
     final hasNext = !daily && kLevels.any((item) => item.id == widget.level.id + 1);
     final exitLabel = widget.level.endless || daily ? '返回首页' : '返回选关';
-    return ImmersiveDisplayMode(
+    final page = ImmersiveDisplayMode(
       child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
@@ -245,6 +247,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           ),
         ),
       ),
+    );
+    // 战场底色始终是深色，平板与竖屏下系统栏仍会显示，状态栏图标需用浅色。
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlayStyleFor(const Color(0xFF1B1811)),
+      child: page,
     );
   }
 }

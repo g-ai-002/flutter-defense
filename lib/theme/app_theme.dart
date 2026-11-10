@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/system_ui.dart';
+
 /// 胡萝卜橙 + 奶油底色的视觉基调。
 const Color appOrange = Color(0xFFE4572E);
 const Color appOrangeDeep = Color(0xFFC84520);
@@ -130,6 +132,7 @@ ThemeData _buildBase({
       scrolledUnderElevation: 0,
       centerTitle: true,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: systemOverlayStyleFor(scaffoldColor),
       toolbarHeight: 52,
       titleTextStyle: TextStyle(
         fontSize: 17,

@@ -10,6 +10,7 @@ import 'services/music_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
+import 'utils/system_ui.dart';
 
 class CarrotDefenseApp extends StatefulWidget {
   const CarrotDefenseApp({super.key, required this.storage});
@@ -78,10 +79,12 @@ class _CarrotDefenseAppState extends State<CarrotDefenseApp> with WidgetsBinding
             supportedLocales: const [Locale('zh', 'CN')],
             locale: const Locale('zh', 'CN'),
             // Web 首次点击用于解除浏览器的自动播放限制。
-            builder: (context, child) => Listener(
-              behavior: HitTestBehavior.translucent,
-              onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
-              child: child ?? const SizedBox.shrink(),
+            builder: (context, child) => SystemUiOverlay(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
             home: const HomePage(),
           );
