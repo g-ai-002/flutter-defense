@@ -47,7 +47,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '萝卜保卫战';
-  static const String version = '0.4.5';
+  static const String version = '0.4.6';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeySound = 'sound_enabled';
