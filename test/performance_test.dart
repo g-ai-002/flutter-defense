@@ -213,6 +213,106 @@ void main() {
         reason: '敌人直接持有本路线的跳跃表，逐帧判定不再查表',
       );
     });
+
+    test('敌人进度随距离赋值即时刷新，越界时收敛到 0 或 1', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 1)], reward: 0),
+          ],
+        ),
+      );
+      engine.startNextWave();
+      engine.update(0.05);
+      final enemy = engine.enemies.single;
+      enemy.distance = enemy.routeLength * 0.5;
+      expect(enemy.progress, closeTo(0.5, 0.0001));
+      enemy.distance = enemy.routeLength * 2;
+      expect(enemy.progress, 1);
+      enemy.distance = -20;
+      expect(enemy.progress, 0);
+    });
+
+    test('插入排序在敌人超车后仍复用同一份升序列表', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 2, gap: 0.3)], reward: 0),
+          ],
+        ),
+      );
+      engine.startNextWave();
+      advance(engine, 3);
+      final first = engine.enemies.first;
+      final second = engine.enemies.last;
+      final order = engine.frameOrder;
+      expect(order.first, second, reason: '后出发的敌人进度更小');
+      expect(order.last, first, reason: '先出发的敌人应排在进度更大的位置');
+
+      first.distance = first.routeLength * 0.1;
+      second.distance = second.routeLength * 0.9;
+      engine.update(1 / 60);
+
+      final reordered = engine.frameOrder;
+      expect(identical(reordered, order), isTrue, reason: '排序应原地复用列表');
+      expect(reordered.last, second, reason: '超车后应按新进度重排');
+      for (var i = 1; i < reordered.length; i++) {
+        expect(reordered[i - 1].progress, lessThanOrEqualTo(reordered[i].progress));
+      }
+    });
+
+    test('过期特效、飘字与已命中弹道在一次遍历中原地压缩', () {
+      final engine = DefenseEngine(
+        level: straightLevel(
+          waves: [
+            WaveDef([spawn(EnemyKind.slime, 1, delay: 10)], reward: 0),
+          ],
+        ),
+      );
+      engine.startNextWave();
+      engine.floaters.clear();
+      engine.effects.addAll([
+        Effect.spark(const Offset(100, 100), duration: 0.1),
+        Effect.explosion(const Offset(120, 100), radius: 30, duration: 1),
+      ]);
+      engine.floaters.addAll([
+        Floater(text: '旧', position: const Offset(100, 100), duration: 0.1),
+        Floater(text: '新', position: const Offset(120, 100), duration: 1),
+      ]);
+      engine.projectiles.addAll([
+        Projectile(
+          kind: TowerKind.arrow,
+          targetId: 999,
+          position: const Offset(100, 100),
+          targetPosition: const Offset(100, 100),
+          speed: 100,
+          damage: 1,
+          splash: 0,
+          slowFactor: 1,
+          slowDuration: 0,
+          flightTime: 0.05,
+        ),
+        Projectile(
+          kind: TowerKind.arrow,
+          targetId: 999,
+          position: const Offset(100, 100),
+          targetPosition: const Offset(400, 100),
+          speed: 10,
+          damage: 1,
+          splash: 0,
+          slowFactor: 1,
+          slowDuration: 0,
+          flightTime: 10,
+        ),
+      ]);
+
+      engine.update(0.2);
+
+      expect(engine.effects.first.kind, EffectKind.explosion);
+      expect(engine.effects, hasLength(2), reason: '命中会补一个火花特效');
+      expect(engine.floaters.single.text, '新');
+      expect(engine.projectiles.single.flightTime, 10);
+    });
   });
 
   group('渲染缓存', () {

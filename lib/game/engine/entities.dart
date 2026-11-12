@@ -68,7 +68,9 @@ class Enemy {
     required this.routeLength,
     this.jumps = const <PortalJump>[],
     this.flying = false,
-  }) : hp = maxHp;
+  }) : hp = maxHp {
+    if (routeLength <= 0) _progress = 1;
+  }
 
   final int id;
   final EnemyKind kind;
@@ -96,7 +98,16 @@ class Enemy {
   final double routeLength;
 
   double hp;
-  double distance = 0;
+
+  /// 距离变化时同步刷新归一化进度，索敌排序直接读缓存值。
+  double get distance => _distance;
+  set distance(double value) {
+    _distance = value;
+    _progress = routeLength <= 0 ? 1 : (value / routeLength).clamp(0.0, 1.0);
+  }
+
+  double _distance = 0;
+  double _progress = 0;
 
   /// 每逻辑帧缓存的位置，渲染插值与索敌直接复用，避免重复扫描路径。
   Offset position = Offset.zero;
@@ -118,7 +129,7 @@ class Enemy {
   bool get poisoned => poisonTimer > 0;
 
   /// 归一化行进进度，地面与飞行敌人可以放在同一尺度上比较。
-  double get progress => routeLength <= 0 ? 1 : (distance / routeLength).clamp(0.0, 1.0);
+  double get progress => _progress;
 
   double get currentSpeed => speed * (slowTimer > 0 ? slowFactor : 1);
 }

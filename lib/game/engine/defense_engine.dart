@@ -139,11 +139,23 @@ class DefenseEngine {
   /// 不必像过去那样为每座塔完整遍历一遍敌人。
   List<Enemy> get frameOrder {
     if (_orderDirty) {
-      final order = _frameOrder..clear();
-      for (final enemy in enemies) {
-        if (enemy.alive) order.add(enemy);
+      final order = _frameOrder;
+      var write = 0;
+      for (var read = 0; read < order.length; read++) {
+        final enemy = order[read];
+        if (enemy.alive) order[write++] = enemy;
       }
-      order.sort(_byProgress);
+      order.length = write;
+      // 敌人只会前进，顺序在相邻两帧之间几乎不变，插入排序接近 O(n)。
+      for (var i = 1; i < order.length; i++) {
+        final item = order[i];
+        var j = i - 1;
+        while (j >= 0 && order[j].progress > item.progress) {
+          order[j + 1] = order[j];
+          j--;
+        }
+        order[j + 1] = item;
+      }
       _orderDirty = false;
     }
     return _frameOrderView;
@@ -312,6 +324,7 @@ class DefenseEngine {
       ..position = position
       ..prevPosition = position;
     enemies.add(enemy);
+    _frameOrder.add(enemy);
     _aliveCount++;
     _enemyIndex[id] = enemy;
     _orderDirty = true;
@@ -532,7 +545,9 @@ class DefenseEngine {
   }
 
   void _updateProjectiles(double dt) {
-    for (final projectile in projectiles) {
+    var write = 0;
+    for (var read = 0; read < projectiles.length; read++) {
+      final projectile = projectiles[read];
       projectile.elapsed += dt;
       final target = _enemyById(projectile.targetId);
       if (target != null && target.alive) {
@@ -549,8 +564,9 @@ class DefenseEngine {
       } else {
         projectile.position += delta / distance * step;
       }
+      if (!projectile.done) projectiles[write++] = projectile;
     }
-    projectiles.removeWhere((projectile) => projectile.done);
+    if (write != projectiles.length) projectiles.length = write;
   }
 
   void _impact(Projectile projectile) {
@@ -667,14 +683,22 @@ class DefenseEngine {
   }
 
   void _updateVisuals(double dt) {
-    for (final effect in effects) {
+    var write = 0;
+    for (var read = 0; read < effects.length; read++) {
+      final effect = effects[read];
       effect.elapsed += dt;
+      if (!effect.finished) effects[write++] = effect;
     }
-    effects.removeWhere((effect) => effect.finished);
-    for (final floater in floaters) {
+    if (write != effects.length) effects.length = write;
+
+    write = 0;
+    for (var read = 0; read < floaters.length; read++) {
+      final floater = floaters[read];
       floater.elapsed += dt;
+      if (!floater.finished) floaters[write++] = floater;
     }
-    floaters.removeWhere((floater) => floater.finished);
+    if (write != floaters.length) floaters.length = write;
+
     if (_carrotPulse > 0) _carrotPulse = math.max(0, _carrotPulse - dt * 2.4);
   }
 
@@ -715,6 +739,4 @@ class DefenseEngine {
   void dispose() => hud.dispose();
 
   static Offset _direction(double angle) => Offset(math.cos(angle), math.sin(angle));
-
-  static int _byProgress(Enemy a, Enemy b) => a.progress.compareTo(b.progress);
 }
