@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 关卡地貌：决定地面、道路与装饰物的配色。
 enum LevelTheme {

@@ -13,8 +13,8 @@ import 'package:carrot_defense/models/level.dart';
 import 'package:carrot_defense/services/storage_service.dart';
 import 'package:carrot_defense/theme/level_theme.dart';
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'test_utils.dart';
 

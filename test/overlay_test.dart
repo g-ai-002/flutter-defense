@@ -5,8 +5,8 @@ import 'package:carrot_defense/pages/widgets/game_overlays.dart';
 import 'package:carrot_defense/providers/settings_provider.dart';
 import 'package:carrot_defense/services/storage_service.dart';
 import 'package:carrot_defense/theme/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import 'test_utils.dart';

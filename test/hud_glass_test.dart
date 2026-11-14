@@ -5,8 +5,8 @@ import 'package:carrot_defense/pages/widgets/hud_bottom_dock.dart';
 import 'package:carrot_defense/pages/widgets/hud_chrome.dart';
 import 'package:carrot_defense/pages/widgets/hud_info_bars.dart';
 import 'package:carrot_defense/theme/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'test_utils.dart';
 

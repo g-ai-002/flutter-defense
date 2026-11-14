@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/material.dart' hide Gradient;
+import 'package:material_ui/material_ui.dart' hide Gradient;
 
 import '../game/engine/defense_engine.dart';
 import '../game/logic_rate.dart';
