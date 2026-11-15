@@ -32,6 +32,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       body: Container(
+        key: const ValueKey('home-backdrop'),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -46,52 +47,60 @@ class HomePage extends StatelessWidget {
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 980 && constraints.maxHeight >= 600;
               final horizontal = constraints.maxWidth >= 900 ? 36.0 : 18.0;
+              // 内容不足一屏时上下等分留白，首页在任意窗口比例下都垂直居中。
+              const vertical = 16.0;
               return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 22),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1160),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _TopBar(
-                          darkMode: settings.darkMode,
-                          onToggleDark: () => settings.setDarkMode(!settings.darkMode),
-                        ),
-                        const SizedBox(height: 16),
-                        if (wide)
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 6,
-                                child: _Hero(progress: progress, compact: false, narrow: false),
-                              ),
-                              const SizedBox(width: 26),
-                              SizedBox(
-                                width: 430,
-                                child: _Entries(progress: progress, compact: false),
-                              ),
-                            ],
-                          )
-                        else ...[
-                          _Hero(
-                            progress: progress,
-                            compact: true,
-                            narrow: constraints.maxWidth < 520,
+                padding: EdgeInsets.fromLTRB(horizontal, vertical, horizontal, vertical),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: math.max(0.0, constraints.maxHeight - vertical * 2),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1160),
+                      child: Column(
+                        key: const ValueKey('home-content'),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _TopBar(
+                            darkMode: settings.darkMode,
+                            onToggleDark: () => settings.setDarkMode(!settings.darkMode),
                           ),
-                          const SizedBox(height: 18),
-                          _Entries(progress: progress, compact: true),
+                          const SizedBox(height: 16),
+                          if (wide)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 6,
+                                  child: _Hero(progress: progress, compact: false, narrow: false),
+                                ),
+                                const SizedBox(width: 26),
+                                SizedBox(
+                                  width: 430,
+                                  child: _Entries(progress: progress, compact: false),
+                                ),
+                              ],
+                            )
+                          else ...[
+                            _Hero(
+                              progress: progress,
+                              compact: true,
+                              narrow: constraints.maxWidth < 520,
+                            ),
+                            const SizedBox(height: 18),
+                            _Entries(progress: progress, compact: true),
+                          ],
+                          const SizedBox(height: 20),
+                          Text(
+                            'v${AppConstants.version} · 本地单机 · 无需联网',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
-                        const SizedBox(height: 20),
-                        Text(
-                          'v${AppConstants.version} · 本地单机 · 无需联网',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

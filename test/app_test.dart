@@ -83,6 +83,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('首页背景铺满窗口且内容垂直居中', (tester) async {
+    const view = Size(1280, 1100);
+    await tester.binding.setSurfaceSize(view);
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+
+    final backdrop = tester.getRect(find.byKey(const ValueKey('home-backdrop')));
+    expect(backdrop.size, view, reason: '背景应铺满整个窗口，不留黑边');
+    expect(backdrop.topLeft, Offset.zero);
+
+    final content = tester.getRect(find.byKey(const ValueKey('home-content')));
+    expect(content.height, lessThan(view.height), reason: '内容高度应小于窗口，才能验证居中');
+    expect(content.top, closeTo(view.height - content.bottom, 1), reason: '内容不足一屏时应上下等分留白');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('手机横屏尺寸下首页不溢出', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 450));
     addTearDown(() => tester.binding.setSurfaceSize(null));
