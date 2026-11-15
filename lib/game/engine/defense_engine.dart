@@ -51,6 +51,9 @@ class DefenseEngine {
   final List<Tower> _activeTowers = [];
   late final List<Tower> _activeTowersView = UnmodifiableListView(_activeTowers);
 
+  /// 建造位与塔身的结构版本：建造、升级、出售时自增，渲染层据此判断静态图层是否过期。
+  int structureVersion = 0;
+
   /// 存活敌人按行进进度升序排列，索敌、连锁与绘制共用同一份顺序。
   final List<Enemy> _frameOrder = [];
   late final List<Enemy> _frameOrderView = UnmodifiableListView(_frameOrder);
@@ -195,6 +198,7 @@ class DefenseEngine {
       ..totalSpent = cost;
     towers[slot] = tower;
     _activeTowers.add(tower);
+    structureVersion++;
     selectedSlot = slot;
     effects.add(Effect.buildDust(tower.position));
     events.add(GameEvent.build);
@@ -210,6 +214,7 @@ class DefenseEngine {
     gold -= cost;
     tower.totalSpent += cost;
     tower.applyUpgrade();
+    structureVersion++;
     effects.add(Effect.buildDust(tower.position, radius: 40, duration: 0.5));
     events.add(GameEvent.upgrade);
     _bump();
@@ -222,6 +227,7 @@ class DefenseEngine {
     gold += tower.sellValue;
     towers[slot] = null;
     _activeTowers.remove(tower);
+    structureVersion++;
     selectedSlot = null;
     effects.add(Effect.buildDust(tower.position, radius: 30, duration: 0.4));
     events.add(GameEvent.sell);

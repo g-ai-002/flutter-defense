@@ -394,6 +394,45 @@ void main() {
       speed.dispose();
     });
 
+    test('建造位与塔身底座按结构版本合并录制，选择状态不触发重录', () {
+      final engine = DefenseEngine(level: kLevels.first);
+      final paused = ValueNotifier<bool>(false);
+      final speed = ValueNotifier<double>(1);
+      final board = BoardComponent(
+        engine: engine,
+        logicRate: LogicRate.hz60,
+        pausedNotifier: paused,
+        speed: speed,
+      )..size = Vector2(900, 540);
+
+      _renderOnce(board);
+      final builds = board.structureLayerBuilds;
+      expect(builds, 2, reason: '建造位与塔身底座各录制一次');
+
+      _renderOnce(board);
+      expect(board.structureLayerBuilds, builds, reason: '结构未变时应复用同一批图层');
+
+      engine.selectSlot(0);
+      _renderOnce(board);
+      expect(board.structureLayerBuilds, builds, reason: '选中建造位只影响高亮，不重录图层');
+
+      expect(engine.build(0, TowerKind.arrow), isTrue);
+      _renderOnce(board);
+      expect(board.structureLayerBuilds, builds + 2, reason: '建造后两张图层各重录一次');
+      _renderOnce(board);
+      expect(board.structureLayerBuilds, builds + 2);
+
+      engine.upgrade(0);
+      engine.sell(0);
+      _renderOnce(board);
+      expect(board.structureLayerBuilds, builds + 4, reason: '升级与出售同样按结构版本重录');
+
+      board.onRemove();
+      engine.dispose();
+      paused.dispose();
+      speed.dispose();
+    });
+
     test('动态层复用画笔，重复渲染不再新建 Paint', () {
       final engine = DefenseEngine(
         level: straightLevel(

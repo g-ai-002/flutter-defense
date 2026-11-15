@@ -15,8 +15,17 @@ class BoardActorLayer {
   BoardActorLayer({required this.engine});
 
   final DefenseEngine engine;
-  final Map<String, TextPainter> _textCache = {};
+  final Map<String, List<TextPainter?>> _textCache = {};
   final Map<int, ui.Picture> _rangeLayers = {};
+
+  /// 建造位石台与塔身底座只在建造、升级、出售后变化，合并录制后每帧各画一次。
+  ui.Picture? _padLayer;
+  ui.Picture? _towerBodyLayer;
+  int _structureKey = -1;
+  int _structureLayerBuilds = 0;
+
+  /// 结构图层录制次数，供性能回归测试确认批量图层复用生效。
+  int get structureLayerBuilds => _structureLayerBuilds;
 
   void paintCarrotTarget(Canvas canvas) {
     final end = engine.track.end;
@@ -32,18 +41,15 @@ class BoardActorLayer {
 
   void paintPads(Canvas canvas, double visualTime) {
     final armedKind = engine.armedKind;
-    final armed = armedKind != null;
-    final armedCost = armed ? towerStats(armedKind, 1).cost : 0;
+    final armed = armedKind != null && engine.gold >= towerStats(armedKind, 1).cost;
+    final selected = engine.selectedSlot;
+    // 石台本身一次性画完，高亮呼吸圈只画需要发光的那几个。
+    canvas.drawPicture(_padSprite());
+    if (!armed && selected == null) return;
     for (var i = 0; i < engine.slotPositions.length; i++) {
       if (engine.towerAt(i) != null) continue;
-      paintPad(
-        canvas,
-        engine.slotPositions[i],
-        27,
-        armed: armed && engine.gold >= armedCost,
-        selected: engine.selectedSlot == i,
-        pulse: visualTime,
-      );
+      if (!armed && i != selected) continue;
+      paintPadGlow(canvas, engine.slotPositions[i], 27, armed: armed, pulse: visualTime);
     }
   }
 
@@ -74,16 +80,22 @@ class BoardActorLayer {
   }
 
   void paintTowers(Canvas canvas) {
+    final selected = engine.selectedTower;
+    if (selected != null) {
+      canvas.save();
+      canvas.translate(selected.position.dx, selected.position.dy);
+      paintTowerSelection(canvas, 27);
+      canvas.restore();
+    }
+    canvas.drawPicture(_towerBodiesSprite());
     for (final tower in engine.activeTowers) {
-      paintTower(
+      paintTowerTurret(
         canvas,
         tower.kind,
         tower.position,
         27,
         angle: tower.angle,
-        level: tower.level,
         recoil: tower.recoil,
-        selected: engine.selectedSlot == tower.slotIndex,
       );
     }
   }
@@ -247,10 +259,46 @@ class BoardActorLayer {
       layer.dispose();
     }
     _rangeLayers.clear();
-    for (final painter in _textCache.values) {
-      painter.dispose();
+    _padLayer?.dispose();
+    _padLayer = null;
+    _towerBodyLayer?.dispose();
+    _towerBodyLayer = null;
+    for (final painters in _textCache.values) {
+      for (final painter in painters) {
+        painter?.dispose();
+      }
     }
     _textCache.clear();
+  }
+
+  /// 空白建造位的石台与已建塔的底座合并成两张图层，结构没变时每帧各画一次。
+  ui.Picture _padSprite() {
+    _ensureStructureLayers();
+    return _padLayer!;
+  }
+
+  /// 已建塔的底座合并成一张图层，炮塔角度与后坐力仍逐塔实时绘制。
+  ui.Picture _towerBodiesSprite() {
+    _ensureStructureLayers();
+    return _towerBodyLayer!;
+  }
+
+  void _ensureStructureLayers() {
+    if (_padLayer != null && _structureKey == engine.structureVersion) return;
+    _structureKey = engine.structureVersion;
+    _padLayer?.dispose();
+    _towerBodyLayer?.dispose();
+    _structureLayerBuilds += 2;
+    _padLayer = recordPicture((padCanvas) {
+      for (var i = 0; i < engine.slotPositions.length; i++) {
+        if (engine.towerAt(i) == null) paintPadBase(padCanvas, engine.slotPositions[i], 27);
+      }
+    });
+    _towerBodyLayer = recordPicture((bodyCanvas) {
+      for (final tower in engine.activeTowers) {
+        paintTowerBody(bodyCanvas, tower.kind, tower.position, 27, tower.level);
+      }
+    });
   }
 
   /// 射程虚线圈形状固定，按半径缓存，避免每帧重复 36 次 drawArc。
@@ -296,17 +344,21 @@ class BoardActorLayer {
   }
 
   TextPainter _textPainter(String text, double fontSize, Color color, {bool bold = false}) {
-    // 透明度按 1/16 量化，飘字渐隐时不再每帧新建 TextPainter。
+    // 透明度按 1/16 量化，飘字渐隐时不再每帧新建 TextPainter；
+    // 按文本分组缓存，键比较不再逐帧拼接字符串。
     final alpha = color.a <= 0 ? 0 : (color.a * 16).ceil().clamp(1, 16);
-    final key = '$text|$fontSize|$alpha|$bold';
-    final cached = _textCache[key];
-    if (cached != null) return cached;
-    if (_textCache.length > 160) {
+    if (!_textCache.containsKey(text) && _textCache.length > 160) {
       final stale = _textCache.keys.take(32).toList();
-      for (final item in stale) {
-        _textCache.remove(item)?.dispose();
+      for (final key in stale) {
+        for (final painter in _textCache.remove(key) ?? const <TextPainter?>[]) {
+          painter?.dispose();
+        }
       }
     }
+    final variants = _textCache.putIfAbsent(text, () => List<TextPainter?>.filled(32, null));
+    final slot = (fontSize >= 26 ? 16 : 0) + (bold ? 8 : 0) + alpha - 1;
+    final cached = variants[slot];
+    if (cached != null) return cached;
     final painter = TextPainter(
       text: TextSpan(
         text: text,
@@ -319,7 +371,7 @@ class BoardActorLayer {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    _textCache[key] = painter;
+    variants[slot] = painter;
     return painter;
   }
 }

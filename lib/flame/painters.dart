@@ -287,49 +287,66 @@ void paintTower(
 }) {
   canvas.save();
   canvas.translate(center.dx, center.dy);
-
-  if (selected) {
-    canvas.drawCircle(
-      Offset.zero,
-      radius * 1.18,
-      dynStroke(const Color(0xFFFFE08A), radius * 0.09),
-    );
-  }
-
+  if (selected) paintTowerSelection(canvas, radius);
   canvas.drawPicture(_towerBodySprite(kind, level, radius));
+  canvas.restore();
+  paintTowerTurret(canvas, kind, center, radius, angle: angle, recoil: recoil);
+}
 
+/// 塔身底座：不含炮塔，可批量录进静态图层。
+void paintTowerBody(Canvas canvas, TowerKind kind, Offset center, double radius, int level) {
   canvas.save();
+  canvas.translate(center.dx, center.dy);
+  canvas.drawPicture(_towerBodySprite(kind, level, radius));
+  canvas.restore();
+}
+
+/// 选中塔的高亮圆环，随选择状态单独绘制。
+void paintTowerSelection(Canvas canvas, double radius) {
+  canvas.drawCircle(Offset.zero, radius * 1.18, dynStroke(const Color(0xFFFFE08A), radius * 0.09));
+}
+
+/// 炮塔：角度与后坐力每帧变化，只旋转这一层。
+void paintTowerTurret(
+  Canvas canvas,
+  TowerKind kind,
+  Offset center,
+  double radius, {
+  required double angle,
+  double recoil = 0,
+}) {
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
   canvas.rotate(angle);
   if (recoil > 0) canvas.translate(-recoil * radius * 0.16, 0);
   canvas.drawPicture(towerTurretSprite(kind, radius));
   canvas.restore();
-  canvas.restore();
 }
 
-/// 空建造位：石制圆台 + 加号。
-void paintPad(
-  Canvas canvas,
-  Offset center,
-  double radius, {
-  bool armed = false,
-  bool selected = false,
-  double pulse = 0,
-}) {
+/// 建造位石台：形状固定，可批量录进静态图层。
+void paintPadBase(Canvas canvas, Offset center, double radius) {
   canvas.save();
   canvas.translate(center.dx, center.dy);
   canvas.drawPicture(_padBaseSprite(radius));
-
-  if (armed || selected) {
-    final glow = armed ? const Color(0xFF9BE36C) : const Color(0xFFFFE08A);
-    final spread = radius * (1.1 + 0.06 * math.sin(pulse * 4));
-    canvas.drawCircle(Offset.zero, spread, dynStroke(glow.withValues(alpha: 0.85), radius * 0.1));
-    canvas.drawCircle(
-      Offset.zero,
-      spread + radius * 0.08,
-      dynStroke(glow.withValues(alpha: 0.25), radius * 0.16),
-    );
-  }
   canvas.restore();
+}
+
+/// 建造位高亮：实时呼吸描边，只在选中或布塔模式下绘制。
+void paintPadGlow(
+  Canvas canvas,
+  Offset center,
+  double radius, {
+  required bool armed,
+  double pulse = 0,
+}) {
+  final glow = armed ? const Color(0xFF9BE36C) : const Color(0xFFFFE08A);
+  final spread = radius * (1.1 + 0.06 * math.sin(pulse * 4));
+  canvas.drawCircle(center, spread, dynStroke(glow.withValues(alpha: 0.85), radius * 0.1));
+  canvas.drawCircle(
+    center,
+    spread + radius * 0.08,
+    dynStroke(glow.withValues(alpha: 0.25), radius * 0.16),
+  );
 }
 
 /// UI 中的塔图标：与战场塔同一套绘制，缩放到指定尺寸。

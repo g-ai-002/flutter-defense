@@ -51,6 +51,10 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   @visibleForTesting
   int get staticLayerBuilds => _ground.staticLayerBuilds;
 
+  /// 建造位与塔身底座图层的录制次数，供性能回归测试确认批量图层复用生效。
+  @visibleForTesting
+  int get structureLayerBuilds => _actors.structureLayerBuilds;
+
   @override
   void update(double dt) {
     super.update(dt);
