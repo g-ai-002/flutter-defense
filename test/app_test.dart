@@ -102,6 +102,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('首页背景铺到系统栏下方，内容避开安全区并居中', (tester) async {
+    const view = Size(1280, 1100);
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(top: 24, bottom: 48);
+    addTearDown(() {
+      tester.view.resetPadding();
+      tester.view.resetDevicePixelRatio();
+      tester.binding.setSurfaceSize(null);
+    });
+    await tester.binding.setSurfaceSize(view);
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(CarrotDefenseApp(storage: storage));
+    await tester.pump();
+
+    final backdrop = tester.getRect(find.byKey(const ValueKey('home-backdrop')));
+    expect(backdrop.size, view, reason: '深色渐变应延伸到状态栏与导航栏下方');
+
+    final content = tester.getRect(find.byKey(const ValueKey('home-content')));
+    expect(content.top, greaterThanOrEqualTo(24), reason: '内容应避开顶部系统栏');
+    expect(content.bottom, lessThanOrEqualTo(view.height - 48), reason: '内容应避开底部导航栏');
+    expect(
+      content.top - 24,
+      closeTo(view.height - 48 - content.bottom, 1),
+      reason: '安全区内上下留白应相等',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('手机横屏尺寸下首页不溢出', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 450));
     addTearDown(() => tester.binding.setSurfaceSize(null));
