@@ -22,7 +22,6 @@ class BoardGround {
   late final List<_Blob> _blobs;
 
   ui.Picture? _staticLayer;
-  ui.Picture? _startGlow;
   int _staticLayerBuilds = 0;
 
   LevelPalette get _palette => paletteOf(engine.level.theme);
@@ -37,39 +36,9 @@ class BoardGround {
     canvas.drawPicture(_staticLayer!);
   }
 
-  /// 起点光圈录制为渐变精灵，每帧只按呼吸节奏缩放，不再实时模糊。
-  void paintStartGlow(Canvas canvas, double visualTime) {
-    final start = _track.start;
-    final scale = 0.92 + 0.16 * math.sin(visualTime * 2);
-    canvas.save();
-    canvas.translate(start.dx, start.dy);
-    canvas.scale(scale);
-    canvas.drawPicture(_startGlowSprite());
-    canvas.restore();
-  }
-
   void dispose() {
     _staticLayer?.dispose();
-    _startGlow?.dispose();
     _staticLayer = null;
-    _startGlow = null;
-  }
-
-  ui.Picture _startGlowSprite() {
-    final cached = _startGlow;
-    if (cached != null) return cached;
-    final picture = recordPicture((canvas) {
-      final rect = Rect.fromCircle(center: Offset.zero, radius: 24);
-      canvas.drawCircle(
-        Offset.zero,
-        24,
-        Paint()
-          ..shader = const RadialGradient(colors: [Color(0x59B84DFF), Color(0x00B84DFF)])
-              .createShader(rect),
-      );
-    });
-    _startGlow = picture;
-    return picture;
   }
 
   void _buildStaticLayer() {

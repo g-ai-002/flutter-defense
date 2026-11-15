@@ -1,4 +1,5 @@
 import 'package:carrot_defense/app.dart';
+import 'package:carrot_defense/flame/board_backdrop.dart';
 import 'package:carrot_defense/flame/board_layout.dart';
 import 'package:carrot_defense/flame/defense_game.dart';
 import 'package:carrot_defense/models/endless.dart';
@@ -200,6 +201,14 @@ void main() {
     expect(find.text('1/6 波'), findsOneWidget);
     expect(find.text('开始第 1 波'), findsOneWidget);
     expect(find.text('弓弩塔'), findsNothing);
+
+    // 静态地貌独立成层并铺满窗口，战场画布只负责动态内容。
+    final backdrop = find.byType(BoardBackdrop);
+    expect(backdrop, findsOneWidget);
+    final backdropRect = tester.getRect(backdrop);
+    expect(backdropRect.size, const Size(1200, 700));
+    expect(backdropRect.topLeft.dx, closeTo(0, 1), reason: '背景层应贴住窗口左侧');
+    expect(backdropRect.topLeft.dy, closeTo(0, 1), reason: '背景层应贴住窗口顶部');
 
     await tester.tap(find.byTooltip('暂停'));
     await tester.pump();

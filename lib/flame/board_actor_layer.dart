@@ -21,11 +21,39 @@ class BoardActorLayer {
   /// 建造位石台与塔身底座只在建造、升级、出售后变化，合并录制后每帧各画一次。
   ui.Picture? _padLayer;
   ui.Picture? _towerBodyLayer;
+  ui.Picture? _startGlow;
   int _structureKey = -1;
   int _structureLayerBuilds = 0;
 
   /// 结构图层录制次数，供性能回归测试确认批量图层复用生效。
   int get structureLayerBuilds => _structureLayerBuilds;
+
+  /// 起点光圈录制为渐变精灵，每帧只按呼吸节奏缩放，不再实时模糊。
+  void paintStartGlow(Canvas canvas, double visualTime) {
+    final start = engine.track.start;
+    final scale = 0.92 + 0.16 * math.sin(visualTime * 2);
+    canvas.save();
+    canvas.translate(start.dx, start.dy);
+    canvas.scale(scale);
+    canvas.drawPicture(_startGlowSprite());
+    canvas.restore();
+  }
+
+  ui.Picture _startGlowSprite() {
+    final cached = _startGlow;
+    if (cached != null) return cached;
+    final picture = recordPicture((canvas) {
+      canvas.drawCircle(
+        Offset.zero,
+        24,
+        Paint()
+          ..shader = const RadialGradient(colors: [Color(0x59B84DFF), Color(0x00B84DFF)])
+              .createShader(Rect.fromCircle(center: Offset.zero, radius: 24)),
+      );
+    });
+    _startGlow = picture;
+    return picture;
+  }
 
   void paintCarrotTarget(Canvas canvas) {
     final end = engine.track.end;
@@ -263,6 +291,8 @@ class BoardActorLayer {
     _padLayer = null;
     _towerBodyLayer?.dispose();
     _towerBodyLayer = null;
+    _startGlow?.dispose();
+    _startGlow = null;
     for (final painters in _textCache.values) {
       for (final painter in painters) {
         painter?.dispose();

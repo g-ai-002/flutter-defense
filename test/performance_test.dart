@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:carrot_defense/flame/art_utils.dart';
+import 'package:carrot_defense/flame/board_backdrop.dart';
 import 'package:carrot_defense/flame/board_component.dart';
+import 'package:carrot_defense/flame/board_ground.dart';
 import 'package:carrot_defense/game/engine/defense_engine.dart';
 import 'package:carrot_defense/game/engine/entities.dart';
 import 'package:carrot_defense/game/engine/path_track.dart';
@@ -342,6 +344,46 @@ void main() {
       board.size = Vector2(1024, 600);
       _renderOnce(board);
       expect(board.staticLayerBuilds, 1, reason: '延伸地貌与尺寸无关，换窗口尺寸无需重录');
+
+      board.onRemove();
+      engine.dispose();
+      paused.dispose();
+      speed.dispose();
+    });
+
+    test('独立背景图层的静态地貌跨窗口尺寸只录制一次', () {
+      final engine = DefenseEngine(level: kLevels.first);
+      final ground = BoardGround(engine: engine);
+      final painter = BoardGroundPainter(ground);
+
+      void paint(Size size) {
+        final recorder = ui.PictureRecorder();
+        painter.paint(Canvas(recorder), size);
+        recorder.endRecording().dispose();
+      }
+
+      paint(const Size(900, 540));
+      expect(ground.staticLayerBuilds, 1);
+      paint(const Size(1400, 900));
+      expect(ground.staticLayerBuilds, 1, reason: '地貌延伸范围固定，换窗口尺寸无需重建图层');
+      expect(painter.shouldRepaint(BoardGroundPainter(ground)), isFalse);
+      ground.dispose();
+    });
+
+    test('对局画布不再逐帧重放静态地貌', () {
+      final engine = DefenseEngine(level: kLevels.first);
+      final paused = ValueNotifier<bool>(false);
+      final speed = ValueNotifier<double>(1);
+      final board = BoardComponent(
+        engine: engine,
+        logicRate: LogicRate.hz60,
+        pausedNotifier: paused,
+        speed: speed,
+        paintGround: false,
+      )..size = Vector2(900, 540);
+
+      _renderOnce(board);
+      expect(board.staticLayerBuilds, 0, reason: '静态地貌由独立图层绘制，战场画布只保留动态内容');
 
       board.onRemove();
       engine.dispose();

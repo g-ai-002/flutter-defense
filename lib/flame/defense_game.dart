@@ -7,12 +7,16 @@ import 'board_component.dart';
 
 /// Flame 游戏入口：只挂一个战场组件，战斗逻辑由其按固定步长推进。
 class DefenseGame extends FlameGame {
-  DefenseGame({required this.engine, required this.logicRate}) {
+  DefenseGame({required this.engine, required this.logicRate, this.paintGround = true}) {
     _activeGames++;
   }
 
   final DefenseEngine engine;
   final LogicRate logicRate;
+
+  /// 静态地貌是否随画布逐帧绘制；对局页由独立图层绘制时传 false。
+  final bool paintGround;
+
   final ValueNotifier<bool> pausedNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<double> speed = ValueNotifier<double>(1);
   BoardComponent? _board;
@@ -35,6 +39,7 @@ class DefenseGame extends FlameGame {
       logicRate: logicRate,
       pausedNotifier: pausedNotifier,
       speed: speed,
+      paintGround: paintGround,
     )..size = size.clone();
     _board = board;
     await add(board);

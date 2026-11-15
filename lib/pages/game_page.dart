@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../flame/board_backdrop.dart';
 import '../flame/defense_game.dart';
 import '../game/daily.dart';
 import '../game/engine/defense_engine.dart';
@@ -52,7 +53,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     super.initState();
     final settings = context.read<SettingsProvider>();
     _engine = DefenseEngine(level: widget.level);
-    _game = DefenseGame(engine: _engine, logicRate: settings.logicRate);
+    _game = DefenseGame(engine: _engine, logicRate: settings.logicRate, paintGround: false);
     _engine.hud.addListener(_onEngineTick);
     WidgetsBinding.instance.addObserver(this);
     LogService.info(
@@ -200,6 +201,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           backgroundColor: const Color(0xFF1B1811),
           body: Stack(
             children: [
+              // 静态地貌独立成层，战斗渲染每帧只重绘动态单位，光栅缓存可跨帧复用。
+              Positioned.fill(child: BoardBackdrop(engine: _engine)),
               Positioned.fill(
                 child: RepaintBoundary(
                   child: GameWidget<DefenseGame>(key: ValueKey(_engine.hashCode), game: _game),

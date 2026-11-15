@@ -17,8 +17,10 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     required this.logicRate,
     required this.pausedNotifier,
     required this.speed,
-  }) : _clock = FixedStepClock(logicRate.step) {
-    _ground = BoardGround(engine: engine);
+    this.paintGround = true,
+  }) : _clock = FixedStepClock(logicRate.step),
+       // 对局页把静态地貌放到独立的 BoardBackdrop 图层，画布这边只保留动态内容。
+       _ground = paintGround ? BoardGround(engine: engine) : null {
     _actors = BoardActorLayer(engine: engine);
   }
 
@@ -27,9 +29,12 @@ class BoardComponent extends PositionComponent with TapCallbacks {
   final ValueNotifier<bool> pausedNotifier;
   final ValueNotifier<double> speed;
 
+  /// 是否在画布内绘制静态地貌；对局页由 `BoardBackdrop` 单独绘制时传 false。
+  final bool paintGround;
+
   final FixedStepClock _clock;
   final BoardEventFeedback _feedback = BoardEventFeedback();
-  late final BoardGround _ground;
+  final BoardGround? _ground;
   late final BoardActorLayer _actors;
   late final void Function(double) _stepEngine = engine.update;
   double _visualTime = 0;
@@ -49,7 +54,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
   /// 静态图层被录制的次数，供性能回归测试确认缓存生效。
   @visibleForTesting
-  int get staticLayerBuilds => _ground.staticLayerBuilds;
+  int get staticLayerBuilds => _ground?.staticLayerBuilds ?? 0;
 
   /// 建造位与塔身底座图层的录制次数，供性能回归测试确认批量图层复用生效。
   @visibleForTesting
@@ -98,8 +103,8 @@ class BoardComponent extends PositionComponent with TapCallbacks {
     canvas.translate(layout.origin.dx, layout.origin.dy);
     canvas.scale(layout.scale);
 
-    _ground.paintStatic(canvas);
-    _ground.paintStartGlow(canvas, _visualTime);
+    _ground?.paintStatic(canvas);
+    _actors.paintStartGlow(canvas, _visualTime);
     _actors.paintFogMist(canvas, _visualTime);
     _actors.paintCarrotTarget(canvas);
     _actors.paintPads(canvas, _visualTime);
@@ -114,7 +119,7 @@ class BoardComponent extends PositionComponent with TapCallbacks {
 
   @override
   void onRemove() {
-    _ground.dispose();
+    _ground?.dispose();
     _actors.dispose();
     super.onRemove();
   }
